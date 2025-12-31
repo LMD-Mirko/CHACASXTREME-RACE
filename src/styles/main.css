@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Poppins:wght@600;700;800&display=swap');
+
+:root {
+    --bg-color: #050505;
+    --surface-color: #0f0f0f;
+    --primary-color: #ff5e00;
+    /* Vibrant Orange from the poster */
+    --secondary-color: #fbbf24;
+    /* Golden Yellow from the poster */
+    --accent-red: #e11d48;
+    /* Red from the 'X' */
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --accent-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-accent: 'Poppins', sans-serif;
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    overflow-x: hidden;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--font-accent);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+::selection {
+    background-color: var(--primary-color);
+    color: black;
+}
+
+/* Global Reveal System */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fix for fixed navbar and anchor links */
+[id] {
+    scroll-margin-top: 100px;
+}
