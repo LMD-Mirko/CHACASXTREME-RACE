@@ -319,4 +319,9 @@ onUnmounted(() => {
   .navbar__links { display: none; }
   .navbar__mobile-toggle { display: block; }
 }
+
+/* Hide hamburger menu when app is installed (standalone mode) */
+@media (display-mode: standalone) {
+  .navbar__mobile-toggle { display: none !important; }
+}
 </style>
