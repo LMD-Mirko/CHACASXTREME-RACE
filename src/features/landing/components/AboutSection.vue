@@ -2,9 +2,11 @@
 import { onMounted, ref } from 'vue';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useI18n } from 'vue-i18n';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const { t } = useI18n();
 const sectionRef = ref(null);
 const imageRef = ref(null);
 const textRef = ref(null);
@@ -43,32 +45,24 @@ onMounted(() => {
           <img src="@/assets/images/hero2.jpg" alt="Manka Riders Competition" class="about__image" />
           <div class="about__experience-badge">
             <span class="number">1+</span>
-            <span class="text">Años de Pasión</span>
+            <span class="text">{{ t('about.badge_text') }}</span>
           </div>
         </div>
       </div>
       
       <div class="about__text-content" ref="textRef">
-        <h2 class="section-title">CONÓCENOS</h2>
+        <h2 class="section-title">{{ t('about.section_title') }}</h2>
         <div class="accent-line"></div>
-        <h3 class="about__subheadline">MANKA RIDER'S</h3>
-        <p class="about__description">
-          Nuestra aventura comenzó cuando decidimos mostrar lo increíble que es recorrer <strong>Chacas</strong> en bicicleta. 
-          Desde entonces, la comunidad <strong>Manka Rider's</strong> se ha dedicado en compartir nuestra pasión con todos 
-          los que quieran vivir la emoción de pedalear por este hermoso lugar.
-        </p>
-        <p class="about__description">
-          Nuestro equipo está formado por ciclistas locales que conocen cada rincón de la ciudad y están listos para 
-          ofrecerte una experiencia única y llena de adrenalina. Con nosotros, vivirás Chacas de una manera especial, 
-          disfrutando de su belleza y energía en cada recorrido.
-        </p>
+        <h3 class="about__subheadline">{{ t('about.headline') }}</h3>
+        <p class="about__description" v-html="t('about.p1')"></p>
+        <p class="about__description" v-html="t('about.p2')"></p>
         <div class="about__stats">
           <div class="stat-item">
             <span class="stat-number">3</span>
-            <span class="stat-label">Eventos Realizados</span>
+            <span class="stat-label">{{ t('about.events_label') }}</span>
           </div>
         </div>
-        <button class="btn-more">Conocer Más</button>
+        <button class="btn-more">{{ t('about.cta') }}</button>
       </div>
     </div>
   </section>

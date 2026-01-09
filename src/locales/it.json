@@ -1,0 +1,368 @@
+{
+    "nav": {
+        "home": "Home",
+        "riders": "I Riders",
+        "challenge": "La Sfida",
+        "gallery": "Galleria",
+        "contact": "Contatto",
+        "participate": "Partecipare",
+        "events": "Eventi",
+        "chacas": "Chacas",
+        "sponsors": "Sponsor"
+    },
+    "splash": {
+        "system_check": "VERIFICA SISTEMA"
+    },
+    "hero": {
+        "slides": [
+            {
+                "title": "SENTI L'ADRENALINA",
+                "subtitle": "Manka Riders è più di una gara, è una comunità di ciclisti appassionati."
+            },
+            {
+                "title": "SUPERA I TUOI LIMITI",
+                "subtitle": "I nostri percorsi sono progettati per mettere alla prova ogni fibra del tuo corpo e della tua mente."
+            },
+            {
+                "title": "SQUADRA D'ÈLITE",
+                "subtitle": "Disponiamo della migliore tecnologia e organizzazione per rendere la tua esperienza indimenticabile."
+            }
+        ],
+        "tagline": "PRESENTIAMO MANKA RIDERS",
+        "cta_primary": "Iscriviti Ora",
+        "cta_secondary": "Versione Demo"
+    },
+    "language": {
+        "select": "Seleziona Lingua",
+        "es": "Spagnolo",
+        "en": "Inglese",
+        "it": "Italiano"
+    },
+    "challenge": {
+        "badge": "LA SFIDA",
+        "title": "LA JULIA",
+        "description": "Chacas non è solo una gara, è una battaglia contro la natura e contro te stesso. Analizza i dati tecnici e preparati per la gloria.",
+        "stats": [
+            {
+                "label": "ALTITUDINE MAX",
+                "unit": "mslm",
+                "desc": "Una sfida in quota che metterà alla prova i tuoi polmoni."
+            },
+            {
+                "label": "DISTANZA",
+                "unit": "KM",
+                "desc": "Percorso epico tra sentieri e cammini storici."
+            },
+            {
+                "label": "CLIMA ESTREMO",
+                "unit": "°C",
+                "desc": "Variazione termica tipica della cordillera blanca."
+            },
+            {
+                "label": "DIFFICOLTÀ",
+                "unit": "LIVELLO",
+                "desc": "Solo per i ciclisti che non conoscono la paura."
+            }
+        ]
+    },
+    "about": {
+        "badge_text": "Anni di Passione",
+        "section_title": "CONOSCICI",
+        "headline": "MANKA RIDER'S",
+        "p1": "La nostra avventura è iniziata quando abbiamo deciso di mostrare quanto sia incredibile percorrere <strong>Chacas</strong> in bicicletta. Da allora, la comunità <strong>Manka Rider's</strong> si è dedicata a condividere la nostra passione con tutti coloro che vogliono vivere l'emozione di pedalare in questo bellissimo luogo.",
+        "p2": "Il nostro team è formato da ciclisti locali che conoscono ogni angolo della città e sono pronti a offrirti un'esperienza unica e piena di adrenalina. Con noi vivrai Chacas in modo speciale, godendo della sua bellezza ed energia in ogni percorso.",
+        "events_label": "Eventi Realizzati",
+        "cta": "Saperne di Più"
+    },
+    "specs": {
+        "section_title": "LA SFIDA",
+        "headline": "LA ROTTA DEGLI DEI",
+        "intro": "Chacas non è solo una gara, è una battaglia contro la natura e contro te stesso. Analizza i dati tecnici e preparati per la gloria.",
+        "bg_text": "ASCESA",
+        "cards": [
+            {
+                "title": "ALTITUDINE MAX",
+                "unit": "mslm",
+                "desc": "Una sfida in quota che metterà alla prova i tuoi polmoni."
+            },
+            {
+                "title": "DISTANZA",
+                "unit": "KM",
+                "desc": "Percorso epico tra sentieri e cammini storici."
+            },
+            {
+                "title": "CLIMA ESTREMO",
+                "unit": "°C",
+                "desc": "Variazione termica tipica della cordillera blanca."
+            },
+            {
+                "title": "DIFFICOLTÀ",
+                "unit": "LIVELLO",
+                "desc": "Solo per i ciclisti che non conoscono la paura."
+            }
+        ]
+    },
+    "contact": {
+        "badge": "CONTATTO",
+        "title_prefix": "HAI",
+        "title_highlight": "DOMANDE?",
+        "description": "Unisciti alla comunità ciclistica più estrema delle Ande. Siamo pronti ad ascoltarti.",
+        "email_label": "INDIRIZZO E-MAIL",
+        "copied": "COPIATO!",
+        "whatsapp_label": "WHATSAPP DIRETTO"
+    },
+    "footer": {
+        "brand_text": "Portare la mountain bike a un nuovo livello nel cuore delle Ande. Unisciti all'avventura più estrema del Perù.",
+        "titles": {
+            "nav": "Navigazione",
+            "contact": "Contatto",
+            "location": "Posizione"
+        },
+        "nav_links": {
+            "home": "Home",
+            "about": "Chi Siamo",
+            "competitions": "Competizioni",
+            "register": "Iscrizioni"
+        },
+        "rights": "Tutti i diritti riservati.",
+        "terms": "Termini e Condizioni",
+        "privacy": "Politica sulla Privacy"
+    },
+    "sponsors": {
+        "back": "INDIETRO",
+        "badge": "ALLEANZE STRATEGICHE",
+        "title": "SPONSOR",
+        "subtitle": "Unisciti a questa grande avventura e aiuta il ciclismo a crescere a Chacas!",
+        "download": "SCARICA DOSSIER MARCHE",
+        "editorial_title": "UNA MISSIONE CHE",
+        "editorial_title_highlight": "TRASFORMA",
+        "editorial_p1": "Ti invitiamo a far parte di un progetto con il potenziale di trasformare vite e mettere Chacas sulla mappa internazionale del ciclismo. Con il tuo sostegno, porteremo questo sport alle nuove generazioni, promuovendo valori come disciplina e superamento personale.",
+        "editorial_p2": "Il ciclismo è più di un'attività fisica, è uno strumento per lo sviluppo personale e comunitario. Diventando sponsor, contribuirai alla crescita di questa iniziativa e aiuterai più persone a scoprire i suoi benefici.",
+        "final_quote": "Insieme possiamo espandere questa missione e rafforzare la nostra comunità! Il tuo supporto è fondamentale per riuscirci!",
+        "impact": {
+            "kids": "Bambini Impattati",
+            "goal": "Obiettivo Internazionale",
+            "badge": "PROGETTO SOCIALE"
+        },
+        "values": [
+            {
+                "title": "Visibilità del Brand",
+                "desc": "Il tuo logo su traguardi, maglie e tutta la comunicazione ufficiale dell'evento."
+            },
+            {
+                "title": "Responsabilità Sociale",
+                "desc": "Legame diretto con lo sviluppo comunitario e sportivo di Chacas."
+            },
+            {
+                "title": "Networking d'Elite",
+                "desc": "Accesso a una rete di contatti e marchi ad alto impatto nel settore."
+            }
+        ]
+    },
+    "events": {
+        "badge": "THE CHACAS ARCHIVES",
+        "title": "CRONACHE",
+        "subtitle": "Un archivio vivente di gloria, fango e adrenalina sulle vette di Chacas.",
+        "archive_title_prefix": "ARCHIVIO DI",
+        "archive_title_highlight": "COMPETIZIONE",
+        "data": [
+            {
+                "edition": "TERZA EDIZIONE",
+                "tag": "SFIDA FUTURA",
+                "desc": "Vogliamo approfittare delle piogge caratteristiche di questa stagione per aggiungere una sfida unica ed eccitante che alzi l'adrenalina dei partecipanti e metta alla prova la loro destrezza. Questo evento non sarà solo una gara, ma un'esperienza indimenticabile che combina natura, emozione e lo spirito avventuroso che definisce i nostri rider.",
+                "date": "28 DICEMBRE 2025"
+            },
+            {
+                "edition": "SECONDA EDIZIONE",
+                "tag": "ELITE SEVENTY",
+                "desc": "La seconda competizione è stata una vera sfida riservata solo ai più audaci. Il percorso attraverso la foresta ha sorpreso con rampe e discese naturali che hanno messo alla prova la tecnica e il coraggio di ogni ciclista. Ma l'esplosione massima di adrenalina è arrivata con il salto finale verso la Plaza de Armas: più alto, più lungo e più impattante rispetto alla prima edizione.",
+                "date": "28 LUGLIO 2025"
+            },
+            {
+                "edition": "PRIMA EDIZIONE",
+                "tag": "L'INIZIO",
+                "desc": "La prima competizione si è distinta per essere una vera sfida per i più audaci. Uno dei fattori principali che hanno aumentato la difficoltà è stata la pioggia intensa, che ha trasformato la pista in un terreno estremamente scivoloso. Questo non solo ha complicato le salite con i camioncini, ma ha anche messo alla prova il controllo e l'abilità dei rider nel manovrare le loro biciclette.",
+                "date": "28 DICEMBRE 2024"
+            }
+        ],
+        "portal": {
+            "story_tag": "RACCONTO UFFICIALE",
+            "difficulty_label": "DIFFICOLTÀ",
+            "difficulty_val": "ELITE",
+            "route_label": "PERCORSO",
+            "route_val": "100% DNA"
+        },
+        "route": {
+            "title_prefix": "DETTAGLI DEL",
+            "title_highlight": "PERCORSO",
+            "start": "PARTENZA",
+            "finish": "ARRIVO"
+        },
+        "hall": {
+            "badge": "LEGGENDE",
+            "title_prefix": "PARTECIPANTI",
+            "title_highlight": "IN EVIDENZA",
+            "card": {
+                "tag": "CICLISTA_ELITE",
+                "level": "LIVELLO_CAMPIONE",
+                "power": "POTENZA_FISICA",
+                "agility": "AGILITÀ_TECNICA",
+                "instagram": "VEDI_INSTAGRAM"
+            }
+        },
+        "participants": [
+            {
+                "name": "JOSE IGNACIO",
+                "alias": "\"IL DEMONE\""
+            },
+            {
+                "name": "LUIGI TRAVI",
+                "alias": "RIDER ELITE"
+            }
+        ]
+    },
+    "participate": {
+        "hero": {
+            "tag": "PRE-ISCRIZIONI 2026",
+            "title_part1": "LA SFIDA",
+            "title_part2": "È TUA",
+            "desc": "Unisciti alla gara più impegnativa delle Ande. Un'esperienza che ridefinisce i tuoi limiti.",
+            "scroll": "ESPLORA LA SFIDA"
+        },
+        "paths": {
+            "badge": "IMPEGNO",
+            "title_prefix": "SCEGLI UN",
+            "title_highlight": "PERCORSO",
+            "subtitle": "Tre pilastri fondamentali che rendono possibile la leggenda di Chacas.",
+            "cyclist": {
+                "title": "SONO UN CICLISTA",
+                "desc": "Domina le vette della sierra centrale. Categorie Elite e Master aperte.",
+                "list": [
+                    "Cronometraggio Pro",
+                    "Kit Edizione 2026",
+                    "Premi in Contanti"
+                ],
+                "cta": "VOGLIO COMPETERE"
+            },
+            "sponsor": {
+                "title": "SONO UNO SPONSOR",
+                "desc": "Collega il tuo marchio all'eccellenza e al prestigio del ciclismo estremo.",
+                "list": [
+                    "Visibilità sul Percorso",
+                    "Stand al Traguardo Pro",
+                    "Branding Nazionale"
+                ],
+                "cta": "VOGLIO SPONSORIZZARE"
+            },
+            "staff": {
+                "title": "SONO DELLO STAFF",
+                "desc": "Il motore che rende possibile la magia. Unisciti al team logistico ufficiale.",
+                "list": [
+                    "Divisa Ufficiale",
+                    "Certificazione Staff",
+                    "Trasferimenti e Dieta"
+                ],
+                "cta": "UNISCITI AL TEAM"
+            }
+        },
+        "cta": {
+            "title_prefix": "PRONTO PER",
+            "title_middle": "LA",
+            "title_highlight": "SFIDA?",
+            "subtitle": "I posti si esauriscono. Non fartelo raccontare.",
+            "btn_register": "ISCRIVITI ORA",
+            "btn_bases": "SCARICA REGOLAMENTO"
+        },
+        "staff_modal": {
+            "title": "REGISTRAZIONE STAFF",
+            "subtitle": "Fai parte dell'organizzazione ufficiale di Manka Riders.",
+            "name_label": "NOME COMPLETO",
+            "whatsapp_label": "WHATSAPP",
+            "btn_submit": "INVIA DOMANDA",
+            "btn_processing": "ELABORAZIONE...",
+            "success_title": "REGISTRAZIONE RIUSCITA!",
+            "success_msg": "Ti contatteremo presto via WhatsApp."
+        },
+        "gallery": {
+            "badge": "GALLERIA",
+            "title_prefix": "MONDO",
+            "title_highlight": "CHACAS",
+            "subtitle": "Immergiti nell'atmosfera visiva della nostra spedizione."
+        }
+    },
+    "registration": {
+        "hero": {
+            "badge": "ZONA COMPETITORI",
+            "title": "COMPETITORI",
+            "subtitle": "Non puoi perdere questa competizione! La più grande sfida delle Ande ti aspetta.",
+            "back": "INDIETRO"
+        },
+        "reasons": [
+            {
+                "title": "Pista Estrema",
+                "desc": "Percorsi impegnativi progettati per mettere alla prova i tuoi limiti e le tue abilità tecniche."
+            },
+            {
+                "title": "Paesaggi Mozzafiato",
+                "desc": "Gareggia circondato dai panorami più impressionanti della sierra centrale peruviana."
+            },
+            {
+                "title": "Ambiente Incantevole",
+                "desc": "Immergiti in un ambiente naturale unico che conquisterà i tuoi sensi in ogni chilometro."
+            },
+            {
+                "title": "Accoglienza Calorosa",
+                "desc": "Vivi l'ospitalità della gente di Chacas, che ti farà sentire a casa."
+            }
+        ],
+        "steps": {
+            "title_prefix": "PASSI PER",
+            "title_highlight": "L'ISCRIZIONE",
+            "subtitle": "Segui questo processo per assicurarti il posto sulla linea di partenza.",
+            "list": [
+                {
+                    "title": "Effettuare Bonifico",
+                    "desc": "Assicura il tuo posto effettuando il deposito bancario ufficiale.",
+                    "details": "Conto BCP: 191-XXXXXXXX-X-XX\nCCI: 002-XXXXXXXXXXXXXXXXXX\nA nome di: Manka Riders EIRL"
+                },
+                {
+                    "title": "Compilare Modulo",
+                    "desc": "Compila i tuoi dati tecnici e medici nel modulo ufficiale.",
+                    "details": "Link disponibile in fondo a questa pagina."
+                },
+                {
+                    "title": "Inviare Ricevuta",
+                    "desc": "Invia la ricevuta all'email per convalidare la tua iscrizione.",
+                    "details": "Email: inscripciones@mankariders.com\nOggetto: ISCRIZIONE - [IL TUO NOME]"
+                }
+            ]
+        },
+        "form": {
+            "badge": "ZONA DI REGISTRAZIONE SICURA",
+            "title_prefix": "MODULO",
+            "title_highlight": "UFFICIALE",
+            "subtitle": "Si prega di completare tutti i campi con informazioni veritiere per l'assicurazione e la logistica.",
+            "mockup_title": "MODULO DI ISCRIZIONE 2026",
+            "mockup_desc": "Clicca sul pulsante per aprire il modulo ufficiale in una nuova finestra sicura.",
+            "btn_google": "APRI MODULO GOOGLE",
+            "tip": "I tuoi progressi verranno salvati automaticamente nel tuo account Google.",
+            "help_text": "Hai problemi con il modulo?",
+            "contact_link": "Contattaci",
+            "final_notice": "Ricorda che la tua iscrizione sarà valida solo dopo aver inviato la **ricevuta di pagamento** all'email ufficiale."
+        }
+    },
+    "discover": {
+        "hero_title": "SCOPRI\nCHACAS",
+        "section_title": "SCOPRI CHACAS",
+        "p1": "Chacas, nella regione di Áncash in Perù, è una destinazione unica che ti invita a immergerti nella natura più pura, circondata da imponenti montagne, valli profonde e paesaggi mozzafiato. È il luogo perfetto per gli avventurieri; a pochi chilometri si trova il Parco Nazionale Huascarán, dove il maestoso nevaio Huascarán e le montagne vicine abbelliscono ulteriormente la nostra città.",
+        "p2": "Inoltre, Chacas si distingue per la sua affascinante architettura coloniale, il suo ricco patrimonio culturale e il calore della sua gente, che rendono ogni visita un'esperienza memorabile. E per i più intrepidi, organizziamo emozionanti percorsi in bicicletta, dove potrai esplorare sentieri segreti e scoprire gli angoli più sorprendenti della nostra affascinante comunità. Vieni a vivere l'avventura e la tradizione di Chacas come mai prima d'ora!",
+        "specs": {
+            "location_label": "POSIZIONE",
+            "location_val": "ÁNCASH, PERÙ",
+            "altitude_label": "ALTITUDINE",
+            "altitude_val": "3.359 MSLM",
+            "climate_label": "CLIMA",
+            "climate_val": "MONTAGNA_FREDDA"
+        }
+    }
+}

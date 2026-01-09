@@ -1,38 +1,41 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Mountain, Activity, Wind, Zap, ChevronRight } from 'lucide-vue-next';
 import challengeImg from '@/assets/images/unnamed.jpg';
 
-const stats = [
+const { t } = useI18n();
+
+const stats = computed(() => [
   {
-    label: 'MAX ALTIMETRÍA',
+    label: t('challenge.stats[0].label'),
     value: '3,359',
-    unit: 'msnm',
+    unit: t('challenge.stats[0].unit'),
     icon: Mountain,
-    desc: 'Un desafío de altura que pondrá a prueba tus pulmones.'
+    desc: t('challenge.stats[0].desc')
   },
   {
-    label: 'DISTANCIA',
+    label: t('challenge.stats[1].label'),
     value: '42',
-    unit: 'KM',
+    unit: t('challenge.stats[1].unit'),
     icon: Activity,
-    desc: 'Ruta épica entre senderos y caminos históricos.'
+    desc: t('challenge.stats[1].desc')
   },
   {
-    label: 'CLIMA EXTREMO',
+    label: t('challenge.stats[2].label'),
     value: '12-18',
-    unit: '°C',
+    unit: t('challenge.stats[2].unit'),
     icon: Wind,
-    desc: 'Variación térmica típica de la cordillera blanca.'
+    desc: t('challenge.stats[2].desc')
   },
   {
-    label: 'DIFICULTAD',
+    label: t('challenge.stats[3].label'),
     value: 'ELITE',
-    unit: 'LEVEL',
+    unit: t('challenge.stats[3].unit'),
     icon: Zap,
-    desc: 'Solo para los ciclistas que no conocen el miedo.'
+    desc: t('challenge.stats[3].desc')
   }
-];
+]);
 
 const currentIndex = ref(0);
 const isTransitioning = ref(false);
@@ -43,7 +46,7 @@ const nextStat = () => {
   isTransitioning.value = true;
   
   setTimeout(() => {
-    currentIndex.value = (currentIndex.value + 1) % stats.length;
+    currentIndex.value = (currentIndex.value + 1) % stats.value.length;
     setTimeout(() => {
       isTransitioning.value = false;
     }, 400);
@@ -76,11 +79,10 @@ onUnmounted(() => {
         <!-- Right: Dynamic Content -->
         <div class="challenge__content">
           <header class="content__header">
-            <span class="header__badge">EL DESAFÍO</span>
-            <h2 class="header__title">LA JULIA</h2>
+            <span class="header__badge">{{ t('challenge.badge') }}</span>
+            <h2 class="header__title">{{ t('challenge.title') }}</h2>
             <p class="header__text">
-              Chacas no es solo una carrera, es una batalla contra la naturaleza y contra ti mismo. 
-              Analiza los datos técnicos y prepárate para la gloria.
+              {{ t('challenge.description') }}
             </p>
           </header>
 

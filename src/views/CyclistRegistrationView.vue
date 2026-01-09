@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref, reactive, computed } from 'vue';
 import { useMouseInElement } from '@vueuse/core';
 import { 
   Trophy, 
@@ -17,54 +17,58 @@ import {
   Copy
 } from 'lucide-vue-next';
 
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 // Steps data
-const steps = [
+const steps = computed(() => [
   {
     icon: CreditCard,
-    title: 'Realizar Transferencia',
-    desc: 'Asegura tu cupo realizando el depósito bancario oficial.',
-    details: 'Cuenta BCP: 191-XXXXXXXX-X-XX\nCCI: 002-XXXXXXXXXXXXXXXXXX\nA nombre de: Manka Riders EIRL'
+    title: t('registration.steps.list[0].title'),
+    desc: t('registration.steps.list[0].desc'),
+    details: t('registration.steps.list[0].details')
   },
   {
     icon: FileText,
-    title: 'Completar Formulario',
-    desc: 'Llena tus datos técnicos y médicos en el formulario oficial.',
-    details: 'Link disponible en la parte inferior de esta página.'
+    title: t('registration.steps.list[1].title'),
+    desc: t('registration.steps.list[1].desc'),
+    details: t('registration.steps.list[1].details')
   },
   {
     icon: Mail,
-    title: 'Enviar Comprobante',
-    desc: 'Manda el voucher al correo para validar tu inscripción.',
-    details: 'Email: inscripciones@mankariders.com\nAsunto: INSCRIPCION - [TU NOMBRE]'
+    title: t('registration.steps.list[2].title'),
+    desc: t('registration.steps.list[2].desc'),
+    details: t('registration.steps.list[2].details')
   }
-];
+]);
 
-const reasons = [
+const reasons = computed(() => [
   {
     icon: Trophy,
-    title: 'Pista Extrema',
-    desc: 'Rutas desafiantes diseñadas para poner a prueba tus límites y habilidades técnicas.',
-    image: 'https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?auto=format&fit=crop&q=80&w=800'
+    title: t('registration.reasons[0].title'),
+    desc: t('registration.reasons[0].desc'),
+    image: new URL('@/assets/images/chacas /3/X94A1553.JPG', import.meta.url).href
   },
   {
     icon: Map,
-    title: 'Paisajes Deslumbrantes',
-    desc: 'Compite rodeado de las vistas más impresionantes de la sierra central peruana.',
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800'
+    title: t('registration.reasons[1].title'),
+    desc: t('registration.reasons[1].desc'),
+    image: new URL('@/assets/images/chacas /3/X94A1559.JPG', import.meta.url).href
   },
   {
     icon: Mountain,
-    title: 'Entorno Encantador',
-    desc: 'Sumérgete en un ambiente natural único que cautivará tus sentidos en cada kilómetro.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=800'
+    title: t('registration.reasons[2].title'),
+    desc: t('registration.reasons[2].desc'),
+    image: new URL('@/assets/images/chacas /3/X94A1561.JPG', import.meta.url).href
   },
   {
     icon: Heart,
-    title: 'Cálida Acogida',
-    desc: 'Vive la hospitalidad de la gente de Chacas, quienes te harán sentir como en casa.',
-    image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=800'
+    title: t('registration.reasons[3].title'),
+    desc: t('registration.reasons[3].desc'),
+    image: new URL('@/assets/images/chacas /3/X94A1575.JPG', import.meta.url).href
   }
-];
+]);
 
 const copyToClipboard = (text) => {
   const cleanText = text.includes(': ') ? text.split(': ')[1] : text;
@@ -124,19 +128,19 @@ onMounted(() => {
     <section class="reg-hero">
       <div class="reg-hero__bg">
         <div class="overlay"></div>
-        <img src="@/assets/images/gallery1.png" alt="Cyclist Hero" />
+        <img src="@/assets/images/chacas /3/X94A1600.JPG" alt="Cyclist Hero" />
       </div>
 
       <!-- Navigation Link Back -->
       <RouterLink to="/como-participar" class="btn-back">
-        <ArrowLeft :size="16" /> VOLVER
+        <ArrowLeft :size="16" /> {{ t('registration.hero.back') }}
       </RouterLink>
 
       <div class="container relative z-10">
-        <div class="badge-elite reveal">ZONA DE COMPETIDORES</div>
-        <h1 class="reg-title reveal">COMPETIDORES</h1>
+        <div class="badge-elite reveal">{{ t('registration.hero.badge') }}</div>
+        <h1 class="reg-title reveal">{{ t('registration.hero.title') }}</h1>
         <p class="reg-subtitle reveal">
-          ¡No te puedes perder esta competencia! El desafío más grande de los Andes te espera.
+          {{ t('registration.hero.subtitle') }}
         </p>
       </div>
     </section>
@@ -180,8 +184,8 @@ onMounted(() => {
     <section class="reg-steps">
       <div class="container">
         <div class="section-header reveal">
-          <h2 class="title-tech">PASOS PARA LA <span class="primary-text">INSCRIPCIÓN</span></h2>
-          <p>Sigue este proceso para asegurar tu lugar en la línea de partida.</p>
+          <h2 class="title-tech">{{ t('registration.steps.title_prefix') }} <span class="primary-text">{{ t('registration.steps.title_highlight') }}</span></h2>
+          <p>{{ t('registration.steps.subtitle') }}</p>
         </div>
 
         <div class="steps-path">
@@ -218,9 +222,9 @@ onMounted(() => {
     <section class="form-chamber container">
       <div class="form-wrapper glass-tech reveal">
         <div class="form-header">
-          <div class="chamber-badge">ZONA SEGURA DE REGISTRO</div>
-          <h2>FORMULARIO <span class="primary-text">OFICIAL</span></h2>
-          <p>Por favor, completa todos los campos con información verídica para el seguro y la logística.</p>
+          <div class="chamber-badge">{{ t('registration.form.badge') }}</div>
+          <h2>{{ t('registration.form.title_prefix') }} <span class="primary-text">{{ t('registration.form.title_highlight') }}</span></h2>
+          <p>{{ t('registration.form.subtitle') }}</p>
         </div>
 
         <div class="form-container">
@@ -229,22 +233,22 @@ onMounted(() => {
               <div class="icon-circle">
                 <FileText :size="48" class="primary-text" />
               </div>
-              <h3>FORMULARIO DE INSCRIPCIÓN 2026</h3>
-              <p>Haz clic en el botón para abrir el formulario oficial en una nueva ventana segura.</p>
+              <h3>{{ t('registration.form.mockup_title') }}</h3>
+              <p>{{ t('registration.form.mockup_desc') }}</p>
               
               <a href="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform" target="_blank" class="btn-form">
-                ABRIR FORMULARIO GOOGLE <ExternalLink :size="18" />
+                {{ t('registration.form.btn_google') }} <ExternalLink :size="18" />
               </a>
               
               <p class="form-tip">
-                <CheckCircle2 :size="14" /> Tu progreso se guardará automáticamente en tu cuenta de Google.
+                <CheckCircle2 :size="14" /> {{ t('registration.form.tip') }}
               </p>
             </div>
           </div>
         </div>
 
         <div class="form-footer">
-          <p>¿Tienes problemas con el formulario? <RouterLink to="/contacto" class="link">Contáctanos</RouterLink></p>
+          <p>{{ t('registration.form.help_text') }} <RouterLink to="/contacto" class="link">{{ t('registration.form.contact_link') }}</RouterLink></p>
         </div>
       </div>
     </section>
@@ -253,7 +257,7 @@ onMounted(() => {
     <section class="reg-notice container reveal">
       <div class="notice-card glass-premium">
         <Mail :size="24" class="primary-text" />
-        <p>Recuerda que tu inscripción solo será válida una vez enviado el **comprobante de pago** al correo oficial.</p>
+        <p v-html="t('registration.form.final_notice')"></p>
       </div>
     </section>
   </div>

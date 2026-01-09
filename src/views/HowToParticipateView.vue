@@ -1,3 +1,5 @@
+
+
 <script setup>
 import { onMounted, ref, reactive, computed } from 'vue';
 import { useMouseInElement } from '@vueuse/core';
@@ -15,25 +17,46 @@ import {
   Loader2,
   Image as ImageIcon
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
-// Local Assets for Dome Gallery
+const { t } = useI18n();
+// Local Assets for Dome Gallery...
+
 import img1 from '@/assets/images/chacas /1.jpg';
 import img2 from '@/assets/images/chacas /2.jpg';
 import img3 from '@/assets/images/chacas /3.jpg';
 import img4 from '@/assets/images/chacas /4.jpg';
 import imgChacas from '@/assets/images/chacas /chacas.jpg';
-import g1 from '@/assets/images/gallery1.png';
-import g2 from '@/assets/images/gallery2.png';
-import g3 from '@/assets/images/gallery3.png';
-import hImg1 from '@/assets/images/hero1.png';
-import hImg2 from '@/assets/images/hero2.jpg';
-import hImg3 from '@/assets/images/hero3.jpg';
+
+// Imágenes de acción de la carpeta 3
+import img3_1 from '@/assets/images/chacas /3/X94A1553.JPG';
+import img3_2 from '@/assets/images/chacas /3/X94A1559.JPG';
+import img3_3 from '@/assets/images/chacas /3/X94A1561.JPG';
+import img3_4 from '@/assets/images/chacas /3/X94A1575.JPG';
+import img3_5 from '@/assets/images/chacas /3/X94A1598.JPG';
+import img3_6 from '@/assets/images/chacas /3/X94A1600.JPG';
+import img3_7 from '@/assets/images/chacas /3/X94A1617.JPG';
+import img3_8 from '@/assets/images/chacas /3/X94A1635.JPG';
+import img3_9 from '@/assets/images/chacas /3/X94A1650.JPG';
+import img3_10 from '@/assets/images/chacas /3/X94A1695.JPG';
+import img3_11 from '@/assets/images/chacas /3/X94A1757.JPG';
+import img3_12 from '@/assets/images/chacas /3/X94A1778.JPG';
+import img3_13 from '@/assets/images/chacas /3/X94A1796.JPG';
+import img3_14 from '@/assets/images/chacas /3/X94A1817.JPG';
+import img3_15 from '@/assets/images/chacas /3/X94A1861.JPG';
+import img3_16 from '@/assets/images/chacas /3/X94A1864.JPG';
+import img3_17 from '@/assets/images/chacas /3/X94A1869.JPG';
+import img3_18 from '@/assets/images/chacas /3/X94A1892.JPG';
 
 const domeImages = [
-  img1, img2, img3, img4, imgChacas, 
-  g1, g2, g3, hImg1, hImg2, hImg3,
+  // Primera ronda - Imágenes principales
   img1, img2, img3, img4, imgChacas,
-  g1, g2, g3, hImg1, hImg2, hImg3
+  // Segunda ronda - Imágenes de acción (parte 1)
+  img3_1, img3_2, img3_3, img3_4, img3_5, img3_6,
+  // Tercera ronda - Imágenes de acción (parte 2)
+  img3_7, img3_8, img3_9, img3_10, img3_11, img3_12,
+  // Cuarta ronda - Imágenes de acción (parte 3)
+  img3_13, img3_14, img3_15, img3_16, img3_17, img3_18
 ];
 
 // 3D Tilt Logic for Cards
@@ -117,18 +140,18 @@ onMounted(() => {
       
       <div class="container elite-hero__content">
         <div class="hero-tag reveal">
-          <Zap :size="14" class="primary-text" /> PRE-INSCRIPCIONES 2026
+          <Zap :size="14" class="primary-text" /> {{ t('participate.hero.tag') }}
         </div>
         <h1 class="hero-title reveal">
-          EL DESAFÍO <br />
-          <span class="text-outline">ES TUYO</span>
+          {{ t('participate.hero.title_part1') }} <br />
+          <span class="text-outline">{{ t('participate.hero.title_part2') }}</span>
         </h1>
         <p class="hero-desc reveal">
-          Únete a la carrera más exigente de los Andes. Una experiencia que redefine tus límites.
+          {{ t('participate.hero.desc') }}
         </p>
         <div class="hero-scroll reveal">
           <span class="scroll-line"></span>
-          <span>EXPLORA EL DESAFÍO</span>
+          <span>{{ t('participate.hero.scroll') }}</span>
         </div>
       </div>
     </section>
@@ -137,9 +160,9 @@ onMounted(() => {
     <!-- 3. PARTICIPATION PATHS: Three Pillars of Glory -->
     <section id="participar" class="elite-paths container">
       <div class="section-heading reveal">
-        <div class="heading-badge">COMPROMISO</div>
-        <h2 class="heading-title">ELEGIR UN <span class="primary-text">CAMINO</span></h2>
-        <p class="heading-subtitle">Tres pilares fundamentales que hacen posible la leyenda de Chacas.</p>
+        <div class="heading-badge">{{ t('participate.paths.badge') }}</div>
+        <h2 class="heading-title">{{ t('participate.paths.title_prefix') }} <span class="primary-text">{{ t('participate.paths.title_highlight') }}</span></h2>
+        <p class="heading-subtitle">{{ t('participate.paths.subtitle') }}</p>
       </div>
 
       <div class="elite-paths__grid">
@@ -153,14 +176,14 @@ onMounted(() => {
               <div class="pillar-icon"><Trophy :size="28" /></div>
               <span class="pillar-number">01</span>
             </div>
-            <h3 class="pillar-title">SOY CICLISTA</h3>
-            <p class="pillar-desc">Domina las cumbres de la sierra central. Categorías Elite y Master abiertas.</p>
+            <h3 class="pillar-title">{{ t('participate.paths.cyclist.title') }}</h3>
+            <p class="pillar-desc">{{ t('participate.paths.cyclist.desc') }}</p>
             <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> Cronometraje Pro</li>
-              <li><CircleCheck :size="14" /> Kit Edición 2026</li>
-              <li><CircleCheck :size="14" /> Premios en Efectivo</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[0]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[1]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[2]') }}</li>
             </ul>
-            <RouterLink to="/registro/ciclista" class="pillar-btn primary no-underline">QUIERO COMPETIR</RouterLink>
+            <RouterLink to="/registro/ciclista" class="pillar-btn primary no-underline">{{ t('participate.paths.cyclist.cta') }}</RouterLink>
           </div>
         </div>
 
@@ -173,14 +196,14 @@ onMounted(() => {
               <div class="pillar-icon"><Handshake :size="28" /></div>
               <span class="pillar-number">02</span>
             </div>
-            <h3 class="pillar-title">SOY AUSPICIADOR</h3>
-            <p class="pillar-desc">Vincula tu marca con la excelencia y el prestigio del ciclismo extremo.</p>
+            <h3 class="pillar-title">{{ t('participate.paths.sponsor.title') }}</h3>
+            <p class="pillar-desc">{{ t('participate.paths.sponsor.desc') }}</p>
             <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> Visibilidad en Ruta</li>
-              <li><CircleCheck :size="14" /> Stand en Meta Pro</li>
-              <li><CircleCheck :size="14" /> Branding Nacional</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[0]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[1]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[2]') }}</li>
             </ul>
-            <RouterLink to="/auspiciadores" class="pillar-btn secondary no-underline">QUIERO AUSPICIAR</RouterLink>
+            <RouterLink to="/auspiciadores" class="pillar-btn secondary no-underline">{{ t('participate.paths.sponsor.cta') }}</RouterLink>
           </div>
         </div>
 
@@ -193,15 +216,15 @@ onMounted(() => {
               <div class="pillar-icon"><Users :size="28" /></div>
               <span class="pillar-number">03</span>
             </div>
-            <h3 class="pillar-title">SOY STAFF</h3>
-            <p class="pillar-desc">El motor que hace posible la magia. Únete al equipo logístico oficial.</p>
+            <h3 class="pillar-title">{{ t('participate.paths.staff.title') }}</h3>
+            <p class="pillar-desc">{{ t('participate.paths.staff.desc') }}</p>
             <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> Uniforme Oficial</li>
-              <li><CircleCheck :size="14" /> Certificación Staff</li>
-              <li><CircleCheck :size="14" /> Traslados y Dieta</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[0]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[1]') }}</li>
+              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[2]') }}</li>
             </ul>
             <button @click="showStaffModal = true" class="pillar-btn text-link">
-              UNIRME AL EQUIPO <ChevronRight :size="18" />
+              {{ t('participate.paths.staff.cta') }} <ChevronRight :size="18" />
             </button>
           </div>
         </div>
@@ -214,12 +237,12 @@ onMounted(() => {
       <div class="container reveal">
         <div class="cta-box">
           <div class="cta-content">
-            <h2 class="cta-title">¿LISTO PARA <br/> EL <span class="primary-text">DESAFÍO?</span></h2>
-            <p class="cta-subtitle">Los cupos se agotan. No dejes que te lo cuenten.</p>
+            <h2 class="cta-title">{{ t('participate.cta.title_prefix') }} <br/> {{ t('participate.cta.title_middle') }} <span class="primary-text">{{ t('participate.cta.title_highlight') }}</span></h2>
+            <p class="cta-subtitle">{{ t('participate.cta.subtitle') }}</p>
           </div>
           <div class="cta-actions">
-            <button class="btn-action">INSCRIBIRME AHORA</button>
-            <button class="btn-outline">DESCARGAR BASES</button>
+            <button class="btn-action">{{ t('participate.cta.btn_register') }}</button>
+            <button class="btn-outline">{{ t('participate.cta.btn_bases') }}</button>
           </div>
           <!-- Background Decoration -->
           <div class="cta-decor">CHACAS</div>
@@ -242,21 +265,21 @@ onMounted(() => {
               <div class="success-icon-wrap">
                 <CircleCheck :size="60" class="primary-text" />
               </div>
-              <h3 class="modal-title">¡REGISTRO EXITOSO!</h3>
-              <p class="modal-subtitle">Nos pondremos en contacto contigo pronto por WhatsApp.</p>
+              <h3 class="modal-title">{{ t('participate.staff_modal.success_title') }}</h3>
+              <p class="modal-subtitle">{{ t('participate.staff_modal.success_msg') }}</p>
             </div>
 
             <!-- Form State -->
             <div v-else class="modal-body">
               <div class="modal-header">
                 <Users :size="32" class="primary-text" />
-                <h3 class="modal-title">REGISTRO STAFF</h3>
-                <p class="modal-subtitle">Forma parte de la organización oficial de Manka Riders.</p>
+                <h3 class="modal-title">{{ t('participate.staff_modal.title') }}</h3>
+                <p class="modal-subtitle">{{ t('participate.staff_modal.subtitle') }}</p>
               </div>
 
               <form @submit.prevent="handleStaffSubmit" class="staff-form">
                 <div class="form-group">
-                  <label>NOMBRE COMPLETO</label>
+                  <label>{{ t('participate.staff_modal.name_label') }}</label>
                   <div class="input-wrap">
                     <input 
                       v-model="staffForm.nombre" 
@@ -269,7 +292,7 @@ onMounted(() => {
                 </div>
 
                 <div class="form-group">
-                  <label>WHATSAPP</label>
+                  <label>{{ t('participate.staff_modal.whatsapp_label') }}</label>
                   <div class="input-wrap">
                     <input 
                       v-model="staffForm.whatsapp" 
@@ -284,10 +307,10 @@ onMounted(() => {
                 <button type="submit" class="submit-btn" :disabled="isSubmitting">
                   <span v-if="isSubmitting">
                     <Loader2 class="animate-spin" :size="20" />
-                    PROCESANDO...
+                    {{ t('participate.staff_modal.btn_processing') }}
                   </span>
                   <span v-else>
-                    ENVIAR SOLICITUD <Send :size="18" />
+                    {{ t('participate.staff_modal.btn_submit') }} <Send :size="18" />
                   </span>
                 </button>
               </form>
@@ -300,9 +323,9 @@ onMounted(() => {
     <section class="elite-dome reveal">
       <div class="container">
         <div class="section-heading">
-          <div class="heading-badge">GALERÍA</div>
-          <h2 class="heading-title">MUNDO <span class="primary-text">CHACAS</span></h2>
-          <p class="heading-subtitle">Sumérgete en la atmósfera visual de nuestra expedición.</p>
+          <div class="heading-badge">{{ t('participate.gallery.badge') }}</div>
+          <h2 class="heading-title">{{ t('participate.gallery.title_prefix') }} <span class="primary-text">{{ t('participate.gallery.title_highlight') }}</span></h2>
+          <p class="heading-subtitle">{{ t('participate.gallery.subtitle') }}</p>
         </div>
 
         <div class="dome-container">

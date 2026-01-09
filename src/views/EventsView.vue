@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue'; // Added computed
 import { 
   History, 
   MapPin, 
@@ -10,52 +10,58 @@ import {
   ChevronRight,
   ArrowRight
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n'; // Create useI18n
 import joseImg from '@/assets/images/jose.png';
 import luigiImg from '@/assets/images/luigi.png';
 import routeMapImg from '@/assets/images/mapa.png';
+import chacas1 from '@/assets/images/chacas /1.jpg';
+import chacas2 from '@/assets/images/chacas /2.jpg';
+import chacas3 from '@/assets/images/chacas /3.jpg';
 
-const events = [
+const { t } = useI18n();
+
+const events = computed(() => [
   {
-    edition: 'TERCERA EDICIÓN',
-    date: '28 DE DICIEMBRE 2025',
-    tag: 'DESAFÍO FUTURO',
-    desc: 'Queremos aprovechar las lluvias características de esta temporada para añadir un desafío único y emocionante que eleve la adrenalina de los participantes y ponga a prueba su destreza. Este evento no será solo una competencia, sino una experiencia inolvidable que combina naturaleza, emoción y el espíritu aventurero que define a nuestros riders.',
-    image: 'https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?auto=format&fit=crop&q=80&w=1200'
+    edition: t('events.data[0].edition'),
+    date: t('events.data[0].date'),
+    tag: t('events.data[0].tag'),
+    desc: t('events.data[0].desc'),
+    image: chacas1
   },
   {
-    edition: 'SEGUNDA EDICIÓN',
-    date: '28 DE JULIO 2025',
-    tag: 'ELITE SEVENTY',
-    desc: 'La segunda competencia fue un verdadero desafío reservado solo para los más atrevidos. El recorrido por el bosque sorprendió con rampas y descolgones naturales que pusieron a prueba la técnica y la valentía de cada ciclista. Pero la explosión máxima de adrenalina llegó con el salto final hacia la Plaza de Armas: más alto, más largo y más impactante que en la primera edición.',
-    image: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1200'
+    edition: t('events.data[1].edition'),
+    date: t('events.data[1].date'),
+    tag: t('events.data[1].tag'),
+    desc: t('events.data[1].desc'),
+    image: chacas2
   },
   {
-    edition: 'PRIMERA EDICIÓN',
-    date: '28 DE DICIEMBRE 2024',
-    tag: 'THE BEGINNING',
-    desc: 'La primera competencia se destacó por ser un verdadero reto para los más atrevidos. Uno de los factores principales que aumentaron la dificultad fue la intensa lluvia, que convirtió la pista en un terreno extremadamente resbaladizo. Esto no solo complicó las subidas con las camionetas, sino que también puso a prueba el control y la habilidad de los riders al maniobrar sus bicicletas.',
-    image: 'https://images.unsplash.com/photo-1511994298241-608e28f14f66?auto=format&fit=crop&q=80&w=1200'
+    edition: t('events.data[2].edition'),
+    date: t('events.data[2].date'),
+    tag: t('events.data[2].tag'),
+    desc: t('events.data[2].desc'),
+    image: chacas3
   }
-];
+]);
 
-const participants = [
+const participants = computed(() => [
   {
-    name: 'JOSE IGNACIO',
-    alias: '"EL DEMONIO"',
+    name: t('events.participants[0].name'),
+    alias: t('events.participants[0].alias'),
     image: joseImg,
     ig: '@jose.ignacio'
   },
   {
-    name: 'LUIGI TRAVI',
-    alias: 'RIDER ELITE',
+    name: t('events.participants[1].name'),
+    alias: t('events.participants[1].alias'),
     image: luigiImg,
     ig: '@luigi.travi'
   }
-];
+]);
 
 const activeIndex = ref(0);
 const flippedCards = ref([]);
-const cardRotations = ref(participants.map(() => ({ x: 0, y: 0 })));
+const cardRotations = ref(participants.value.map(() => ({ x: 0, y: 0 })));
 
 const toggleFlip = (index) => {
   if (flippedCards.value.includes(index)) {
@@ -149,19 +155,19 @@ onMounted(() => {
     <section class="events-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img src="https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600" alt="Events Background" class="parallax-img" />
+        <img src="@/assets/images/chacas /4.jpg" alt="Events Background" class="parallax-img" />
       </div>
       <div class="container relative z-10">
-        <div class="badge-red reveal">THE CHACAS ARCHIVES</div>
-        <h1 class="events-title reveal">CRÓNICAS</h1>
-        <p class="events-subtitle reveal">Un archivo vivo de gloria, barro y adrenalina en los picos de Chacas.</p>
+        <div class="badge-red reveal">{{ t('events.badge') }}</div>
+        <h1 class="events-title reveal">{{ t('events.title') }}</h1>
+        <p class="events-subtitle reveal">{{ t('events.subtitle') }}</p>
       </div>
     </section>
 
     <!-- 2. INTERACTIVE ARCHIVE (The "Menu" Layout) -->
     <section class="archive-section container">
       <div class="section-header reveal">
-        <h2 class="title-tech">ARCHIVO DE <span class="primary-text">COMPETICIÓN</span></h2>
+        <h2 class="title-tech">{{ t('events.archive_title_prefix') }} <span class="primary-text">{{ t('events.archive_title_highlight') }}</span></h2>
       </div>
 
       <div class="archive-grid">
@@ -194,7 +200,7 @@ onMounted(() => {
                  <div class="portal-content glass-premium">
                     <div class="content-top">
                        <History class="icon-accent" :size="32" />
-                       <div class="relato-tag">RELATO OFICIAL</div>
+                       <div class="relato-tag">{{ t('events.portal.story_tag') }}</div>
                     </div>
                     
                     <h3 class="portal-title">{{ events[activeIndex].edition }}</h3>
@@ -204,15 +210,15 @@ onMounted(() => {
                        <div class="p-stat">
                           <Trophy :size="20" />
                           <div class="p-stat-info">
-                             <span class="p-stat-val">ELITE</span>
-                             <span class="p-stat-label">DIFICULTAD</span>
+                             <span class="p-stat-val">{{ t('events.portal.difficulty_val') }}</span>
+                             <span class="p-stat-label">{{ t('events.portal.difficulty_label') }}</span>
                           </div>
                        </div>
                        <div class="p-stat">
                           <Route :size="20" />
                           <div class="p-stat-info">
-                             <span class="p-stat-val">100% ADN</span>
-                             <span class="p-stat-label">RECORRIDO</span>
+                             <span class="p-stat-val">{{ t('events.portal.route_val') }}</span>
+                             <span class="p-stat-label">{{ t('events.portal.route_label') }}</span>
                           </div>
                        </div>
                     </div>
@@ -226,7 +232,7 @@ onMounted(() => {
     <!-- 3. RUTA & DETALLES TÉCNICOS (FULL WIDTH) -->
     <section class="route-massive container">
       <div class="section-heading reveal">
-        <h2 class="title-tech">DETALLES DE <span class="primary-text">LA RUTA</span></h2>
+        <h2 class="title-tech">{{ t('events.route.title_prefix') }} <span class="primary-text">{{ t('events.route.title_highlight') }}</span></h2>
       </div>
 
       <div class="route-hero-massive reveal">
@@ -234,8 +240,8 @@ onMounted(() => {
           <img :src="routeMapImg" alt="Detalle de Carrera" class="massive-img" />
           <div class="massive-overlay">
             <!-- Puntos Tácticos Plaza Ugo Censi -->
-            <div class="tactical-point p-start"><span>PARTIDA</span></div>
-            <div class="tactical-point p-finish"><span>META</span></div>
+            <div class="tactical-point p-start"><span>{{ t('events.route.start') }}</span></div>
+            <div class="tactical-point p-finish"><span>{{ t('events.route.finish') }}</span></div>
           </div>
         </div>
       </div>
@@ -244,8 +250,8 @@ onMounted(() => {
     <!-- 4. HALL OF FAME (Participants) -->
     <section class="hall-of-fame container">
        <div class="section-heading reveal">
-          <div class="badge-red">LEGENDS</div>
-          <h2 class="title-tech">PARTICIPANTES <span class="primary-text">DESTACADOS</span></h2>
+          <div class="badge-red">{{ t('events.hall.badge') }}</div>
+          <h2 class="title-tech">{{ t('events.hall.title_prefix') }} <span class="primary-text">{{ t('events.hall.title_highlight') }}</span></h2>
        </div>
 
        <div class="participants-grid">
@@ -279,7 +285,7 @@ onMounted(() => {
                            <div class="rider-id-badge">ID-{{ index + 2024 }}</div>
                         </div>
                         <div class="pro-label">
-                           <span class="pro-tag">CICLISTA_ELITE</span>
+                           <span class="pro-tag">{{ t('events.hall.card.tag') }}</span>
                            <h3 class="pro-name">{{ rider.name }}</h3>
                         </div>
                      </div>
@@ -293,7 +299,7 @@ onMounted(() => {
                   <div class="info-wrap">
                      <div class="tech-header">
                         <Trophy :size="24" class="tech-icon" />
-                        <span class="status-blink">NIVEL_CAMPEÓN</span>
+                        <span class="status-blink">{{ t('events.hall.card.level') }}</span>
                      </div>
                      
                      <div class="main-info">
@@ -303,11 +309,11 @@ onMounted(() => {
 
                      <div class="stats-technical">
                         <div class="t-stat">
-                           <div class="t-label">POTENCIA_FÍSICA</div>
+                           <div class="t-label">{{ t('events.hall.card.power') }}</div>
                            <div class="t-bar"><div class="t-fill" style="width: 95%"></div></div>
                         </div>
                         <div class="t-stat">
-                           <div class="t-label">AGILIDAD_TÉCNICA</div>
+                           <div class="t-label">{{ t('events.hall.card.agility') }}</div>
                            <div class="t-bar"><div class="t-fill" style="width: 88%"></div></div>
                         </div>
                      </div>
@@ -318,7 +324,7 @@ onMounted(() => {
                         @click.stop
                      >
                         <Instagram :size="18" />
-                        <span>VER_INSTAGRAM</span>
+                        <span>{{ t('events.hall.card.instagram') }}</span>
                         <ArrowRight :size="14" />
                      </a>
                   </div>

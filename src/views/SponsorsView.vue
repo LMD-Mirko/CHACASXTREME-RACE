@@ -10,6 +10,9 @@ import {
   Info,
   ArrowLeft
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Placeholder logos for sponsors
 const sponsorLogos = [
@@ -51,18 +54,18 @@ onMounted(() => {
 
       <!-- Navigation Link Back -->
       <RouterLink to="/como-participar" class="btn-back reveal">
-        <ArrowLeft :size="18" /> VOLVER
+        <ArrowLeft :size="18" /> {{ t('sponsors.back') }}
       </RouterLink>
 
       <div class="container relative z-10">
-        <div class="badge-gold reveal shimmer-gold">ALIANZAS ESTRATÉGICAS</div>
-        <h1 class="sponsor-title reveal">AUSPICIADORES</h1>
+        <div class="badge-gold reveal shimmer-gold">{{ t('sponsors.badge') }}</div>
+        <h1 class="sponsor-title reveal">{{ t('sponsors.title') }}</h1>
         <p class="sponsor-subtitle reveal">
-          ¡Únete a esta gran aventura y ayuda a que el ciclismo crezca en Chacas!
+          {{ t('sponsors.subtitle') }}
         </p>
         <div class="hero-actions reveal">
           <a href="#" class="btn-gold-glow shimmer-gold">
-            <Download :size="20" /> DESCARGAR DOSSIER PARA MARCAS
+            <Download :size="20" /> {{ t('sponsors.download') }}
           </a>
         </div>
       </div>
@@ -94,22 +97,20 @@ onMounted(() => {
         <div class="mission-text reveal">
           <div class="text-block">
             <div class="line-accent"></div>
-            <h2 class="editorial-title">UNA MISIÓN QUE <span class="gradient-text">TRANSFORMA</span></h2>
+            <h2 class="editorial-title">{{ t('sponsors.editorial_title') }} <span class="gradient-text">{{ t('sponsors.editorial_title_highlight') }}</span></h2>
             <p>
-              Te invitamos a ser parte de un proyecto con el potencial de transformar vidas y poner a Chacas en el mapa internacional del ciclismo. 
-              Con tu apoyo, llevaremos este deporte a nuevas generaciones, promoviendo valores como la disciplina y la superación personal.
+              {{ t('sponsors.editorial_p1') }}
             </p>
           </div>
           
           <div class="text-block secondary">
             <p>
-              El ciclismo es más que una actividad física, es una herramienta para el desarrollo personal y comunitario. 
-              Al ser auspiciador, contribuirás al crecimiento de esta iniciativa y ayudarás a más personas a descubrir sus beneficios.
+              {{ t('sponsors.editorial_p2') }}
             </p>
           </div>
 
           <div class="final-quote">
-            <h3>¡Juntos podemos expandir esta misión y fortalecer nuestra comunidad! ¡Tu apoyo es clave para lograrlo!</h3>
+            <h3>{{ t('sponsors.final_quote') }}</h3>
           </div>
         </div>
 
@@ -117,13 +118,13 @@ onMounted(() => {
            <div class="visual-card glass-premium aura-pulse">
               <div class="impact-stat">
                  <span class="stat-number">+100</span>
-                 <span class="stat-label">Niños Impactados</span>
+                 <span class="stat-label">{{ t('sponsors.impact.kids') }}</span>
               </div>
               <div class="impact-stat">
                  <span class="stat-number">2026</span>
-                 <span class="stat-label">Meta Internacional</span>
+                 <span class="stat-label">{{ t('sponsors.impact.goal') }}</span>
               </div>
-              <div class="stat-badge">PROYECTO SOCIAL</div>
+              <div class="stat-badge">{{ t('sponsors.impact.badge') }}</div>
               <div class="card-glow"></div>
            </div>
         </div>
@@ -134,18 +135,18 @@ onMounted(() => {
     <section class="values-grid container">
       <div class="value-card reveal">
         <Target :size="40" class="primary-text" />
-        <h3>Visibilidad de Marca</h3>
-        <p>Tu logo en metas, jerseys y toda la comunicación oficial del evento.</p>
+        <h3>{{ t('sponsors.values[0].title') }}</h3>
+        <p>{{ t('sponsors.values[0].desc') }}</p>
       </div>
       <div class="value-card reveal">
         <TrendingUp :size="40" class="primary-text" />
-        <h3>Responsabilidad Social</h3>
-        <p>Vínculo directo con el desarrollo comunitario y deportivo de Chacas.</p>
+        <h3>{{ t('sponsors.values[1].title') }}</h3>
+        <p>{{ t('sponsors.values[1].desc') }}</p>
       </div>
       <div class="value-card reveal">
         <Users :size="40" class="primary-text" />
-        <h3>Networking Elite</h3>
-        <p>Acceso a una red de contactos y marcas de alto impacto en el sector.</p>
+        <h3>{{ t('sponsors.values[2].title') }}</h3>
+        <p>{{ t('sponsors.values[2].desc') }}</p>
       </div>
     </section>
   </div>

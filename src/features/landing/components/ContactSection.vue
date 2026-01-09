@@ -2,7 +2,9 @@
 import { Mail, Phone, Instagram, Facebook, ArrowUpRight, Copy, Send } from 'lucide-vue-next';
 import mankaLogo from '@/assets/images/logo.jpg';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const copied = ref(false);
 
 const copyEmail = () => {
@@ -20,12 +22,12 @@ const copyEmail = () => {
           <!-- Left: Modern UX & Content -->
           <div class="contact__info">
             <header class="info__header">
-              <span class="info__badge">CONTACTO</span>
+              <span class="info__badge">{{ t('contact.badge') }}</span>
               <h2 class="info__title">
-                ¿TIENES <span class="gradient-text">PREGUNTAS?</span>
+                {{ t('contact.title_prefix') }} <span class="gradient-text">{{ t('contact.title_highlight') }}</span>
               </h2>
               <p class="info__description">
-                Únete a la comunidad más extrema del ciclismo en los Andes. Estamos listos para escucharte.
+                {{ t('contact.description') }}
               </p>
             </header>
             
@@ -36,12 +38,12 @@ const copyEmail = () => {
                   <Mail :size="22" />
                 </div>
                 <div class="action-card__text">
-                  <span>CORREO ELECTRÓNICO</span>
+                  <span>{{ t('contact.email_label') }}</span>
                   <strong>chacasextremerace@gmail.com</strong>
                 </div>
                 <div class="action-card__tool" :class="{ 'is-copied': copied }">
                   <Copy v-if="!copied" :size="16" />
-                  <span v-else>¡COPIADO!</span>
+                  <span v-else>{{ t('contact.copied') }}</span>
                 </div>
               </div>
 
@@ -51,7 +53,7 @@ const copyEmail = () => {
                   <Phone :size="22" />
                 </div>
                 <div class="action-card__text">
-                  <span>WHATSAPP DIRECTO</span>
+                  <span>{{ t('contact.whatsapp_label') }}</span>
                   <strong>+51 983 426 996</strong>
                 </div>
                 <div class="action-card__tool">

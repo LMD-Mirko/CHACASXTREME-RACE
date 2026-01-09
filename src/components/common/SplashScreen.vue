@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import logo from '@/assets/images/logo.jpg';
 
+const { t } = useI18n();
 const isVisible = ref(true);
 const isExiting = ref(false); // Controls the exit animation class
 
@@ -65,7 +67,7 @@ onMounted(() => {
         </div>
         
         <div class="status-text">
-          <span>SYSTEM CHECK</span>
+          <span>{{ t('splash.system_check') }}</span>
           <span class="dots">...</span>
         </div>
       </div>

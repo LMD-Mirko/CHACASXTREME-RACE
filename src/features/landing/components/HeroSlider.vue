@@ -1,37 +1,40 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 import hero1 from '@/assets/images/hero1.png';
 import hero2 from '@/assets/images/hero2.jpg';
 import hero3 from '@/assets/images/hero3.jpg';
 
-const slides = [
+const { t } = useI18n();
+
+const slides = computed(() => [
   {
     image: hero1,
-    title: 'SENTIR LA ADRENALINA',
-    subtitle: 'Manka Riders es más que una competencia, es una comunidad de ciclistas apasionados por el desafío.',
+    title: t('hero.slides[0].title'),
+    subtitle: t('hero.slides[0].subtitle'),
   },
   {
     image: hero2,
-    title: 'SUPERAR TUS LÍMITES',
-    subtitle: 'Nuestras rutas están diseñadas para poner a prueba cada fibra de tu cuerpo y mente.',
+    title: t('hero.slides[1].title'),
+    subtitle: t('hero.slides[1].subtitle'),
   },
   {
     image: hero3,
-    title: 'EQUIPO DE ÉLITE',
-    subtitle: 'Contamos con la mejor tecnología y organización para que tu experiencia sea inolvidable.',
+    title: t('hero.slides[2].title'),
+    subtitle: t('hero.slides[2].subtitle'),
   },
-];
+]);
 
 const currentIndex = ref(0);
 let timer = null;
 
 const nextSlide = () => {
-  currentIndex.value = (currentIndex.value + 1) % slides.length;
+  currentIndex.value = (currentIndex.value + 1) % slides.value.length;
 };
 
 const prevSlide = () => {
-  currentIndex.value = (currentIndex.value - 1 + slides.length) % slides.length;
+  currentIndex.value = (currentIndex.value - 1 + slides.value.length) % slides.value.length;
 };
 
 const startTimer = () => {
@@ -64,7 +67,7 @@ onUnmounted(() => {
           
           <div class="container hero__content">
             <div class="hero__text-box">
-              <span class="hero__tagline">PRESENTAMOS A MANKA RIDERS</span>
+              <span class="hero__tagline">{{ t('hero.tagline') }}</span>
               <h1 class="hero__title">
                 {{ slide.title }}
               </h1>
@@ -72,8 +75,8 @@ onUnmounted(() => {
                 {{ slide.subtitle }}
               </p>
               <div class="hero__actions">
-                <button class="btn btn--primary">Inscribirse Ahora</button>
-                <button class="btn btn--outline">Versión Demo</button>
+                <button class="btn btn--primary">{{ t('hero.cta_primary') }}</button>
+                <button class="btn btn--outline">{{ t('hero.cta_secondary') }}</button>
               </div>
             </div>
           </div>

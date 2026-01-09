@@ -1,17 +1,21 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Menu, X, ChevronDown } from 'lucide-vue-next';
 import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import LanguageSelector from '@/components/common/LanguageSelector.vue';
 
+const { t } = useI18n();
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 const activeDropdown = ref(null);
 
-const navLinks = [
-  { name: 'Inicio', to: { path: '/', hash: '#inicio' } },
-  { name: 'Sobre Nosotros', to: { path: '/', hash: '#sobre-nosotros' } },
+// Computed navigation links for reactivity on language change
+const navLinks = computed(() => [
+  { name: t('nav.home'), to: { path: '/', hash: '#inicio' } },
+  { name: 'Sobre Nosotros', to: { path: '/', hash: '#sobre-nosotros' } }, // TODO: Add key for About
   { 
-    name: 'Como Participar', 
+    name: t('nav.participate'), 
     to: '/como-participar',
     dropdown: [
       { name: 'Auspiciadores', to: '/auspiciadores' },
@@ -20,7 +24,7 @@ const navLinks = [
     ]
   },
   { name: 'Eventos', to: '/eventos' },
-];
+]);
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
@@ -79,6 +83,11 @@ onUnmounted(() => {
           </Transition>
         </li>
       </ul>
+      
+      <!-- Desktop Language Selector -->
+      <div class="desktop-lang">
+        <LanguageSelector />
+      </div>
 
       <!-- Hamburger Button -->
       <button class="navbar__mobile-toggle" @click="toggleMobileMenu" aria-label="Toggle Menu">
@@ -90,6 +99,9 @@ onUnmounted(() => {
     <!-- Mobile Menu Overlay -->
     <Transition name="fade-slide">
       <div v-if="isMobileMenuOpen" class="navbar__mobile-menu">
+        <div class="mobile-lang-wrapper">
+           <LanguageSelector />
+        </div>
         <ul class="mobile-menu__links">
           <template v-for="(link, index) in navLinks" :key="link.name">
             <li :style="{ '--delay': index * 0.1 + 's' }">
@@ -317,7 +329,19 @@ onUnmounted(() => {
 
 @media (max-width: 1024px) {
   .navbar__links { display: none; }
+  .desktop-lang { display: none; }
   .navbar__mobile-toggle { display: block; }
+}
+
+.desktop-lang {
+  margin-left: 1rem;
+}
+
+.mobile-lang-wrapper {
+  position: absolute;
+  top: 2rem;
+  right: 6rem; /* Left of close button */
+  z-index: 10005;
 }
 
 /* Hide hamburger menu when app is installed (standalone mode) */

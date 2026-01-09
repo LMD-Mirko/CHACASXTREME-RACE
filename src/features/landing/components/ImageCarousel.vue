@@ -3,15 +3,38 @@ import { ref } from 'vue';
 import confetti from 'canvas-confetti';
 import { X } from 'lucide-vue-next';
 
-import gallery1 from '@/assets/images/gallery1.png';
-import gallery2 from '@/assets/images/gallery2.png';
-import gallery3 from '@/assets/images/gallery3.png';
-import hero1 from '@/assets/images/hero1.png';
-import hero2 from '@/assets/images/hero2.jpg';
-import hero3 from '@/assets/images/hero3.jpg';
+// Importar todas las imágenes de Chacas
+import img1 from '@/assets/images/chacas /1.jpg';
+import img2 from '@/assets/images/chacas /2.jpg';
+import img3 from '@/assets/images/chacas /3.jpg';
+import img4 from '@/assets/images/chacas /4.jpg';
+import imgChacas from '@/assets/images/chacas /chacas.jpg';
 
-const imagesRow1 = [gallery1, gallery2, gallery3];
-const imagesRow2 = [hero1, hero2, hero3];
+// Imágenes de la carpeta 3
+import img3_1 from '@/assets/images/chacas /3/X94A1553.JPG';
+import img3_2 from '@/assets/images/chacas /3/X94A1559.JPG';
+import img3_3 from '@/assets/images/chacas /3/X94A1561.JPG';
+import img3_4 from '@/assets/images/chacas /3/X94A1575.JPG';
+import img3_5 from '@/assets/images/chacas /3/X94A1598.JPG';
+import img3_6 from '@/assets/images/chacas /3/X94A1600.JPG';
+import img3_7 from '@/assets/images/chacas /3/X94A1617.JPG';
+import img3_8 from '@/assets/images/chacas /3/X94A1635.JPG';
+import img3_9 from '@/assets/images/chacas /3/X94A1650.JPG';
+import img3_10 from '@/assets/images/chacas /3/X94A1695.JPG';
+import img3_11 from '@/assets/images/chacas /3/X94A1757.JPG';
+import img3_12 from '@/assets/images/chacas /3/X94A1778.JPG';
+import img3_13 from '@/assets/images/chacas /3/X94A1796.JPG';
+import img3_14 from '@/assets/images/chacas /3/X94A1817.JPG';
+import img3_15 from '@/assets/images/chacas /3/X94A1861.JPG';
+import img3_16 from '@/assets/images/chacas /3/X94A1864.JPG';
+import img3_17 from '@/assets/images/chacas /3/X94A1869.JPG';
+import img3_18 from '@/assets/images/chacas /3/X94A1892.JPG';
+
+// Fila 1: Imágenes principales y algunas de acción
+const imagesRow1 = [img1, img2, img3, img4, imgChacas, img3_1, img3_2, img3_3, img3_4, img3_5, img3_6];
+
+// Fila 2: Resto de imágenes de acción
+const imagesRow2 = [img3_7, img3_8, img3_9, img3_10, img3_11, img3_12, img3_13, img3_14, img3_15, img3_16, img3_17, img3_18];
 
 const isWarping = ref(false);
 const selectedImage = ref(null);

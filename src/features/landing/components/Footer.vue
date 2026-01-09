@@ -1,5 +1,8 @@
 <script setup>
 import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -12,8 +15,7 @@ import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight }
           <span class="logo-accent"><span class="x-accent">X</span>TREME RACE</span>
         </div>
         <p class="footer__text">
-          Llevando el ciclismo de montaña a un nuevo nivel en el corazón de los Andes. 
-          Únete a la aventura más extrema del Perú.
+          {{ t('footer.brand_text') }}
         </p>
         <div class="footer__socials">
           <a href="#" class="social-link" aria-label="Instagram"><Instagram :size="20" /></a>
@@ -24,18 +26,18 @@ import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight }
 
       <!-- Quick Links -->
       <div class="footer__links">
-        <h4 class="footer__title">Navegación</h4>
+        <h4 class="footer__title">{{ t('footer.titles.nav') }}</h4>
         <ul>
-          <li><a href="#inicio"><ChevronRight :size="16" /> Inicio</a></li>
-          <li><a href="#sobre-nosotros"><ChevronRight :size="16" /> Sobre Nosotros</a></li>
-          <li><a href="#"><ChevronRight :size="16" /> Competencias</a></li>
-          <li><a href="#"><ChevronRight :size="16" /> Inscripciones</a></li>
+          <li><a href="#inicio"><ChevronRight :size="16" /> {{ t('footer.nav_links.home') }}</a></li>
+          <li><a href="#sobre-nosotros"><ChevronRight :size="16" /> {{ t('footer.nav_links.about') }}</a></li>
+          <li><a href="#"><ChevronRight :size="16" /> {{ t('footer.nav_links.competitions') }}</a></li>
+          <li><a href="#"><ChevronRight :size="16" /> {{ t('footer.nav_links.register') }}</a></li>
         </ul>
       </div>
 
       <!-- Contact Info -->
       <div class="footer__contact">
-        <h4 class="footer__title">Contacto</h4>
+        <h4 class="footer__title">{{ t('footer.titles.contact') }}</h4>
         <ul class="contact-list">
           <li>
             <MapPin :size="18" class="contact-icon" />
@@ -54,7 +56,7 @@ import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight }
 
       <!-- Map -->
       <div class="footer__map">
-        <h4 class="footer__title">Ubicación</h4>
+        <h4 class="footer__title">{{ t('footer.titles.location') }}</h4>
         <div class="map-wrapper">
           <iframe 
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15754.673859344423!2d-77.3712128790076!3d-9.158784869408643!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91adb06716a47a75%3A0xe9c869480dc3b56!2sChacas%2C%20Peru!5e0!3m2!1sen!2sus!4v1703893000000!5m2!1sen!2sus" 
@@ -71,10 +73,10 @@ import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight }
 
     <div class="footer__bottom">
       <div class="container footer__bottom-content">
-        <p>&copy; 2025 Manka Rider's. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Manka Rider's. {{ t('footer.rights') }}</p>
         <div class="footer__legal">
-          <a href="#">Términos y Condiciones</a>
-          <a href="#">Política de Privacidad</a>
+          <a href="#">{{ t('footer.terms') }}</a>
+          <a href="#">{{ t('footer.privacy') }}</a>
         </div>
       </div>
     </div>

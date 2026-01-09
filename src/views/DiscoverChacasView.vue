@@ -5,11 +5,13 @@ import chacasHero from '@/assets/images/chacas /chacas.jpg';
 import slide1 from '@/assets/images/chacas /1.jpg';
 import slide2 from '@/assets/images/chacas /2.jpg';
 import slide3 from '@/assets/images/chacas /3.jpg';
+import { useI18n } from 'vue-i18n';
 
 const images = [slide1, slide2, slide3];
 
 const currentImageIndex = ref(0);
 let intervalId = null;
+const { t } = useI18n();
 
 onMounted(() => {
   intervalId = setInterval(() => {
@@ -41,7 +43,7 @@ onUnmounted(() => {
         <img :src="chacasHero" alt="Chacas Hero" class="hero-img" />
       </div>
       <div class="container relative z-10">
-        <h1 class="hero-title reveal">CONOCE<br/>CHACAS</h1>
+        <h1 class="hero-title reveal" v-html="t('discover.hero_title').replace('\n', '<br/>')"></h1>
       </div>
     </section>
 
@@ -57,35 +59,24 @@ onUnmounted(() => {
 
         <!-- Text Content -->
         <div class="text-box reveal">
-          <h2 class="section-title">CONOCE CHACAS</h2>
+          <h2 class="section-title">{{ t('discover.section_title') }}</h2>
           <div class="text-content">
-            <p>
-              Chacas, en la región de Áncash, Perú, es un destino único que te invita a sumergirte en la naturaleza 
-              más pura, rodeada de imponentes montañas, valles profundos y paisajes deslumbrantes. Es el lugar 
-              perfecto para los aventureros, a solo unos kilómetros se encuentra el Parque Nacional Huascarán, 
-              donde el majestuoso nevado Huascarán y las montañas cercanas embellecen aún más nuestra ciudad.
-            </p>
-            <p>
-              Además, Chacas destaca por su encantadora arquitectura colonial, su rica herencia cultural y la 
-              calidez de su gente, que hacen de cada visita una experiencia memorable. Y para los más intrépidos, 
-              organizamos emocionantes rutas en bicicleta, donde podrás explorar caminos secretos y descubrir los 
-              rincones más asombrosos de nuestra fascinante comunidad. ¡Ven a vivir la aventura y la tradición de 
-              Chacas como nunca antes!
-            </p>
+            <p>{{ t('discover.p1') }}</p>
+            <p>{{ t('discover.p2') }}</p>
           </div>
           
           <div class="technical-details">
             <div class="detail-item">
-              <span class="label">UBICACIÓN</span>
-              <span class="value">ÁNCASH, PERÚ</span>
+              <span class="label">{{ t('discover.specs.location_label') }}</span>
+              <span class="value">{{ t('discover.specs.location_val') }}</span>
             </div>
             <div class="detail-item">
-              <span class="label">ALTITUD</span>
-              <span class="value">3,359 MSNM</span>
+              <span class="label">{{ t('discover.specs.altitude_label') }}</span>
+              <span class="value">{{ t('discover.specs.altitude_val') }}</span>
             </div>
             <div class="detail-item">
-              <span class="label">CLIMA</span>
-              <span class="value">MONTAÑA_FRIO</span>
+              <span class="label">{{ t('discover.specs.climate_label') }}</span>
+              <span class="value">{{ t('discover.specs.climate_val') }}</span>
             </div>
           </div>
         </div>

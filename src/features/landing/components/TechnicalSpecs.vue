@@ -2,38 +2,41 @@
 import { ref, computed } from 'vue';
 import { useMouseInElement } from '@vueuse/core';
 import { Mountain, Wind, Activity, Zap } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Data for the cards
-const cardsData = [
+const cardsData = computed(() => [
   {
-    title: 'MAX ALTIMETRÍA',
+    title: t('specs.cards[0].title'),
     value: '3,359',
-    unit: 'msnm',
+    unit: t('specs.cards[0].unit'),
     icon: Mountain,
-    desc: 'Un desafío de altura que pondrá a prueba tus pulmones.'
+    desc: t('specs.cards[0].desc')
   },
   {
-    title: 'DISTANCIA',
+    title: t('specs.cards[1].title'),
     value: '42',
-    unit: 'KM',
+    unit: t('specs.cards[1].unit'),
     icon: Activity,
-    desc: 'Ruta épica entre senderos y caminos históricos.'
+    desc: t('specs.cards[1].desc')
   },
   {
-    title: 'CLIMA EXTREMO',
+    title: t('specs.cards[2].title'),
     value: '12-18',
-    unit: '°C',
+    unit: t('specs.cards[2].unit'),
     icon: Wind,
-    desc: 'Variación térmica típica de la cordillera blanca.'
+    desc: t('specs.cards[2].desc')
   },
   {
-    title: 'DIFICULTAD',
+    title: t('specs.cards[3].title'),
     value: 'ELITE',
-    unit: 'LEVEL',
+    unit: t('specs.cards[3].unit'),
     icon: Zap,
-    desc: 'Solo para los ciclistas que no conocen el miedo.'
+    desc: t('specs.cards[3].desc')
   }
-];
+]);
 
 // Inner component for 3D effect
 const TechnicalCard = {
@@ -63,11 +66,10 @@ const TechnicalCard = {
   <section class="challenge" id="competencias">
     <div class="container">
       <div class="challenge__header">
-        <h2 class="section-title">EL DESAFÍO</h2>
-        <h3 class="challenge__headline">LA RUTA DE LOS DIOSES</h3>
+        <h2 class="section-title">{{ t('specs.section_title') }}</h2>
+        <h3 class="challenge__headline">{{ t('specs.headline') }}</h3>
         <p class="challenge__intro">
-          Chacas no es solo una carrera, es una batalla contra la naturaleza y contra ti mismo. 
-          Analiza los datos técnicos y prepárate para la gloria.
+          {{ t('specs.intro') }}
         </p>
       </div>
 
@@ -96,7 +98,7 @@ const TechnicalCard = {
     </div>
 
     <!-- Background Decoration -->
-    <div class="challenge__bg-text">ASCENSO</div>
+    <div class="challenge__bg-text">{{ t('specs.bg_text') }}</div>
   </section>
 </template>
 
