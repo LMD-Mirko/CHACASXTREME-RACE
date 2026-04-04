@@ -70,7 +70,7 @@ const closeLightbox = () => {
              :key="'r1-'+index" 
              class="gallery__item"
              @click="openLightbox(img)">
-          <img :src="img" alt="Gallery 1" />
+          <img :src="img" alt="Gallery 1" loading="lazy" />
           <div class="gallery__overlay">
             <span class="gallery__label">AMPLIAR</span>
           </div>
@@ -85,7 +85,7 @@ const closeLightbox = () => {
              :key="'r2-'+index" 
              class="gallery__item"
              @click="openLightbox(img)">
-          <img :src="img" alt="Gallery 2" />
+          <img :src="img" alt="Gallery 2" loading="lazy" />
           <div class="gallery__overlay">
             <span class="gallery__label">AMPLIAR</span>
           </div>

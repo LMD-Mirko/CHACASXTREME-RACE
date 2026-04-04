@@ -69,7 +69,7 @@ const copyEmail = () => {
               <div class="logo-orbit logo-orbit--1"></div>
               <div class="logo-orbit logo-orbit--2"></div>
               <div class="logo-frame">
-                <img :src="mankaLogo" alt="Manka Riders Logo" class="logo-img" />
+                <img :src="mankaLogo" alt="Manka Riders Logo" class="logo-img" loading="lazy" />
               </div>
               <div class="logo-glow"></div>
             </div>

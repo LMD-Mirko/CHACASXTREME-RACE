@@ -42,7 +42,7 @@ onMounted(() => {
     <div class="container about__grid">
       <div class="about__image-container" ref="imageRef">
         <div class="about__image-wrapper">
-          <img src="@/assets/images/hero2.webp" alt="Manka Riders Competition" class="about__image" />
+          <img src="@/assets/images/hero2.webp" alt="Manka Riders Competition" class="about__image" loading="lazy" />
           <div class="about__experience-badge">
             <span class="number">1+</span>
             <span class="text">{{ t('about.badge_text') }}</span>

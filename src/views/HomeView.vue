@@ -1,10 +1,10 @@
 <script setup>
+import { onMounted } from 'vue';
 import HeroSlider from '@/features/landing/components/HeroSlider.vue';
 import AboutSection from '@/features/landing/components/AboutSection.vue';
 import ImageCarousel from '@/features/landing/components/ImageCarousel.vue';
 import TheChallenge from '@/features/landing/components/TheChallenge.vue';
 import ContactSection from '@/features/landing/components/ContactSection.vue';
-import { onMounted } from 'vue';
 
 onMounted(() => {
   const observerOptions = {

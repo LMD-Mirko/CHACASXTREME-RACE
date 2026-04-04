@@ -8,6 +8,7 @@ const i18n = createI18n({
     locale: 'es', // Default language
     fallbackLocale: 'en',
     globalInjection: true,
+    warnHtmlMessage: false,
     messages: {
         es,
         en,

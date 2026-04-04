@@ -69,7 +69,7 @@ onUnmounted(() => {
         <!-- Left: Image with rounded design -->
         <div class="challenge__visual">
           <div class="visual__frame">
-            <img :src="challengeImg" alt="Chacas Xtreme Challenge" class="visual__img" />
+            <img :src="challengeImg" alt="Chacas Xtreme Challenge" class="visual__img" loading="lazy" />
             <div class="visual__overlay"></div>
           </div>
           <!-- Decorative elements -->
