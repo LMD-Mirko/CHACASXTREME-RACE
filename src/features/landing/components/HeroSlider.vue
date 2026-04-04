@@ -2,9 +2,9 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
-import hero1 from '@/assets/images/hero1.png';
-import hero2 from '@/assets/images/hero2.jpg';
-import hero3 from '@/assets/images/hero3.jpg';
+import hero1 from '@/assets/images/hero1.webp';
+import hero2 from '@/assets/images/hero2.webp';
+import hero3 from '@/assets/images/hero3.webp';
 
 const { t } = useI18n();
 

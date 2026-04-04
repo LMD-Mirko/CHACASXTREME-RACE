@@ -11,12 +11,12 @@ import {
   ArrowRight
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n'; // Create useI18n
-import joseImg from '@/assets/images/jose.png';
-import luigiImg from '@/assets/images/luigi.png';
-import routeMapImg from '@/assets/images/mapa.png';
-import chacas1 from '@/assets/images/chacas /1.jpg';
-import chacas2 from '@/assets/images/chacas /2.jpg';
-import chacas3 from '@/assets/images/chacas /3.jpg';
+import joseImg from '@/assets/images/jose.webp';
+import luigiImg from '@/assets/images/luigi.webp';
+import routeMapImg from '@/assets/images/mapa.webp';
+import chacas1 from '@/assets/images/chacas /1.webp';
+import chacas2 from '@/assets/images/chacas /2.webp';
+import chacas3 from '@/assets/images/chacas /3.webp';
 
 const { t } = useI18n();
 
@@ -155,7 +155,7 @@ onMounted(() => {
     <section class="events-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img src="@/assets/images/chacas /4.jpg" alt="Events Background" class="parallax-img" />
+        <img src="@/assets/images/chacas /4.webp" alt="Events Background" class="parallax-img" />
       </div>
       <div class="container relative z-10">
         <div class="badge-red reveal">{{ t('events.badge') }}</div>

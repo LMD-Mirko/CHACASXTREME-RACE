@@ -48,25 +48,25 @@ const reasons = computed(() => [
     icon: Trophy,
     title: t('registration.reasons[0].title'),
     desc: t('registration.reasons[0].desc'),
-    image: new URL('@/assets/images/chacas /3/X94A1553.JPG', import.meta.url).href
+    image: new URL('@/assets/images/chacas /3/X94A1553.webp', import.meta.url).href
   },
   {
     icon: Map,
     title: t('registration.reasons[1].title'),
     desc: t('registration.reasons[1].desc'),
-    image: new URL('@/assets/images/chacas /3/X94A1559.JPG', import.meta.url).href
+    image: new URL('@/assets/images/chacas /3/X94A1559.webp', import.meta.url).href
   },
   {
     icon: Mountain,
     title: t('registration.reasons[2].title'),
     desc: t('registration.reasons[2].desc'),
-    image: new URL('@/assets/images/chacas /3/X94A1561.JPG', import.meta.url).href
+    image: new URL('@/assets/images/chacas /3/X94A1561.webp', import.meta.url).href
   },
   {
     icon: Heart,
     title: t('registration.reasons[3].title'),
     desc: t('registration.reasons[3].desc'),
-    image: new URL('@/assets/images/chacas /3/X94A1575.JPG', import.meta.url).href
+    image: new URL('@/assets/images/chacas /3/X94A1575.webp', import.meta.url).href
   }
 ]);
 
@@ -128,7 +128,7 @@ onMounted(() => {
     <section class="reg-hero">
       <div class="reg-hero__bg">
         <div class="overlay"></div>
-        <img src="@/assets/images/chacas /3/X94A1600.JPG" alt="Cyclist Hero" />
+        <img src="@/assets/images/chacas /3/X94A1600.webp" alt="Cyclist Hero" />
       </div>
 
       <!-- Navigation Link Back -->

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import logo from '@/assets/images/logo.jpg';
+import logo from '@/assets/images/logo.webp';
 
 const { t } = useI18n();
 const isVisible = ref(true);

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Mountain, Activity, Wind, Zap, ChevronRight } from 'lucide-vue-next';
-import challengeImg from '@/assets/images/unnamed.jpg';
+import challengeImg from '@/assets/images/unnamed.webp';
 
 const { t } = useI18n();
 

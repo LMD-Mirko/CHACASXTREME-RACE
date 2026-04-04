@@ -1,6 +1,6 @@
 <script setup>
 import { Mail, Phone, Instagram, Facebook, ArrowUpRight, Copy, Send } from 'lucide-vue-next';
-import mankaLogo from '@/assets/images/logo.jpg';
+import mankaLogo from '@/assets/images/logo.webp';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 

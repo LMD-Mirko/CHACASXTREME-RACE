@@ -4,31 +4,31 @@ import confetti from 'canvas-confetti';
 import { X } from 'lucide-vue-next';
 
 // Importar todas las imágenes de Chacas
-import img1 from '@/assets/images/chacas /1.jpg';
-import img2 from '@/assets/images/chacas /2.jpg';
-import img3 from '@/assets/images/chacas /3.jpg';
-import img4 from '@/assets/images/chacas /4.jpg';
-import imgChacas from '@/assets/images/chacas /chacas.jpg';
+import img1 from '@/assets/images/chacas /1.webp';
+import img2 from '@/assets/images/chacas /2.webp';
+import img3 from '@/assets/images/chacas /3.webp';
+import img4 from '@/assets/images/chacas /4.webp';
+import imgChacas from '@/assets/images/chacas /chacas.webp';
 
 // Imágenes de la carpeta 3
-import img3_1 from '@/assets/images/chacas /3/X94A1553.JPG';
-import img3_2 from '@/assets/images/chacas /3/X94A1559.JPG';
-import img3_3 from '@/assets/images/chacas /3/X94A1561.JPG';
-import img3_4 from '@/assets/images/chacas /3/X94A1575.JPG';
-import img3_5 from '@/assets/images/chacas /3/X94A1598.JPG';
-import img3_6 from '@/assets/images/chacas /3/X94A1600.JPG';
-import img3_7 from '@/assets/images/chacas /3/X94A1617.JPG';
-import img3_8 from '@/assets/images/chacas /3/X94A1635.JPG';
-import img3_9 from '@/assets/images/chacas /3/X94A1650.JPG';
-import img3_10 from '@/assets/images/chacas /3/X94A1695.JPG';
-import img3_11 from '@/assets/images/chacas /3/X94A1757.JPG';
-import img3_12 from '@/assets/images/chacas /3/X94A1778.JPG';
-import img3_13 from '@/assets/images/chacas /3/X94A1796.JPG';
-import img3_14 from '@/assets/images/chacas /3/X94A1817.JPG';
-import img3_15 from '@/assets/images/chacas /3/X94A1861.JPG';
-import img3_16 from '@/assets/images/chacas /3/X94A1864.JPG';
-import img3_17 from '@/assets/images/chacas /3/X94A1869.JPG';
-import img3_18 from '@/assets/images/chacas /3/X94A1892.JPG';
+import img3_1 from '@/assets/images/chacas /3/X94A1553.webp';
+import img3_2 from '@/assets/images/chacas /3/X94A1559.webp';
+import img3_3 from '@/assets/images/chacas /3/X94A1561.webp';
+import img3_4 from '@/assets/images/chacas /3/X94A1575.webp';
+import img3_5 from '@/assets/images/chacas /3/X94A1598.webp';
+import img3_6 from '@/assets/images/chacas /3/X94A1600.webp';
+import img3_7 from '@/assets/images/chacas /3/X94A1617.webp';
+import img3_8 from '@/assets/images/chacas /3/X94A1635.webp';
+import img3_9 from '@/assets/images/chacas /3/X94A1650.webp';
+import img3_10 from '@/assets/images/chacas /3/X94A1695.webp';
+import img3_11 from '@/assets/images/chacas /3/X94A1757.webp';
+import img3_12 from '@/assets/images/chacas /3/X94A1778.webp';
+import img3_13 from '@/assets/images/chacas /3/X94A1796.webp';
+import img3_14 from '@/assets/images/chacas /3/X94A1817.webp';
+import img3_15 from '@/assets/images/chacas /3/X94A1861.webp';
+import img3_16 from '@/assets/images/chacas /3/X94A1864.webp';
+import img3_17 from '@/assets/images/chacas /3/X94A1869.webp';
+import img3_18 from '@/assets/images/chacas /3/X94A1892.webp';
 
 // Fila 1: Imágenes principales y algunas de acción
 const imagesRow1 = [img1, img2, img3, img4, imgChacas, img3_1, img3_2, img3_3, img3_4, img3_5, img3_6];
