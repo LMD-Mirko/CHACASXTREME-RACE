@@ -131,7 +131,7 @@ const copyEmail = () => {
 
 .gradient-text {
   background: var(--accent-gradient);
-  
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

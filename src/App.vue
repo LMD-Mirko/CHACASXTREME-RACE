@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Navbar from './features/landing/components/Navbar.vue';
 import Footer from './features/landing/components/Footer.vue';
 import CustomCursor from './components/common/CustomCursor.vue';
@@ -7,6 +8,10 @@ import AppBottomNav from './components/common/AppBottomNav.vue';
 import SplashScreen from './components/common/SplashScreen.vue';
 
 const showSplash = ref(true);
+const route = useRoute();
+
+// Hide navigation on the teaser page
+const showNavigation = computed(() => route.name !== 'countdown');
 
 const handleSplashFinish = () => {
   showSplash.value = false;
@@ -17,14 +22,14 @@ const handleSplashFinish = () => {
   <SplashScreen v-if="showSplash" @finish="handleSplashFinish" />
   <div v-show="!showSplash" class="app">
     <CustomCursor />
-    <Navbar />
+    <Navbar v-if="showNavigation" />
     <router-view v-slot="{ Component }">
       <transition name="page-fade" mode="out-in">
         <component :is="Component" />
       </transition>
     </router-view>
-    <Footer id="ubicacion" />
-    <AppBottomNav />
+    <Footer id="ubicacion" v-if="showNavigation" />
+    <AppBottomNav v-if="showNavigation" />
   </div>
 </template>
 

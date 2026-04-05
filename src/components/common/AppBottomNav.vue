@@ -13,7 +13,7 @@ import { computed } from 'vue';
 const route = useRoute();
 
 const navItems = [
-  { name: 'Inicio', path: '/', icon: Home },
+  { name: 'Inicio', path: '/inicio', icon: Home },
   { name: 'Eventos', path: '/eventos', icon: Flag },
   { name: 'PARTICIPAR', path: '/como-participar', icon: Zap, isAction: true },
   { name: 'Chacas', path: '/conoce-chacas', icon: Map },

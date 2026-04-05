@@ -6,6 +6,11 @@ import CyclistRegistrationView from '@/views/CyclistRegistrationView.vue';
 const routes = [
     {
         path: '/',
+        name: 'countdown',
+        component: () => import('../views/CountdownView.vue')
+    },
+    {
+        path: '/inicio',
         name: 'home',
         component: () => import('../views/HomeView.vue')
     },

@@ -12,8 +12,8 @@ const activeDropdown = ref(null);
 
 // Computed navigation links for reactivity on language change
 const navLinks = computed(() => [
-  { name: t('nav.home'), to: { path: '/', hash: '#inicio' } },
-  { name: 'Sobre Nosotros', to: { path: '/', hash: '#sobre-nosotros' } }, // TODO: Add key for About
+  { name: t('nav.home'), to: { path: '/inicio', hash: '#inicio' } },
+  { name: 'Sobre Nosotros', to: { path: '/inicio', hash: '#sobre-nosotros' } }, // TODO: Add key for About
   { 
     name: t('nav.participate'), 
     to: '/como-participar',
@@ -52,7 +52,7 @@ onUnmounted(() => {
 <template>
   <nav :class="['navbar', { 'navbar--scrolled': isScrolled, 'navbar--mobile-open': isMobileMenuOpen }]">
     <div class="container navbar__content">
-      <RouterLink to="/" class="navbar__logo">
+      <RouterLink to="/inicio" class="navbar__logo">
         <span class="logo-text">CHACAS</span>
         <span class="logo-accent"><span class="x-accent">X</span>TREME RACE</span>
       </RouterLink>
