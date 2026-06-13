@@ -10,6 +10,29 @@
         "chacas": "Chacas",
         "sponsors": "Sponsors"
     },
+    "teaser": {
+        "tagline": "IV EDICIÓN — DESAFÍO EN LOS ANDES",
+        "headings": [
+            "PEDALEA.",
+            "RESISTE.",
+            "CONQUISTA."
+        ],
+        "subtext": "Una batalla épica en la cordillera blanca que desafía los límites del cuerpo y la mente.",
+        "cta_enter": "ENTRAR AL SITIO",
+        "badge_status": "EVENTO OFICIAL",
+        "badge_desc": "CORDILLERA BLANCA",
+        "stats": {
+            "altimetry": "ALTIMETRÍA MÁXIMA",
+            "distance": "DISTANCIA DE RUTA",
+            "adrenaline": "PURA ADRENALINA"
+        },
+        "time": {
+            "days": "DÍAS",
+            "hours": "HORAS",
+            "minutes": "MINUTOS",
+            "seconds": "SEGUNDOS"
+        }
+    },
     "splash": {
         "system_check": "VERIFICANDO SISTEMA"
     },

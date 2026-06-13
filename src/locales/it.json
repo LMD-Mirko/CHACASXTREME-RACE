@@ -10,6 +10,29 @@
         "chacas": "Chacas",
         "sponsors": "Sponsor"
     },
+    "teaser": {
+        "tagline": "IV EDIZIONE — SFIDA NELLE ANDE",
+        "headings": [
+            "PEDALA.",
+            "RESISTI.",
+            "CONQUISTA."
+        ],
+        "subtext": "Un'epica battaglia nella Cordillera Blanca che sfida i limiti del corpo e della mente.",
+        "cta_enter": "ENTRA NEL SITO",
+        "badge_status": "EVENTO UFFICIALE",
+        "badge_desc": "CORDILLERA BLANCA",
+        "stats": {
+            "altimetry": "ALTITUDINE MASSIMA",
+            "distance": "DISTANZA PERCORSO",
+            "adrenaline": "PURA ADRENALINA"
+        },
+        "time": {
+            "days": "GIORNI",
+            "hours": "ORE",
+            "minutes": "MINUTI",
+            "seconds": "SECONDI"
+        }
+    },
     "splash": {
         "system_check": "VERIFICA SISTEMA"
     },

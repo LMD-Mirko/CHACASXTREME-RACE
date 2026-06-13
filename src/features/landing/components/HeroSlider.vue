@@ -1,26 +1,28 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
 import hero1 from '@/assets/images/hero1.webp';
 import hero2 from '@/assets/images/hero2.webp';
 import hero3 from '@/assets/images/hero3.webp';
 
 const { t } = useI18n();
+const router = useRouter();
+
+const bgImages = [hero1, hero2, hero3];
 
 const slides = computed(() => [
   {
-    image: hero1,
     title: t('hero.slides[0].title'),
     subtitle: t('hero.slides[0].subtitle'),
   },
   {
-    image: hero2,
     title: t('hero.slides[1].title'),
     subtitle: t('hero.slides[1].subtitle'),
   },
   {
-    image: hero3,
     title: t('hero.slides[2].title'),
     subtitle: t('hero.slides[2].subtitle'),
   },
@@ -38,7 +40,15 @@ const prevSlide = () => {
 };
 
 const startTimer = () => {
-  timer = setInterval(nextSlide, 6000);
+  timer = setInterval(nextSlide, 7500);
+};
+
+const navigateToRegister = () => {
+  router.push('/registro/ciclista');
+};
+
+const navigateToDemo = () => {
+  router.push('/como-participar');
 };
 
 onMounted(() => {
@@ -52,6 +62,20 @@ onUnmounted(() => {
 
 <template>
   <section class="hero" id="inicio">
+    <!-- Cinematic Background Slideshow (Ken Burns Effect linked to slide index) -->
+    <div class="slideshow-container">
+      <transition name="fade-bg">
+        <div :key="currentIndex" class="slide-item">
+          <div 
+            class="slide-image" 
+            :style="{ backgroundImage: `url(${bgImages[currentIndex]})` }"
+          ></div>
+        </div>
+      </transition>
+      <div class="video-overlay"></div>
+      <div class="noise-bg"></div>
+    </div>
+
     <div class="hero__slider">
       <transition-group name="slide-fade">
         <div 
@@ -60,23 +84,23 @@ onUnmounted(() => {
           v-show="currentIndex === index"
           class="hero__slide"
         >
-          <div 
-            class="hero__image" 
-            :style="{ backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.7) 100%), linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 100%), url(${slide.image})` }"
-          ></div>
-          
           <div class="container hero__content">
             <div class="hero__text-box">
-              <span class="hero__tagline">{{ t('hero.tagline') }}</span>
-              <h1 class="hero__title">
+              <span class="hero__tagline animate-fade-up">{{ t('hero.tagline') }}</span>
+              <h1 class="hero__title font-podium animate-fade-up-delay-1">
                 {{ slide.title }}
               </h1>
-              <p class="hero__description">
+              <p class="hero__description animate-fade-up-delay-2">
                 {{ slide.subtitle }}
               </p>
-              <div class="hero__actions">
-                <button class="btn btn--primary">{{ t('hero.cta_primary') }}</button>
-                <button class="btn btn--outline">{{ t('hero.cta_secondary') }}</button>
+              <div class="hero__actions animate-fade-up-delay-3">
+                <button @click="navigateToRegister" class="btn btn--primary group">
+                  <span>{{ t('hero.cta_primary') }}</span>
+                  <ArrowUpRight :size="16" class="arrow-icon" />
+                </button>
+                <button @click="navigateToDemo" class="btn btn--outline">
+                  {{ t('hero.cta_secondary') }}
+                </button>
               </div>
             </div>
           </div>
@@ -84,8 +108,10 @@ onUnmounted(() => {
       </transition-group>
 
       <!-- Controls -->
-      <div class="hero__controls">
-        <button @click="prevSlide" class="control-btn"><ChevronLeft :size="32" /></button>
+      <div class="hero__controls animate-fade-in-delay">
+        <button @click="prevSlide" class="control-btn" aria-label="Previous Slide">
+          <ChevronLeft :size="28" />
+        </button>
         <div class="hero__dots">
           <span 
             v-for="(_, index) in slides" 
@@ -94,7 +120,9 @@ onUnmounted(() => {
             @click="currentIndex = index"
           ></span>
         </div>
-        <button @click="nextSlide" class="control-btn"><ChevronRight :size="32" /></button>
+        <button @click="nextSlide" class="control-btn" aria-label="Next Slide">
+          <ChevronRight :size="28" />
+        </button>
       </div>
     </div>
   </section>
@@ -105,11 +133,79 @@ onUnmounted(() => {
   height: 100vh;
   position: relative;
   overflow: hidden;
+  background-color: #020202;
 }
 
+/* BACKGROUND SLIDESHOW (KEN BURNS EFFECT) */
+.slideshow-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.slide-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.slide-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.78) contrast(1.08) saturate(0.95); /* Bright, visible, slightly polished */
+  animation: kenburns 16s ease-in-out forwards;
+}
+
+@keyframes kenburns {
+  0% {
+    transform: scale(1.15) translate(0%, 0%);
+  }
+  100% {
+    transform: scale(1.02) translate(-1%, -0.5%);
+  }
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.5) 90%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0.95) 100%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.75) 100%);
+  z-index: 1;
+}
+
+.noise-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://grainy-gradients.vercel.app/noise.svg');
+  opacity: 0.1;
+  mix-blend-mode: overlay;
+  z-index: 2;
+}
+
+/* Crossfade Transition */
+.fade-bg-enter-active,
+.fade-bg-leave-active {
+  transition: opacity 1.8s ease-in-out;
+}
+
+.fade-bg-enter-from,
+.fade-bg-leave-to {
+  opacity: 0;
+}
+
+/* SLIDER */
 .hero__slider {
   height: 100%;
   position: relative;
+  z-index: 10;
 }
 
 .hero__slide {
@@ -120,63 +216,45 @@ onUnmounted(() => {
   height: 100%;
 }
 
-.hero__image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  z-index: -1;
-  transform: scale(1.1);
-  filter: brightness(0.85) contrast(1.1) saturate(0.9);
-  animation: zoom-out 20s linear infinite alternate;
-}
-
-@keyframes zoom-out {
-  from { transform: scale(1.2); }
-  to { transform: scale(1); }
-}
-
-.hero__slide[style*="display: block"] .hero__image,
-.hero__slide:not([style*="display: none"]) .hero__image {
-  transform: scale(1);
-}
-
 .hero__content {
   height: 100%;
   display: flex;
   align-items: center;
+  padding-left: 5%;
 }
 
 .hero__text-box {
-  max-width: 700px;
+  max-width: 850px;
 }
 
 .hero__tagline {
   display: inline-block;
+  font-family: var(--font-main);
   font-weight: 700;
   color: var(--primary-color);
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  letter-spacing: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
 }
 
 .hero__title {
-  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-size: clamp(3rem, 7.5vw, 6.2rem);
   font-weight: 900;
-  line-height: 1;
-  margin-bottom: 2rem;
+  line-height: 0.92;
+  margin-bottom: 1.8rem;
   letter-spacing: -2px;
+  color: #ffffff;
+  text-transform: uppercase;
 }
 
 .hero__description {
-  font-size: 1.25rem;
+  font-family: var(--font-main);
+  font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--text-secondary);
-  margin-bottom: 2.5rem;
-  max-width: 500px;
+  margin-bottom: 2.8rem;
+  max-width: 550px;
+  line-height: 1.6;
 }
 
 .hero__actions {
@@ -184,65 +262,90 @@ onUnmounted(() => {
   gap: 1.5rem;
 }
 
+/* BUTTONS */
 .btn {
   font-family: var(--font-accent);
-  padding: 1rem 2.5rem;
+  padding: 1.1rem 2.8rem;
   border-radius: 4px;
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 950;
+  font-size: 0.85rem;
   transition: var(--transition-smooth);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  outline: none;
 }
 
 .btn--primary {
-  background: var(--accent-gradient);
-  color: black;
+  background: var(--primary-color);
+  color: #000;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 10px 25px rgba(255, 94, 0, 0.25);
 }
 
 .btn--primary:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 255, 136, 0.4);
+  background: #ffffff;
+  color: #000;
+  transform: translateY(-4px) skew(-3deg);
+  box-shadow: 0 15px 35px rgba(255, 94, 0, 0.4);
+}
+
+.arrow-icon {
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.btn--primary:hover .arrow-icon {
+  transform: translate(3px, -3px);
 }
 
 .btn--outline {
   border: 2px solid rgba(255, 255, 255, 0.2);
   color: white;
+  background: transparent;
 }
 
 .btn--outline:hover {
   border-color: var(--primary-color);
   color: var(--primary-color);
+  background: rgba(255, 94, 0, 0.05);
 }
 
 /* Controls */
 .hero__controls {
   position: absolute;
-  bottom: 3rem;
+  bottom: 4rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 2rem;
-  z-index: 10;
+  gap: 2.5rem;
+  z-index: 20;
 }
 
 .control-btn {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
+  background: none;
+  border: none;
+  cursor: pointer;
   transition: var(--transition-smooth);
 }
 
 .control-btn:hover {
   color: var(--primary-color);
+  transform: scale(1.15);
 }
 
 .hero__dots {
   display: flex;
-  gap: 1rem;
+  gap: 1.2rem;
+  align-items: center;
 }
 
 .dot {
-  width: 40px;
+  width: 35px;
   height: 3px;
   background: rgba(255, 255, 255, 0.2);
   cursor: pointer;
@@ -251,71 +354,69 @@ onUnmounted(() => {
 
 .dot.active {
   background: var(--primary-color);
-  width: 60px;
+  width: 55px;
 }
 
 /* Transitions */
 .slide-fade-enter-active {
-  transition: opacity 1s ease, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.8s ease, transform 1s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .slide-fade-leave-active {
-  transition: opacity 1s ease, transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .slide-fade-enter-from {
   opacity: 0;
-  transform: translateX(50px);
+  transform: translateX(40px);
 }
 
 .slide-fade-leave-to {
   opacity: 0;
-  transform: translateX(-50px);
+  transform: translateX(-40px);
 }
 
 @media (max-width: 768px) {
   .hero__content {
-    align-items: flex-end;
-    padding-bottom: 8rem;
+    align-items: center;
+    padding-left: 0;
   }
 
   .hero__text-box {
     text-align: center;
     margin: 0 auto;
+    padding: 0 1.5rem;
   }
 
   .hero__title {
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-    letter-spacing: -1px;
+    font-size: clamp(2.2rem, 8vw, 3.8rem);
+    margin-bottom: 1.2rem;
   }
   
   .hero__description {
     font-size: 1rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.4;
-  }
-
-  .hero__tagline {
-    font-size: 0.7rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
   }
 
   .hero__actions {
-    flex-direction: row;
-    gap: 0.8rem;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
   }
 
   .btn {
-    padding: 0.8rem 1.2rem;
+    padding: 1rem;
     font-size: 0.8rem;
-    flex: 1;
-    text-align: center;
+    width: 100%;
+    justify-content: center;
   }
 
   .hero__controls {
-    bottom: 2rem;
-    gap: 1rem;
+    bottom: 2.5rem;
+    gap: 1.5rem;
   }
 
   .dot {
@@ -324,12 +425,6 @@ onUnmounted(() => {
 
   .dot.active {
     width: 35px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero__actions {
-    flex-direction: column;
   }
 }
 </style>

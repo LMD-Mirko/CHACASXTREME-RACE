@@ -10,6 +10,29 @@
         "chacas": "Chacas",
         "sponsors": "Sponsors"
     },
+    "teaser": {
+        "tagline": "IV EDITION — CHALLENGE IN THE ANDES",
+        "headings": [
+            "RIDE.",
+            "ENDURE.",
+            "CONQUER."
+        ],
+        "subtext": "An epic battle in the Cordillera Blanca that challenges the limits of body and mind.",
+        "cta_enter": "ENTER THE SITE",
+        "badge_status": "OFFICIAL EVENT",
+        "badge_desc": "CORDILLERA BLANCA",
+        "stats": {
+            "altimetry": "MAX ALTITUDE",
+            "distance": "ROUTE DISTANCE",
+            "adrenaline": "PURE ADRENALINE"
+        },
+        "time": {
+            "days": "DAYS",
+            "hours": "HOURS",
+            "minutes": "MINUTES",
+            "seconds": "SECONDS"
+        }
+    },
     "splash": {
         "system_check": "SYSTEM CHECK"
     },
