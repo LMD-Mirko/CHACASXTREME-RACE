@@ -54,10 +54,10 @@ const handleSplashFinish = () => {
   transform: translateY(-20px);
 }
 
-/* Spacer for Bottom Nav on Mobile */
-@media (max-width: 1024px) {
+/* Spacer for Bottom Nav — solo en PWA instalada */
+@media (display-mode: standalone) {
   .app {
-    padding-bottom: 80px; /* Adjust based on BottomNav height */
+    padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
   }
 }
 </style>

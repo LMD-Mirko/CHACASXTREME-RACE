@@ -1,15 +1,17 @@
 <script setup>
 import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+import { useScrollReveal } from '@/composables/useScrollReveal';
 
 const { t } = useI18n();
+useScrollReveal({ selector: '.reveal-stagger' });
 </script>
 
 <template>
-  <footer class="footer">
+  <footer class="footer reveal-stagger">
     <div class="container footer__grid">
       <!-- Company Info -->
-      <div class="footer__brand">
+      <div class="footer__brand entry-anim entry-anim--up" style="--stagger: 0s">
         <div class="navbar__logo mb-2">
           <span class="logo-text">CHACAS</span>
           <span class="logo-accent"><span class="x-accent">X</span>TREME RACE</span>
@@ -25,7 +27,7 @@ const { t } = useI18n();
       </div>
 
       <!-- Quick Links -->
-      <div class="footer__links">
+      <div class="footer__links entry-anim entry-anim--up" style="--stagger: 0.1s">
         <h4 class="footer__title">{{ t('footer.titles.nav') }}</h4>
         <ul>
           <li><a href="#inicio"><ChevronRight :size="16" /> {{ t('footer.nav_links.home') }}</a></li>
@@ -36,7 +38,7 @@ const { t } = useI18n();
       </div>
 
       <!-- Contact Info -->
-      <div class="footer__contact">
+      <div class="footer__contact entry-anim entry-anim--up" style="--stagger: 0.2s">
         <h4 class="footer__title">{{ t('footer.titles.contact') }}</h4>
         <ul class="contact-list">
           <li>
@@ -55,7 +57,7 @@ const { t } = useI18n();
       </div>
 
       <!-- Map -->
-      <div class="footer__map">
+      <div class="footer__map entry-anim entry-anim--up" style="--stagger: 0.3s">
         <h4 class="footer__title">{{ t('footer.titles.location') }}</h4>
         <div class="map-wrapper">
           <iframe 
@@ -71,7 +73,7 @@ const { t } = useI18n();
       </div>
     </div>
 
-    <div class="footer__bottom">
+    <div class="footer__bottom entry-anim entry-anim--fade" style="--stagger: 0.4s">
       <div class="container footer__bottom-content">
         <p>&copy; 2025 Manka Rider's. {{ t('footer.rights') }}</p>
         <div class="footer__legal">
@@ -86,7 +88,7 @@ const { t } = useI18n();
 <style scoped>
 .footer {
   background-color: #080808;
-  padding-top: 6rem;
+  padding-top: var(--section-py);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   font-family: var(--font-main);
 }
@@ -94,8 +96,8 @@ const { t } = useI18n();
 .footer__grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
-  gap: 4rem;
-  padding-bottom: 4rem;
+  gap: clamp(2rem, 4vw, 4rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
 }
 
 .mb-2 { margin-bottom: 1.5rem; }
@@ -236,30 +238,49 @@ const { t } = useI18n();
 @media (max-width: 1200px) {
   .footer__grid {
     grid-template-columns: 1fr 1fr;
-    gap: 3rem;
+    gap: clamp(2rem, 4vw, 3rem);
   }
 }
 
 @media (max-width: 768px) {
-  .footer {
-    padding-top: 4rem;
+  .footer__brand .logo-text,
+  .footer__brand .logo-accent {
+    font-size: 1.25rem;
+  }
+
+  .footer__title {
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .footer__text,
+  .footer__links ul li a,
+  .contact-list li {
+    font-size: 0.88rem;
+  }
+
+  .map-wrapper iframe {
+    height: 180px;
   }
 }
 
 @media (max-width: 600px) {
   .footer__grid {
     grid-template-columns: 1fr;
+    gap: 2.5rem;
   }
   
   .footer__bottom-content {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     text-align: center;
+    font-size: 0.82rem;
   }
   
   .footer__legal {
     justify-content: center;
     gap: 1rem;
+    flex-wrap: wrap;
   }
 }
 </style>

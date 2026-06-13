@@ -1,5 +1,5 @@
 <script setup>
-import { Mail, Phone, Instagram, Facebook, ArrowUpRight, Copy, Send } from 'lucide-vue-next';
+import { Mail, Phone, ArrowUpRight, Copy } from 'lucide-vue-next';
 import mankaLogo from '@/assets/images/logo.webp';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -15,18 +15,27 @@ const copyEmail = () => {
 </script>
 
 <template>
-  <section class="contact reveal" id="contacto">
+  <section class="contact" id="contacto">
     <div class="container">
       <div class="contact__card">
+        <!-- HUD corner brackets on the contact card -->
+        <div class="hud-bracket top-left"></div>
+        <div class="hud-bracket top-right"></div>
+        <div class="hud-bracket bottom-left"></div>
+        <div class="hud-bracket bottom-right"></div>
+
         <div class="contact__grid">
           <!-- Left: Modern UX & Content -->
-          <div class="contact__info">
+          <div class="contact__info entry-anim entry-anim--left" style="--stagger: 0s">
             <header class="info__header">
-              <span class="info__badge">{{ t('contact.badge') }}</span>
-              <h2 class="info__title">
+              <div class="badge-row">
+                <span class="info__badge font-inter">{{ t('contact.badge') }}</span>
+                <div class="badge-line"></div>
+              </div>
+              <h2 class="info__title font-podium">
                 {{ t('contact.title_prefix') }} <span class="gradient-text">{{ t('contact.title_highlight') }}</span>
               </h2>
-              <p class="info__description">
+              <p class="info__description font-inter">
                 {{ t('contact.description') }}
               </p>
             </header>
@@ -35,14 +44,14 @@ const copyEmail = () => {
               <!-- Email Card with Copy Feature -->
               <div class="action-card" @click="copyEmail">
                 <div class="action-card__icon">
-                  <Mail :size="22" />
+                  <Mail :size="20" />
                 </div>
                 <div class="action-card__text">
-                  <span>{{ t('contact.email_label') }}</span>
-                  <strong>chacasextremerace@gmail.com</strong>
+                  <span class="font-inter">{{ t('contact.email_label') }}</span>
+                  <strong class="font-inter">chacasextremerace@gmail.com</strong>
                 </div>
-                <div class="action-card__tool" :class="{ 'is-copied': copied }">
-                  <Copy v-if="!copied" :size="16" />
+                <div class="action-card__tool font-inter" :class="{ 'is-copied': copied }">
+                  <Copy v-if="!copied" :size="14" />
                   <span v-else>{{ t('contact.copied') }}</span>
                 </div>
               </div>
@@ -50,31 +59,39 @@ const copyEmail = () => {
               <!-- WhatsApp Card -->
               <a href="https://wa.me/51983426996" target="_blank" class="action-card">
                 <div class="action-card__icon action-card--whatsapp">
-                  <Phone :size="22" />
+                  <Phone :size="20" />
                 </div>
                 <div class="action-card__text">
-                  <span>{{ t('contact.whatsapp_label') }}</span>
-                  <strong>+51 983 426 996</strong>
+                  <span class="font-inter">{{ t('contact.whatsapp_label') }}</span>
+                  <strong class="font-inter">+51 983 426 996</strong>
                 </div>
                 <div class="action-card__tool">
-                  <ArrowUpRight :size="18" />
+                  <ArrowUpRight :size="16" />
                 </div>
               </a>
             </div>
           </div>
 
-          <!-- Right: Circular Floating Logo (The "Classic" look combined with modern tech) -->
-          <div class="contact__visual">
+          <!-- Right: Concentric Technical Rotating Ring & Logo -->
+          <div class="contact__visual entry-anim entry-anim--right" style="--stagger: 0.15s">
             <div class="visual__logo-container">
-              <div class="logo-orbit logo-orbit--1"></div>
-              <div class="logo-orbit logo-orbit--2"></div>
+              <!-- A single, clean technical indicator ring -->
+              <div class="logo-orbit-ring">
+                <div class="ring-tick tick-1"></div>
+                <div class="ring-tick tick-2"></div>
+                <div class="ring-tick tick-3"></div>
+                <div class="ring-tick tick-4"></div>
+              </div>
               <div class="logo-frame">
                 <img :src="mankaLogo" alt="Manka Riders Logo" class="logo-img" loading="lazy" />
               </div>
               <div class="logo-glow"></div>
             </div>
-            <!-- Background dot pattern inside the card -->
-            <div class="visual__dots"></div>
+            <!-- Technical specs metadata inside the visualization -->
+            <div class="visual__metadata font-inter">
+              <span>SYS.LOC // 3359.MSNM</span>
+              <span>EST.2024</span>
+            </div>
           </div>
         </div>
       </div>
@@ -84,47 +101,68 @@ const copyEmail = () => {
 
 <style scoped>
 .contact {
-  padding: 10rem 0;
+  padding: var(--section-py) 0;
   background: var(--bg-color);
+  position: relative;
 }
 
 .contact__card {
   background: var(--surface-color);
-  border-radius: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 4rem 5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: clamp(1.75rem, 5vw, 4rem);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 50px 100px rgba(0,0,0,0.5);
 }
 
 .contact__grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 6rem;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
 }
 
+/* HUD corner decoration brackets */
+.hud-bracket {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.hud-bracket.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+.hud-bracket.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+.hud-bracket.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+.hud-bracket.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
 /* INFO SIDE */
-.info__badge {
-  display: inline-block;
-  padding: 0.5rem 1.2rem;
-  background: rgba(255, 94, 0, 0.1);
-  color: var(--primary-color);
-  border-radius: 100px;
-  font-family: var(--font-accent);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 2.5px;
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
+.info__badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.badge-line {
+  flex-grow: 1;
+  height: 1px;
+  background: rgba(255, 94, 0, 0.2);
+}
+
 .info__title {
-  font-family: var(--font-accent);
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(1.75rem, 4.5vw, 3.5rem);
   font-weight: 900;
   color: white;
-  line-height: 1.1;
+  line-height: 0.95;
   margin-bottom: 1.5rem;
   letter-spacing: -2px;
 }
@@ -138,53 +176,58 @@ const copyEmail = () => {
 
 .info__description {
   color: var(--text-secondary);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   line-height: 1.7;
-  margin-bottom: 4rem;
-  max-width: 480px;
+  margin-bottom: 2rem;
+  max-width: 500px;
 }
 
 /* CARDS */
 .contact__actions {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 4rem;
+  gap: 1.2rem;
 }
 
 .action-card {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.01);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: 4px;
+  transition: var(--transition-smooth);
   cursor: pointer;
 }
 
 .action-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--primary-color);
-  transform: translateX(12px);
+  background: rgba(255, 94, 0, 0.02);
+  border-color: rgba(255, 94, 0, 0.3);
 }
 
 .action-card__icon {
-  width: 55px;
-  height: 55px;
-  background: rgba(255, 94, 0, 0.1);
-  color: var(--primary-color);
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: var(--transition-smooth);
+}
+
+.action-card:hover .action-card__icon {
+  background: rgba(255, 94, 0, 0.1);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .action-card--whatsapp {
-  background: rgba(37, 211, 102, 0.1);
-  color: #25d366;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .action-card__text {
@@ -193,73 +236,83 @@ const copyEmail = () => {
 
 .action-card__text span {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
   color: var(--text-secondary);
-  letter-spacing: 1.5px;
-  margin-bottom: 0.2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
 }
 
 .action-card__text strong {
   color: white;
-  font-size: 1.05rem;
+  font-size: clamp(0.88rem, 3vw, 1.1rem);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .action-card__tool {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   transition: var(--transition-smooth);
 }
 
 .action-card:hover .action-card__tool {
   background: var(--primary-color);
+  border-color: var(--primary-color);
   color: black;
 }
 
 .action-card__tool.is-copied {
   width: auto;
-  padding: 0 1rem;
+  padding: 0 1.2rem;
   background: var(--primary-color);
+  border-color: var(--primary-color);
   color: black;
 }
 
-.action-card__tool span {
-  font-size: 0.6rem;
+.action-card__tool.is-copied span {
+  font-size: 0.65rem;
   font-weight: 900;
+  letter-spacing: 1.5px;
 }
 
-/* VISUAL SIDE - CIRCULAR LOGO */
+/* VISUAL SIDE - CIRCULAR LOGO WITH TECHNICAL ORBIT RING */
 .contact__visual {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 2rem;
 }
 
 .visual__logo-container {
   position: relative;
-  width: 380px;
-  height: 380px;
+  width: clamp(220px, 55vw, 320px);
+  height: clamp(220px, 55vw, 320px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo-frame {
-  width: 320px;
-  height: 320px;
+  width: clamp(170px, 42vw, 250px);
+  height: clamp(170px, 42vw, 250px);
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: #000;
+  z-index: 5;
   animation: floating 6s ease-in-out infinite;
 }
 
@@ -267,91 +320,116 @@ const copyEmail = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: contrast(1.05);
 }
 
-.logo-orbit {
+/* Fine technical alignment ring */
+.logo-orbit-ring {
   position: absolute;
-  border: 1px solid rgba(255, 94, 0, 0.2);
+  inset: 0;
+  border: 1px solid rgba(255, 94, 0, 0.25);
   border-radius: 50%;
   z-index: 2;
-  animation: rotate 15s linear infinite;
+  animation: rotate-ring 24s linear infinite;
 }
 
-.logo-orbit--1 {
-  width: 440px;
-  height: 440px;
-  border-style: dashed;
+.ring-tick {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--primary-color);
+  background: #000;
+  border-radius: 50%;
 }
 
-.logo-orbit--2 {
-  width: 500px;
-  height: 500px;
-  opacity: 0.1;
-  animation-duration: 25s;
-  animation-direction: reverse;
-}
+.ring-tick.tick-1 { top: -3px; left: 50%; transform: translateX(-50%); }
+.ring-tick.tick-2 { bottom: -3px; left: 50%; transform: translateX(-50%); }
+.ring-tick.tick-3 { left: -3px; top: 50%; transform: translateY(-50%); }
+.ring-tick.tick-4 { right: -3px; top: 50%; transform: translateY(-50%); }
 
 .logo-glow {
   position: absolute;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, rgba(255, 94, 0, 0.1) 0%, transparent 70%);
-  filter: blur(40px);
+  inset: -20px;
+  background: radial-gradient(circle, rgba(255, 94, 0, 0.06) 0%, transparent 70%);
+  filter: blur(20px);
   z-index: 1;
+  pointer-events: none;
+}
+
+.visual__metadata {
+  display: flex;
+  justify-content: space-between;
+  width: 250px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.25);
 }
 
 @keyframes floating {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-25px) }
+  50% { transform: translateY(-12px); }
 }
 
-@keyframes rotate {
+@keyframes rotate-ring {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-.visual__dots {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 200px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-  opacity: 0.3;
-}
+@media (max-width: 992px) {
+  .contact__grid {
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6vw, 3.5rem);
+  }
 
-@media (max-width: 1100px) {
-  .contact { padding: 5rem 0; }
-  .contact__grid { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
-  .info__description { margin-left: auto; margin-right: auto; margin-bottom: 2rem; }
-  .action-card { text-align: left; }
-  .visual__logo-container { width: 100%; max-width: 260px; height: 260px; margin: 0 auto; }
-  .logo-frame { width: 200px; height: 200px; }
-  .logo-orbit { display: none; }
+  .info__description {
+    max-width: 100%;
+  }
+
+  .contact__info {
+    text-align: center;
+  }
+
+  .badge-row {
+    justify-content: center;
+  }
+
+  .contact__visual {
+    margin-top: 0.5rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .contact { padding: 4rem 0; }
-  .contact__card { padding: 2.5rem 1.25rem; border-radius: 30px; }
-  .info__badge { margin-bottom: 1rem; }
-  .info__title { font-size: 2.2rem; letter-spacing: -1px; margin-bottom: 1rem; }
-  .info__description { font-size: 1rem; margin-bottom: 2rem; }
-  
-  .contact__actions { gap: 0.8rem; margin-bottom: 2.5rem; width: 100%; }
-  .action-card { padding: 1.2rem; gap: 1rem; border-radius: 15px; }
-  .action-card__icon { width: 42px; height: 42px; }
-  .action-card__text span { font-size: 0.6rem; }
-  .action-card__text strong { font-size: 0.85rem; word-break: break-all; }
-  
-  .visual__logo-container { max-width: 200px; height: 200px; }
-  .logo-frame { width: 160px; height: 160px; }
+  .action-card {
+    padding: 1.1rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .action-card__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .visual__metadata {
+    width: clamp(170px, 42vw, 250px);
+    font-size: 0.55rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .info__title { font-size: 1.8rem; }
-  .action-card { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
-  .action-card__tool { display: none; } /* Hide tool on tiny screens to save space */
-  .action-card__text strong { font-size: 0.8rem; }
+  .action-card {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+  }
+
+  .action-card__tool {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .info__description {
+    font-size: 0.92rem;
+  }
 }
 </style>

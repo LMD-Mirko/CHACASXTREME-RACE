@@ -9,6 +9,7 @@ const { t } = useI18n();
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 const activeDropdown = ref(null);
+const isLoaded = ref(false);
 
 // Computed navigation links for reactivity on language change
 const navLinks = computed(() => [
@@ -42,6 +43,9 @@ const closeMobileMenu = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
+  requestAnimationFrame(() => {
+    isLoaded.value = true;
+  });
 });
 
 onUnmounted(() => {
@@ -50,17 +54,18 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <nav :class="['navbar', { 'navbar--scrolled': isScrolled, 'navbar--mobile-open': isMobileMenuOpen }]">
+  <nav :class="['navbar', { 'navbar--scrolled': isScrolled, 'navbar--mobile-open': isMobileMenuOpen, 'navbar--loaded': isLoaded }]">
     <div class="container navbar__content">
-      <RouterLink to="/inicio" class="navbar__logo">
+      <RouterLink to="/inicio" class="navbar__logo nav-enter nav-enter--1">
         <span class="logo-text">CHACAS</span>
         <span class="logo-accent"><span class="x-accent">X</span>TREME RACE</span>
       </RouterLink>
 
       <!-- Desktop Links -->
       <ul class="navbar__links">
-        <li v-for="link in navLinks" :key="link.name" 
-            class="nav-item"
+        <li v-for="(link, index) in navLinks" :key="link.name" 
+            class="nav-item nav-enter"
+            :class="'nav-enter--' + (index + 2)"
             @mouseenter="activeDropdown = link.name"
             @mouseleave="activeDropdown = null"
         >
@@ -85,7 +90,7 @@ onUnmounted(() => {
       </ul>
       
       <!-- Desktop Language Selector -->
-      <div class="desktop-lang">
+      <div class="desktop-lang nav-enter nav-enter--6">
         <LanguageSelector />
       </div>
 
@@ -137,6 +142,38 @@ onUnmounted(() => {
   padding: 0.6rem 0;
   background: #000000 !important; /* Force solid black */
   border-bottom: 1px solid rgba(255, 94, 0, 0.2);
+}
+
+/* Navbar load entrance */
+.navbar--loaded .nav-enter {
+  animation: nav-drop-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.navbar--loaded .nav-enter--1 { animation-delay: 0.1s; }
+.navbar--loaded .nav-enter--2 { animation-delay: 0.18s; }
+.navbar--loaded .nav-enter--3 { animation-delay: 0.24s; }
+.navbar--loaded .nav-enter--4 { animation-delay: 0.3s; }
+.navbar--loaded .nav-enter--5 { animation-delay: 0.36s; }
+.navbar--loaded .nav-enter--6 { animation-delay: 0.42s; }
+
+@keyframes nav-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar--loaded .nav-enter {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
 }
 
 .navbar__content {
