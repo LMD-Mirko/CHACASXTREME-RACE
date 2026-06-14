@@ -12,12 +12,16 @@
     },
     "teaser": {
         "tagline": "IV EDIZIONE — SFIDA NELLE ANDE",
+        "badge": "IV EDIZIONE",
+        "title_prep": "PREPARATI PER",
+        "title_lo": "L'",
+        "title_ext": "ESTREMO",
         "headings": [
             "PEDALA.",
             "RESISTI.",
             "CONQUISTA."
         ],
-        "subtext": "Un'epica battaglia nella Cordillera Blanca che sfida i limiti del corpo e della mente.",
+        "subtext": "QUESTA NON È UNA GARA, È UNA BATTAGLIA CONTRO LA MONTAGNA",
         "cta_enter": "ENTRA NEL SITO",
         "badge_status": "EVENTO UFFICIALE",
         "badge_desc": "CORDILLERA BLANCA",

@@ -12,12 +12,16 @@
     },
     "teaser": {
         "tagline": "IV EDITION — CHALLENGE IN THE ANDES",
+        "badge": "IV EDITION",
+        "title_prep": "GET READY FOR",
+        "title_lo": "THE",
+        "title_ext": "EXTREME",
         "headings": [
             "RIDE.",
             "ENDURE.",
             "CONQUER."
         ],
-        "subtext": "An epic battle in the Cordillera Blanca that challenges the limits of body and mind.",
+        "subtext": "THIS IS NOT A RACE, IT'S A BATTLE AGAINST THE MOUNTAIN",
         "cta_enter": "ENTER THE SITE",
         "badge_status": "OFFICIAL EVENT",
         "badge_desc": "CORDILLERA BLANCA",

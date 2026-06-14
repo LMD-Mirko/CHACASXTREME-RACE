@@ -37,15 +37,15 @@ const getUrls = (modules) => Object.keys(modules).map((k) => {
 // Usamos la variante eager:true solo para las URLs (no los datos en memoria)
 const mainImgsEager = import.meta.glob(
   '@/assets/images/chacas /*[0-9]*.webp',
-  { eager: true, as: 'url' }
+  { eager: true, query: '?url', import: 'default' }
 );
 const chacasImgEager = import.meta.glob(
   '@/assets/images/chacas /chacas.webp',
-  { eager: true, as: 'url' }
+  { eager: true, query: '?url', import: 'default' }
 );
 const folder3ImgsEager = import.meta.glob(
   '@/assets/images/chacas /3/*.webp',
-  { eager: true, as: 'url' }
+  { eager: true, query: '?url', import: 'default' }
 );
 
 // Ordenar y construir los arrays de imágenes

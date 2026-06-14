@@ -12,12 +12,16 @@
     },
     "teaser": {
         "tagline": "IV EDICIÓN — DESAFÍO EN LOS ANDES",
+        "badge": "IV EDICIÓN",
+        "title_prep": "PREPÁRATE PARA",
+        "title_lo": "LO",
+        "title_ext": "EXTREMO",
         "headings": [
             "PEDALEA.",
             "RESISTE.",
             "CONQUISTA."
         ],
-        "subtext": "Una batalla épica en la cordillera blanca que desafía los límites del cuerpo y la mente.",
+        "subtext": "ESTO NO ES UNA CARRERA, ES UNA BATALLA CONTRA LA MONTAÑA",
         "cta_enter": "ENTRAR AL SITIO",
         "badge_status": "EVENTO OFICIAL",
         "badge_desc": "CORDILLERA BLANCA",
