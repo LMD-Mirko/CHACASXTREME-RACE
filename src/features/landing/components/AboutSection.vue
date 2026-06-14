@@ -1,23 +1,220 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ArrowRight } from 'lucide-vue-next';
+import { gsap } from 'gsap';
+
+// Import image assets
+import hero1 from '@/assets/images/hero1.webp';
+import hero2 from '@/assets/images/hero2.webp';
+import hero3 from '@/assets/images/hero3.webp';
 
 const { t } = useI18n();
+
+const slideImages = [hero2, hero1, hero3];
+const currentActive = ref(0);
+const isHovered = ref(false);
+const cardRefs = ref([]);
+let cycleInterval = null;
+
+const getResponsiveValues = () => {
+  const isMobile = window.innerWidth < 768;
+  return {
+    middleX: isMobile ? 12 : 25,
+    middleY: isMobile ? -6 : -12,
+    middleRot: isMobile ? 2.2 : 3.5,
+    backX: isMobile ? -10 : -22,
+    backY: isMobile ? 6 : 12,
+    backRot: isMobile ? -2.8 : -4.5,
+    swipeX: isMobile ? -110 : -260,
+    swipeY: isMobile ? -15 : -25
+  };
+};
+
+const animateStack = (nextActive, immediate = false) => {
+  const frontIdx = nextActive;
+  const middleIdx = (nextActive + 1) % 3;
+  const backIdx = (nextActive + 2) % 3;
+
+  const hoverOffset = isHovered.value ? 1.5 : 1;
+  const cfg = getResponsiveValues();
+
+  // Front card animation
+  if (cardRefs.value[frontIdx]) {
+    gsap.to(cardRefs.value[frontIdx], {
+      zIndex: 3,
+      x: 0,
+      y: 0,
+      scale: 1,
+      rotation: 0,
+      opacity: 1,
+      filter: 'grayscale(0) brightness(1)',
+      duration: immediate ? 0 : 0.85,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+
+  // Middle card animation
+  if (cardRefs.value[middleIdx]) {
+    gsap.to(cardRefs.value[middleIdx], {
+      zIndex: 2,
+      x: cfg.middleX * hoverOffset,
+      y: cfg.middleY * hoverOffset,
+      scale: 0.96,
+      rotation: isHovered.value ? cfg.middleRot * 1.4 : cfg.middleRot,
+      opacity: isHovered.value ? 0.85 : 0.65,
+      filter: `grayscale(${isHovered.value ? 0.15 : 0.3}) brightness(${isHovered.value ? 0.85 : 0.65})`,
+      duration: immediate ? 0 : 0.85,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+
+  // Back card animation (the one swiping out)
+  const backCard = cardRefs.value[backIdx];
+  if (backCard) {
+    if (immediate) {
+      gsap.set(backCard, {
+        zIndex: 1,
+        x: cfg.backX * hoverOffset,
+        y: cfg.backY * hoverOffset,
+        scale: 0.92,
+        rotation: isHovered.value ? cfg.backRot * 1.4 : cfg.backRot,
+        opacity: isHovered.value ? 0.55 : 0.35,
+        filter: `grayscale(${isHovered.value ? 0.3 : 0.5}) brightness(${isHovered.value ? 0.6 : 0.45})`
+      });
+    } else {
+      const tl = gsap.timeline({ overwrite: 'auto' });
+      tl.to(backCard, {
+        zIndex: 4, // Keep it visually on top during swipe phase
+        x: cfg.swipeX * hoverOffset,
+        y: cfg.swipeY,
+        rotation: -10,
+        scale: 1.02,
+        opacity: 0.9,
+        duration: 0.35,
+        ease: 'power2.out'
+      })
+      .call(() => {
+        gsap.set(backCard, { zIndex: 1 });
+      })
+      .to(backCard, {
+        x: cfg.backX * hoverOffset,
+        y: cfg.backY * hoverOffset,
+        rotation: isHovered.value ? cfg.backRot * 1.4 : cfg.backRot,
+        scale: 0.92,
+        opacity: isHovered.value ? 0.55 : 0.35,
+        filter: `grayscale(${isHovered.value ? 0.3 : 0.5}) brightness(${isHovered.value ? 0.6 : 0.45})`,
+        duration: 0.45,
+        ease: 'power2.inOut'
+      });
+    }
+  }
+};
+
+const handleMouseEnter = () => {
+  isHovered.value = true;
+  const middleIdx = (currentActive.value + 1) % 3;
+  const backIdx = (currentActive.value + 2) % 3;
+  const cfg = getResponsiveValues();
+
+  if (cardRefs.value[middleIdx]) {
+    gsap.to(cardRefs.value[middleIdx], {
+      x: cfg.middleX * 1.5,
+      y: cfg.middleY * 1.5,
+      rotation: cfg.middleRot * 1.4,
+      opacity: 0.85,
+      filter: 'grayscale(0.15) brightness(0.85)',
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+
+  if (cardRefs.value[backIdx]) {
+    gsap.to(cardRefs.value[backIdx], {
+      x: cfg.backX * 1.5,
+      y: cfg.backY * 1.5,
+      rotation: cfg.backRot * 1.4,
+      opacity: 0.55,
+      filter: 'grayscale(0.3) brightness(0.6)',
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+};
+
+const handleMouseLeave = () => {
+  isHovered.value = false;
+  const middleIdx = (currentActive.value + 1) % 3;
+  const backIdx = (currentActive.value + 2) % 3;
+  const cfg = getResponsiveValues();
+
+  if (cardRefs.value[middleIdx]) {
+    gsap.to(cardRefs.value[middleIdx], {
+      x: cfg.middleX,
+      y: cfg.middleY,
+      rotation: cfg.middleRot,
+      opacity: 0.65,
+      filter: 'grayscale(0.3) brightness(0.65)',
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+
+  if (cardRefs.value[backIdx]) {
+    gsap.to(cardRefs.value[backIdx], {
+      x: cfg.backX,
+      y: cfg.backY,
+      rotation: cfg.backRot,
+      opacity: 0.35,
+      filter: 'grayscale(0.5) brightness(0.45)',
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  }
+};
+
+onMounted(() => {
+  // Initialize card positions
+  animateStack(currentActive.value, true);
+
+  // Rotate slide stack positions every 4 seconds
+  cycleInterval = setInterval(() => {
+    currentActive.value = (currentActive.value + 1) % slideImages.length;
+    animateStack(currentActive.value);
+  }, 4000);
+});
+
+onUnmounted(() => {
+  if (cycleInterval) clearInterval(cycleInterval);
+});
 </script>
 
 <template>
   <section class="about" id="sobre-nosotros">
     <div class="container about__grid">
-      <!-- Image: slide in from left -->
+      <!-- Overlapping Stacked Image Collage -->
       <div class="about__image-container entry-anim entry-anim--left">
-        <div class="about__image-wrapper">
-          <img
-            src="@/assets/images/hero2.webp"
-            alt="Manka Riders Competition"
-            class="about__image"
-            loading="lazy"
-            decoding="async"
-          />
+        <div 
+          class="about__image-wrapper stack-container"
+          @mouseenter="handleMouseEnter"
+          @mouseleave="handleMouseLeave"
+        >
+          <!-- Active cycling cards -->
+          <div 
+            v-for="(img, idx) in slideImages" 
+            :key="idx"
+            :ref="el => { if (el) cardRefs[idx] = el }"
+            class="stack-card"
+            :style="{ backgroundImage: `url(${img})` }"
+          ></div>
+
+          <!-- Slanted Experience Badge overlapping on top -->
           <div class="about__experience-badge">
             <div class="badge-border"></div>
             <span class="number font-podium">04</span>
@@ -88,42 +285,45 @@ const { t } = useI18n();
   align-items: center;
 }
 
-.about__image-wrapper {
+/* OVERLAPPING STACK CAROUSEL SYSTEM */
+.stack-container {
   position: relative;
-  border-radius: 4px;
-  overflow: visible;
-}
-
-.about__image {
   width: 100%;
+  aspect-ratio: 16/10;
   height: auto;
-  border-radius: 4px;
-  filter: grayscale(0.2) contrast(1.1) brightness(0.9);
-  transition: var(--transition-smooth);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: visible;
+  padding-right: 30px;
+  padding-bottom: 20px;
 }
 
-.about__image-wrapper:hover .about__image {
-  filter: grayscale(0) contrast(1.05) brightness(1);
-  transform: scale(1.01);
-  border-color: rgba(255, 94, 0, 0.2);
+.stack-card {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.55);
+  will-change: transform, opacity;
 }
 
+/* EXPERIENCE BADGE OVERLAP */
 .about__experience-badge {
   position: absolute;
-  bottom: -2rem;
-  right: -2rem;
+  bottom: -1.5rem;
+  right: -1.5rem;
   background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   color: white;
-  padding: 1.2rem 1.8rem;
+  padding: 1.1rem 1.6rem;
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 1.1rem;
   border: 1px solid rgba(255, 94, 0, 0.35);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.65);
+  z-index: 5;
 }
 
 .badge-border {
@@ -139,6 +339,7 @@ const { t } = useI18n();
   line-height: 1;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -2px;
 }
@@ -164,6 +365,7 @@ const { t } = useI18n();
   margin-top: 0.2rem;
 }
 
+/* TEXT CONTENT */
 .section-tag-wrapper {
   display: flex;
   align-items: center;
@@ -302,6 +504,8 @@ const { t } = useI18n();
     max-width: 560px;
     margin: 0 auto;
     width: 100%;
+    padding: 0 24px;
+    box-sizing: border-box;
   }
   
   .about__text-content {
@@ -323,7 +527,6 @@ const { t } = useI18n();
   }
 
   .about__image-wrapper {
-    overflow: hidden;
     margin-bottom: 1.5rem;
   }
 
@@ -382,4 +585,3 @@ const { t } = useI18n();
   }
 }
 </style>
-

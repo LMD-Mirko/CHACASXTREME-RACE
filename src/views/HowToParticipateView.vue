@@ -1,34 +1,70 @@
-
-
 <script setup>
-import { onMounted, ref, reactive, computed } from 'vue';
-import { useMouseInElement } from '@vueuse/core';
-import { 
-  Trophy, 
-  Users, 
-  Handshake, 
-  ChevronRight, 
-  Sparkles,
-  ArrowDownRight,
-  CircleCheck,
-  Zap,
-  X,
-  Send,
-  Loader2,
-  Image as ImageIcon
-} from 'lucide-vue-next';
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { 
+  Heart, 
+  X, 
+  ChevronRight,
+  ChevronLeft
+} from 'lucide-vue-next';
 
-const { t } = useI18n();
-// Local Assets for Dome Gallery...
+import imgStaffHero from '@/assets/images/staff .jpg';
+import imgStaffHero1 from '@/assets/images/staff1.jpg';
 
+const heroBackgrounds = [imgStaffHero, imgStaffHero1];
+const currentHeroBgIdx = ref(0);
+let heroBgInterval = null;
+
+const textLine1Goal = "EL ALMA DE";
+const textLine2Goal = "LA RUTA";
+const currentTextLine1 = ref("");
+const currentTextLine2 = ref("");
+
+const typeText = async () => {
+  currentTextLine1.value = "";
+  currentTextLine2.value = "";
+  
+  // Type Line 1
+  for (let i = 0; i <= textLine1Goal.length; i++) {
+    currentTextLine1.value = textLine1Goal.slice(0, i);
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  
+  // Type Line 2
+  for (let i = 0; i <= textLine2Goal.length; i++) {
+    currentTextLine2.value = textLine2Goal.slice(0, i);
+    await new Promise(resolve => setTimeout(resolve, 180));
+  }
+  
+  // Hold for 5 seconds
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  
+  // Delete Line 2
+  for (let i = textLine2Goal.length; i >= 0; i--) {
+    currentTextLine2.value = textLine2Goal.slice(0, i);
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
+  // Delete Line 1
+  for (let i = textLine1Goal.length; i >= 0; i--) {
+    currentTextLine1.value = textLine1Goal.slice(0, i);
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
+  // Pause before typing again
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  typeText();
+};
+
+// Local Assets for Staff Gallery
 import img1 from '@/assets/images/chacas /1.webp';
 import img2 from '@/assets/images/chacas /2.webp';
 import img3 from '@/assets/images/chacas /3.webp';
 import img4 from '@/assets/images/chacas /4.webp';
 import imgChacas from '@/assets/images/chacas /chacas.webp';
 
-// Imágenes de acción de la carpeta 3
+// Action Images from Folder 3
 import img3_1 from '@/assets/images/chacas /3/X94A1553.webp';
 import img3_2 from '@/assets/images/chacas /3/X94A1559.webp';
 import img3_3 from '@/assets/images/chacas /3/X94A1561.webp';
@@ -48,83 +84,261 @@ import img3_16 from '@/assets/images/chacas /3/X94A1864.webp';
 import img3_17 from '@/assets/images/chacas /3/X94A1869.webp';
 import img3_18 from '@/assets/images/chacas /3/X94A1892.webp';
 
-const domeImages = [
-  // Primera ronda - Imágenes principales
+const { t } = useI18n();
+
+const staffImages = [
   img1, img2, img3, img4, imgChacas,
-  // Segunda ronda - Imágenes de acción (parte 1)
   img3_1, img3_2, img3_3, img3_4, img3_5, img3_6,
-  // Tercera ronda - Imágenes de acción (parte 2)
   img3_7, img3_8, img3_9, img3_10, img3_11, img3_12,
-  // Cuarta ronda - Imágenes de acción (parte 3)
   img3_13, img3_14, img3_15, img3_16, img3_17, img3_18
 ];
 
-// 3D Tilt Logic for Cards
-const card1 = ref(null);
-const card2 = ref(null);
-const card3 = ref(null);
-
-const { elementX: x1, elementY: y1, elementWidth: w1, elementHeight: h1, isOutside: o1 } = useMouseInElement(card1);
-const { elementX: x2, elementY: y2, elementWidth: w2, elementHeight: h2, isOutside: o2 } = useMouseInElement(card2);
-const { elementX: x3, elementY: y3, elementWidth: w3, elementHeight: h3, isOutside: o3 } = useMouseInElement(card3);
-
-const cardStyle1 = computed(() => {
-  if (o1.value) return { transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)' };
-  const rX = ((y1.value / h1.value) - 0.5) * -15;
-  const rY = ((x1.value / w1.value) - 0.5) * 15;
-  return { transform: `perspective(1000px) rotateX(${rX}deg) rotateY(${rY}deg)` };
+const doubledOrTripledImages = computed(() => {
+  return [...staffImages, ...staffImages, ...staffImages];
 });
 
-const cardStyle2 = computed(() => {
-  if (o2.value) return { transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)' };
-  const rX = ((y2.value / h2.value) - 0.5) * -15;
-  const rY = ((x2.value / w2.value) - 0.5) * 15;
-  return { transform: `perspective(1000px) rotateX(${rX}deg) rotateY(${rY}deg)` };
-});
+const rolesList = [
+  "APOYO TÁCTICO", "LOGÍSTICA DE PISTA", "PUNTO DE CONTROL", 
+  "SEGURIDAD Y CONTROL", "ABASTECIMIENTO DE ALTURA", "SOPORTE MÉDICO",
+  "FOTOGRAFÍA OFICIAL", "GUÍA DE RUTA EXTREMA"
+];
 
-const cardStyle3 = computed(() => {
-  if (o3.value) return { transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)' };
-  const rX = ((y3.value / h3.value) - 0.5) * -15;
-  const rY = ((x3.value / w3.value) - 0.5) * 15;
-  return { transform: `perspective(1000px) rotateX(${rX}deg) rotateY(${rY}deg)` };
-});
+const getRole = (idx) => {
+  return rolesList[idx % rolesList.length];
+};
 
-const showStaffModal = ref(false);
-const isSubmitting = ref(false);
-const showSuccess = ref(false);
-const staffForm = reactive({
-  nombre: '',
-  whatsapp: ''
-});
+const scrollContainer = ref(null);
+const cardsRefs = ref([]);
 
-const handleStaffSubmit = async () => {
-  if (!staffForm.nombre || !staffForm.whatsapp) return;
+const updateCardTransforms = () => {
+  if (!scrollContainer.value) return;
+  const containerRect = scrollContainer.value.getBoundingClientRect();
+  const containerCenter = containerRect.left + containerRect.width / 2;
+  const isMobile = window.innerWidth <= 768;
+
+  cardsRefs.value.forEach((card) => {
+    if (!card) return;
+    const cardRect = card.getBoundingClientRect();
+    const cardCenter = cardRect.left + cardRect.width / 2;
+    
+    // Calculate distance from center of viewport (-1.5 to 1.5)
+    const distanceFromCenter = (cardCenter - containerCenter) / (containerRect.width / 2);
+    
+    // Clamp to range
+    const clampedDistance = Math.min(Math.max(distanceFromCenter, -1.8), 1.8);
+    
+    // 3D rotation angle based on distance (softer on mobile)
+    const rotateY = clampedDistance * (isMobile ? -8 : -15);
+    
+    // SIDES LARGER, CENTER SMALLER (adjusted dynamically on mobile to prevent overlaps)
+    const baseScale = isMobile ? 0.92 : 0.85;
+    const maxScaleAdd = isMobile ? 0.12 : 0.3;
+    const scaleFactor = isMobile ? 0.12 : 0.22;
+    const scale = baseScale + Math.min(Math.abs(clampedDistance) * scaleFactor, maxScaleAdd);
+    const translateZ = (1.5 - Math.abs(clampedDistance)) * (isMobile ? -25 : -60);
+    
+    // Apply transform
+    card.style.transform = `perspective(1000px) rotateY(${rotateY}deg) scale(${scale}) translateZ(${translateZ}px)`;
+    card.style.opacity = 1; // Keep images fully visible
+  });
+};
+
+// Autoplay loop setup
+let autoplayInterval = null;
+let isUserInteracting = false;
+let interactionTimeout = null;
+
+const handleUserInteraction = () => {
+  isUserInteracting = true;
+  if (interactionTimeout) clearTimeout(interactionTimeout);
+  interactionTimeout = setTimeout(() => {
+    isUserInteracting = false;
+  }, 3500); // Resume auto scroll 3.5 seconds after last interaction
+};
+
+const startAutoplay = () => {
+  autoplayInterval = setInterval(() => {
+    if (isUserInteracting || isDragging || !scrollContainer.value) return;
+    scrollContainer.value.scrollLeft += 1.2;
+  }, 16); // Smooth ~60fps autoplay scroll
+};
+
+const stopAutoplay = () => {
+  if (autoplayInterval) clearInterval(autoplayInterval);
+};
+
+// Mouse Drag scroll emulation for desktop
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
+
+const onMouseDown = (e) => {
+  handleUserInteraction();
+  isDragging = true;
+  scrollContainer.value.classList.add('dragging');
+  startX = e.pageX - scrollContainer.value.offsetLeft;
+  scrollLeft = scrollContainer.value.scrollLeft;
+};
+
+const onMouseMove = (e) => {
+  if (!isDragging) return;
+  handleUserInteraction();
+  e.preventDefault();
+  const x = e.pageX - scrollContainer.value.offsetLeft;
+  const walk = (x - startX) * 1.5;
+  scrollContainer.value.scrollLeft = scrollLeft - walk;
+};
+
+const onMouseUpOrLeave = () => {
+  isDragging = false;
+  if (scrollContainer.value) {
+    scrollContainer.value.classList.remove('dragging');
+  }
+};
+
+const onScroll = () => {
+  if (!scrollContainer.value) return;
+  const container = scrollContainer.value;
+  const singleThird = Math.round(container.scrollWidth / 3);
   
-  isSubmitting.value = true;
-  // Simulating API call
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  isSubmitting.value = false;
-  showSuccess.value = true;
+  if (container.scrollLeft >= singleThird * 2) {
+    container.scrollLeft -= singleThird;
+  } else if (container.scrollLeft <= 0) {
+    container.scrollLeft += singleThird;
+  }
   
-  // Clear form after delay
-  setTimeout(() => {
-    showStaffModal.value = false;
-    showSuccess.value = false;
-    staffForm.nombre = '';
-    staffForm.whatsapp = '';
-  }, 2000);
+  updateCardTransforms();
+};
+
+
+
+// Lightbox logic
+const showLightbox = ref(false);
+const activeLightboxIdx = ref(0);
+
+const tributeTexts = [
+  {
+    title: "La Unión en las Cumbres",
+    quote: "En el punto más alto de la cordillera, la fuerza del viento se supera con la sonrisa y el apoyo de un compañero de ruta.",
+    tag: "AMISTAD Y CONFIANZA"
+  },
+  {
+    title: "Logística con Pasión",
+    quote: "No es solo entregar agua o asistencia; es transmitir al ciclista que hay toda una familia cuidando sus pasos.",
+    tag: "EQUIPO DE CORAZÓN"
+  },
+  {
+    title: "Hermandad Manka Riders",
+    quote: "Nuestra pasión por las dos ruedas nos unió, pero el Chacas Xtreme nos convirtió en una hermandad indomable.",
+    tag: "LEALTAD EN RUTA"
+  },
+  {
+    title: "El Alma Detrás del Evento",
+    quote: "Cada voluntario dona su tiempo y su energía con un único propósito: ver a otros conquistar sus propios imposibles.",
+    tag: "ENTREGA ABSOLUTA"
+  },
+  {
+    title: "Seguridad y Compañerismo",
+    quote: "Cuidar la ruta es un compromiso silencioso. Nos respaldamos mutuamente para que cada rider regrese a casa con gloria.",
+    tag: "CUIDADO MUTUO"
+  },
+  {
+    title: "Risas en la Adversidad",
+    quote: "Incluso bajo la lluvia o el frío andino, el staff siempre tiene una palabra de aliento y un abrazo listo para calentar el alma.",
+    tag: "ESPÍRITU INQUEBRANTABLE"
+  },
+  {
+    title: "Legado de Chacas",
+    quote: "Hacemos esto de forma 100% gratuita por el amor a nuestro pueblo, a nuestras montañas y a esta hermosa comunidad ciclista.",
+    tag: "AMOR POR LA TIERRA"
+  },
+  {
+    title: "Guardias del Camino",
+    quote: "Vigilando los senderos más duros de los Andes, la verdadera recompensa es el saludo sincero y el agradecimiento del competidor.",
+    tag: "OROPEL DE LA RUTA"
+  }
+];
+
+const getTributeData = (idx) => {
+  return tributeTexts[idx % tributeTexts.length];
+};
+
+const openLightbox = (idx) => {
+  activeLightboxIdx.value = idx % staffImages.length;
+  showLightbox.value = true;
+};
+
+const closeLightbox = () => {
+  showLightbox.value = false;
+};
+
+const nextLightboxImage = () => {
+  activeLightboxIdx.value = (activeLightboxIdx.value + 1) % staffImages.length;
+};
+
+const prevLightboxImage = () => {
+  activeLightboxIdx.value = (activeLightboxIdx.value - 1 + staffImages.length) % staffImages.length;
+};
+
+// Touch swipe gestures for mobile navigation
+let touchStartX = 0;
+let touchEndX = 0;
+
+const onLightboxTouchStart = (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+};
+
+const onLightboxTouchEnd = (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  const swipeThreshold = 50; // pixels
+  if (touchEndX < touchStartX - swipeThreshold) {
+    nextLightboxImage();
+  } else if (touchEndX > touchStartX + swipeThreshold) {
+    prevLightboxImage();
+  }
+};
+
+const handleKeyDown = (e) => {
+  if (!showLightbox.value) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') nextLightboxImage();
+  if (e.key === 'ArrowLeft') prevLightboxImage();
 };
 
 onMounted(() => {
-  const observerOptions = { threshold: 0.1 };
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('reveal--visible');
       }
     });
-  }, observerOptions);
+  }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  heroBgInterval = setInterval(() => {
+    currentHeroBgIdx.value = (currentHeroBgIdx.value + 1) % heroBackgrounds.length;
+  }, 6000);
+
+  typeText();
+
+  setTimeout(() => {
+    if (scrollContainer.value) {
+      const singleThird = Math.round(scrollContainer.value.scrollWidth / 3);
+      scrollContainer.value.scrollLeft = singleThird;
+    }
+    updateCardTransforms();
+  }, 150);
+  window.addEventListener('resize', updateCardTransforms);
+  window.addEventListener('keydown', handleKeyDown);
+  
+  startAutoplay();
+});
+
+onUnmounted(() => {
+  if (heroBgInterval) clearInterval(heroBgInterval);
+  window.removeEventListener('resize', updateCardTransforms);
+  window.removeEventListener('keydown', handleKeyDown);
+  stopAutoplay();
 });
 </script>
 
@@ -135,242 +349,178 @@ onMounted(() => {
       <div class="elite-hero__bg">
         <div class="bg-pattern"></div>
         <div class="bg-gradient"></div>
-        <img src="@/assets/images/gallery2.webp" alt="" class="bg-img" />
+        <img 
+          v-for="(bg, idx) in heroBackgrounds"
+          :key="idx"
+          :src="bg"
+          alt="Staff Background"
+          class="bg-img"
+          :class="{ active: currentHeroBgIdx === idx }"
+        />
       </div>
       
       <div class="container elite-hero__content">
         <div class="hero-tag reveal">
-          <Zap :size="14" class="primary-text" /> {{ t('participate.hero.tag') }}
+          <Heart :size="14" class="primary-text" /> {{ t('participate.gallery.badge') }}
         </div>
         <h1 class="hero-title reveal">
-          {{ t('participate.hero.title_part1') }} <br />
-          <span class="text-outline">{{ t('participate.hero.title_part2') }}</span>
+          {{ currentTextLine1 }}<br />
+          <span class="text-outline">{{ currentTextLine2 }}</span><span class="type-cursor">_</span>
         </h1>
         <p class="hero-desc reveal">
-          {{ t('participate.hero.desc') }}
+          Detrás de cada cumbre conquistada y cada récord batido, hay un equipo incansable. Un homenaje a nuestro staff y voluntarios locales que operan el evento de manera 100% gratuita, con pura pasión y de corazón.
         </p>
-        <div class="hero-scroll reveal">
-          <span class="scroll-line"></span>
-          <span>{{ t('participate.hero.scroll') }}</span>
+        <div class="hero-actions reveal">
+          <a href="https://chat.whatsapp.com/placeholder" target="_blank" rel="noopener noreferrer" class="btn-primary">
+            UNIRSE AL EQUIPO <ChevronRight :size="16" />
+          </a>
         </div>
       </div>
     </section>
 
-
-    <!-- 3. PARTICIPATION PATHS: Three Pillars of Glory -->
-    <section id="participar" class="elite-paths container">
-      <div class="section-heading reveal">
-        <div class="heading-badge">{{ t('participate.paths.badge') }}</div>
-        <h2 class="heading-title">{{ t('participate.paths.title_prefix') }} <span class="primary-text">{{ t('participate.paths.title_highlight') }}</span></h2>
-        <p class="heading-subtitle">{{ t('participate.paths.subtitle') }}</p>
+    <!-- 2. CYBER-TACTICAL GALLERY CAROUSEL -->
+    <section class="staff-gallery-section">
+      <div class="container section-heading reveal">
+        <div class="heading-badge">TACTICAL ARCHIVE</div>
+        <h2 class="heading-title">OPERACIONES EN <span class="primary-text">RUTA</span></h2>
+        <p class="heading-subtitle">Archivo fotográfico de la tripulación en cumbres, abastecimiento y logística de seguridad.</p>
       </div>
 
-      <div class="elite-paths__grid">
-        <!-- Path 1: Cyclist -->
-        <div class="path-pillar reveal" ref="card1" :style="cardStyle1">
-      
-          <div class="pillar-bg"></div>
-          <div class="pillar-glow"></div>
-          <div class="pillar-content">
-            <div class="pillar-header">
-              <div class="pillar-icon"><Trophy :size="28" /></div>
-              <span class="pillar-number">01</span>
-            </div>
-            <h3 class="pillar-title">{{ t('participate.paths.cyclist.title') }}</h3>
-            <p class="pillar-desc">{{ t('participate.paths.cyclist.desc') }}</p>
-            <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[0]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[1]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.cyclist.list[2]') }}</li>
-            </ul>
-            <RouterLink to="/registro/ciclista" class="pillar-btn primary no-underline">{{ t('participate.paths.cyclist.cta') }}</RouterLink>
-          </div>
-        </div>
+      <!-- Edge to Edge Carousel Track -->
+      <div 
+        ref="scrollContainer"
+        class="carousel-viewport"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUpOrLeave"
+        @mouseleave="onMouseUpOrLeave"
+        @touchstart="handleUserInteraction"
+        @scroll="onScroll"
+      >
+        <div class="carousel-track">
+          <div 
+            v-for="(img, idx) in doubledOrTripledImages" 
+            :key="idx" 
+            :ref="el => { if (el) cardsRefs[idx] = el }"
+            class="staff-card-cyber carousel-card"
+            @click="openLightbox(idx)"
+          >
+            <!-- Tactical Brackets -->
+            <div class="tech-bracket top-left"></div>
+            <div class="tech-bracket top-right"></div>
+            <div class="tech-bracket bottom-left"></div>
+            <div class="tech-bracket bottom-right"></div>
 
-        <!-- Path 2: Sponsor -->
-        <div class="path-pillar reveal" style="--delay: 0.15s" ref="card2" :style="cardStyle2">
-          <div class="pillar-bg"></div>
-          <div class="pillar-glow"></div>
-          <div class="pillar-content">
-            <div class="pillar-header">
-              <div class="pillar-icon"><Handshake :size="28" /></div>
-              <span class="pillar-number">02</span>
+            <div class="card-image-wrap">
+              <img :src="img" alt="Staff Volunteer Action" loading="lazy" />
+              <div class="card-scanline"></div>
             </div>
-            <h3 class="pillar-title">{{ t('participate.paths.sponsor.title') }}</h3>
-            <p class="pillar-desc">{{ t('participate.paths.sponsor.desc') }}</p>
-            <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[0]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[1]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.sponsor.list[2]') }}</li>
-            </ul>
-            <RouterLink to="/auspiciadores" class="pillar-btn secondary no-underline">{{ t('participate.paths.sponsor.cta') }}</RouterLink>
           </div>
         </div>
+      </div>
 
-        <!-- Path 3: Staff -->
-        <div class="path-pillar reveal" style="--delay: 0.3s" ref="card3" :style="cardStyle3">
-          <div class="pillar-bg"></div>
-          <div class="pillar-glow"></div>
-          <div class="pillar-content">
-            <div class="pillar-header">
-              <div class="pillar-icon"><Users :size="28" /></div>
-              <span class="pillar-number">03</span>
-            </div>
-            <h3 class="pillar-title">{{ t('participate.paths.staff.title') }}</h3>
-            <p class="pillar-desc">{{ t('participate.paths.staff.desc') }}</p>
-            <ul class="pillar-list">
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[0]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[1]') }}</li>
-              <li><CircleCheck :size="14" /> {{ t('participate.paths.staff.list[2]') }}</li>
-            </ul>
-            <button @click="showStaffModal = true" class="pillar-btn text-link">
-              {{ t('participate.paths.staff.cta') }} <ChevronRight :size="18" />
-            </button>
-          </div>
-        </div>
+      <div class="carousel-nav-hints">
+        <span class="hint-drag">ARRASTRA O DESLIZA PARA EXPLORAR</span>
       </div>
     </section>
 
+    <!-- Registration modal removed as WhatsApp group link is used directly -->
 
-    <!-- 5. FINAL KINETIC CTA -->
-    <section class="elite-cta">
-      <div class="container reveal">
-        <div class="cta-box">
-          <div class="cta-content">
-            <h2 class="cta-title">{{ t('participate.cta.title_prefix') }} <br/> {{ t('participate.cta.title_middle') }} <span class="primary-text">{{ t('participate.cta.title_highlight') }}</span></h2>
-            <p class="cta-subtitle">{{ t('participate.cta.subtitle') }}</p>
-          </div>
-          <div class="cta-actions">
-            <button class="btn-action">{{ t('participate.cta.btn_register') }}</button>
-            <button class="btn-outline">{{ t('participate.cta.btn_bases') }}</button>
-          </div>
-          <!-- Background Decoration -->
-          <div class="cta-decor">CHACAS</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. STAFF REGISTRATION MODAL -->
+    <!-- 4. ELABORATE FRIENDSHIP & TRIBUTE LIGHTBOX -->
     <Teleport to="body">
-      <Transition name="modal-bounce">
-        <div v-if="showStaffModal" class="staff-modal-overlay" @click.self="showStaffModal = false">
-          <div class="staff-modal glass-premium reveal--visible">
-            <!-- Close Button -->
-            <button class="modal-close" @click="showStaffModal = false">
-              <X :size="24" />
-            </button>
+      <Transition name="lightbox-fade">
+        <div 
+          v-if="showLightbox" 
+          class="lightbox-overlay" 
+          @click.self="closeLightbox"
+          @touchstart="onLightboxTouchStart"
+          @touchend="onLightboxTouchEnd"
+        >
+          <!-- Ambient Blurred Backdrop Photo for Emotional Depth -->
+          <div class="lightbox-ambient-bg" :style="{ backgroundImage: `url(${staffImages[activeLightboxIdx]})` }"></div>
+          <div class="lightbox-warm-leak"></div>
+          
+          <!-- Nav Buttons -->
+          <button class="lightbox-nav prev" @click="prevLightboxImage">
+            <ChevronLeft :size="30" />
+          </button>
+          <button class="lightbox-nav next" @click="nextLightboxImage">
+            <ChevronRight :size="30" />
+          </button>
 
-            <!-- Success State -->
-            <div v-if="showSuccess" class="success-content">
-              <div class="success-icon-wrap">
-                <CircleCheck :size="60" class="primary-text" />
+          <div class="lightbox-content-wrapper">
+            <!-- Tribute Canvas Card -->
+            <div class="tribute-canvas">
+              <!-- Close Button inside the card to align perfectly on all screens -->
+              <button class="lightbox-close" @click="closeLightbox" aria-label="Cerrar">
+                <X :size="20" />
+              </button>
+
+              <!-- Left side: The Photo -->
+              <div class="tribute-photo-frame">
+                <img :src="staffImages[activeLightboxIdx]" alt="Manka Riders Staff Action" />
+                <div class="lightbox-scanlines"></div>
               </div>
-              <h3 class="modal-title">{{ t('participate.staff_modal.success_title') }}</h3>
-              <p class="modal-subtitle">{{ t('participate.staff_modal.success_msg') }}</p>
-            </div>
+              
+              <!-- Right side: The Narrative -->
+              <div class="tribute-narrative-card">
+                <!-- Corner brackets -->
+                <div class="hud-bracket top-left"></div>
+                <div class="hud-bracket top-right"></div>
+                <div class="hud-bracket bottom-left"></div>
+                <div class="hud-bracket bottom-right"></div>
 
-            <!-- Form State -->
-            <div v-else class="modal-body">
-              <div class="modal-header">
-                <Users :size="32" class="primary-text" />
-                <h3 class="modal-title">{{ t('participate.staff_modal.title') }}</h3>
-                <p class="modal-subtitle">{{ t('participate.staff_modal.subtitle') }}</p>
-              </div>
-
-              <form @submit.prevent="handleStaffSubmit" class="staff-form">
-                <div class="form-group">
-                  <label>{{ t('participate.staff_modal.name_label') }}</label>
-                  <div class="input-wrap">
-                    <input 
-                      v-model="staffForm.nombre" 
-                      type="text" 
-                      placeholder="nombres apellidos" 
-                      required 
-                    />
-                    <div class="input-focus-line"></div>
+                <div class="tribute-card-header">
+                  <div class="tribute-heart-badge">
+                    <Heart class="heart-pulse-icon" :size="14" />
+                    <span>{{ getTributeData(activeLightboxIdx).tag }}</span>
+                  </div>
+                  <h3 class="tribute-title">{{ getTributeData(activeLightboxIdx).title }}</h3>
+                </div>
+                
+                <div class="tribute-quote-body">
+                  <p class="tribute-quote">"{{ getTributeData(activeLightboxIdx).quote }}"</p>
+                </div>
+                
+                <div class="tribute-card-footer">
+                  <div class="tribute-meta-item">
+                    <span class="meta-label">COMUNIDAD</span>
+                    <span class="meta-val font-accent primary-text">MANKA RIDERS</span>
+                  </div>
+                  <div class="tribute-meta-item">
+                    <span class="meta-label">UBICACIÓN</span>
+                    <span class="meta-val">CHACAS, ANCASH</span>
+                  </div>
+                  <div class="tribute-meta-item">
+                    <span class="meta-label">PASIÓN</span>
+                    <span class="meta-val">100% CORAZÓN</span>
                   </div>
                 </div>
-
-                <div class="form-group">
-                  <label>{{ t('participate.staff_modal.whatsapp_label') }}</label>
-                  <div class="input-wrap">
-                    <input 
-                      v-model="staffForm.whatsapp" 
-                      type="tel" 
-                      placeholder="+51 987 654 321" 
-                      required 
-                    />
-                    <div class="input-focus-line"></div>
-                  </div>
-                </div>
-
-                <button type="submit" class="submit-btn" :disabled="isSubmitting">
-                  <span v-if="isSubmitting">
-                    <Loader2 class="animate-spin" :size="20" />
-                    {{ t('participate.staff_modal.btn_processing') }}
-                  </span>
-                  <span v-else>
-                    {{ t('participate.staff_modal.btn_submit') }} <Send :size="18" />
-                  </span>
-                </button>
-              </form>
+              </div>
             </div>
           </div>
         </div>
       </Transition>
     </Teleport>
-    <!-- 7. DOME GALLERY SECTION -->
-    <section class="elite-dome reveal">
-      <div class="container">
-        <div class="section-heading">
-          <div class="heading-badge">{{ t('participate.gallery.badge') }}</div>
-          <h2 class="heading-title">{{ t('participate.gallery.title_prefix') }} <span class="primary-text">{{ t('participate.gallery.title_highlight') }}</span></h2>
-          <p class="heading-subtitle">{{ t('participate.gallery.subtitle') }}</p>
-        </div>
-
-        <div class="dome-container">
-          <div class="dome-grid">
-            <div 
-              v-for="(img, idx) in domeImages" 
-              :key="idx" 
-              class="dome-item"
-              :style="{ '--delay': (idx * 0.05) + 's' }"
-            >
-              <img :src="img" alt="Chacas Gallery" loading="lazy" />
-              <div class="dome-item-overlay"></div>
-            </div>
-          </div>
-          <!-- Spherical Overlay Effect -->
-          <div class="dome-lens-effect"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 8. FINAL FOOTER DECORATION -->
-    <div class="footer-bottom-line"></div>
   </div>
 </template>
 
 <style scoped>
 .elite-participate {
   background: #020202;
-  /* Deep Atmospheric Gradient */
-  background-image: 
-    radial-gradient(circle at 50% -20%, rgba(255, 94, 0, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 0% 40%, rgba(255, 94, 0, 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 100% 80%, rgba(255, 94, 0, 0.05) 0%, transparent 40%);
-  background-attachment: fixed;
   color: #fff;
+  min-height: 100vh;
+  padding-bottom: 8rem;
   overflow-x: hidden;
 }
 
-/* 1. HERO */
+/* 1. CINEMATIC HERO */
 .elite-hero {
   position: relative;
-  height: 100vh;
+  height: 92vh;
   display: flex;
-  align-items: center;
-  padding-top: 80px;
+  align-items: flex-end;
+  padding-bottom: 1rem;
   overflow: hidden;
 }
 
@@ -378,44 +528,54 @@ onMounted(() => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  overflow: hidden;
 }
 
 .bg-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 120%; /* Extra height for parallax */
+  height: 120%;
   object-fit: cover;
-  opacity: 0.3;
-  filter: grayscale(1);
-  transform: translateZ(0); /* Force GPU */
+  object-position: left center;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+  filter: contrast(1.05) brightness(0.9);
   animation: heroParallax linear both;
   animation-timeline: scroll();
+  z-index: 1;
+}
+
+.bg-img.active {
+  opacity: 0.75;
 }
 
 @keyframes heroParallax {
   from { transform: translateY(0); }
-  to { transform: translateY(15%); }
+  to { transform: translateY(12%); }
 }
 
 .bg-pattern {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 94, 0, 0.1) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-image: radial-gradient(rgba(255, 94, 0, 0.08) 1px, transparent 1px);
+  background-size: 30px 30px;
   z-index: 2;
 }
 
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, #020202, transparent 50%),
-              linear-gradient(to right, #020202 30%, transparent);
+  background: linear-gradient(to top, #020202 2%, rgba(2, 2, 2, 0.05) 50%, rgba(2, 2, 2, 0.4) 100%),
+              linear-gradient(to right, #020202 15%, rgba(2, 2, 2, 0.1) 45%, transparent 80%);
   z-index: 3;
 }
 
 .elite-hero__content {
   position: relative;
   z-index: 10;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  padding-left: clamp(1.5rem, 6vw, 7rem) !important;
 }
 
 .hero-tag {
@@ -423,7 +583,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.8rem;
   font-family: var(--font-accent);
-  font-weight: 800;
+  font-weight: 850;
   font-size: 0.8rem;
   letter-spacing: 4px;
   margin-bottom: 2rem;
@@ -431,52 +591,76 @@ onMounted(() => {
 
 .hero-title {
   font-family: var(--font-accent);
-  font-size: clamp(3.5rem, 12vw, 10rem);
+  font-size: clamp(3.5rem, 10vw, 8.5rem);
   font-weight: 950;
   line-height: 0.85;
-  letter-spacing: -6px;
+  letter-spacing: -5px;
 }
 
 .text-outline {
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.25);
   color: transparent;
 }
 
+.type-cursor {
+  display: inline-block;
+  color: var(--primary-color);
+  margin-left: 6px;
+  animation: cursorBlink 0.9s infinite;
+  font-weight: 300;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
 .hero-desc {
-  font-size: 1.4rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
   max-width: 600px;
   margin-top: 2rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-.hero-scroll {
-  margin-top: 5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.hero-actions {
+  margin-top: 3rem;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: #000;
   font-family: var(--font-accent);
-  font-weight: 800;
-  font-size: 0.75rem;
-  letter-spacing: 2px;
-  opacity: 0.5;
+  font-weight: 950;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  padding: 1.3rem 2.8rem;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 10px 30px rgba(255, 94, 0, 0.3);
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.scroll-line {
-  width: 40px;
-  height: 1px;
-  background: #fff;
+.btn-primary:hover {
+  transform: scale(1.04) translateY(-3px);
+  box-shadow: 0 15px 40px rgba(255, 94, 0, 0.45);
 }
 
-
-/* 3. PARTICIPATION PILLARS */
-.elite-paths {
-  padding-bottom: 12rem;
+/* 2. CYBER-TACTICAL GALLERY CAROUSEL */
+.staff-gallery-section {
+  padding: 8rem 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
 }
 
 .section-heading {
   text-align: center;
-  margin-bottom: 8rem;
+  margin-bottom: 6rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -485,587 +669,562 @@ onMounted(() => {
 .heading-badge {
   color: var(--primary-color);
   font-family: var(--font-accent);
-  font-weight: 800;
-  letter-spacing: 5px;
+  font-weight: 900;
+  letter-spacing: 4px;
   font-size: 0.75rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--primary-color);
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px dashed var(--primary-color);
+  padding-bottom: 0.3rem;
 }
 
 .heading-title {
   font-family: var(--font-accent);
-  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
   font-weight: 950;
   letter-spacing: -2px;
-  margin-bottom: 1.5rem;
-}
-
-.elite-paths__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2.5rem;
-}
-
-.path-pillar {
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 40px;
-  padding: 4rem 3rem;
-  overflow: visible; /* Allow tilt clipping */
-  transition: transform 0.15s ease-out, background 0.5s ease, border-color 0.5s ease;
-  display: flex;
-  flex-direction: column;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-.pillar-spots-tag {
-  position: absolute;
-  top: -15px;
-  right: 30px;
-  background: var(--primary-color);
-  color: #000;
-  padding: 0.4rem 1.2rem;
-  border-radius: 100px;
-  font-family: var(--font-accent);
-  font-weight: 950;
-  font-size: 0.65rem;
-  letter-spacing: 1px;
-  box-shadow: 0 10px 20px rgba(255, 94, 0, 0.3);
-  z-index: 20;
-  transform: translateZ(30px); /* Lift element in 3D */
-}
-
-.path-pillar:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 94, 0, 0.3);
-}
-
-.pillar-content {
-  position: relative;
-  transform: translateZ(20px); /* Lift content in 3D */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.pillar-bg {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(255, 94, 0, 0.05), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.path-pillar:hover .pillar-bg {
-  opacity: 1;
-}
-
-.pillar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 3rem;
-}
-
-.pillar-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 94, 0, 0.1);
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-color);
-}
-
-.pillar-number {
-  font-family: var(--font-accent);
-  font-size: 0.8rem;
-  font-weight: 900;
-  opacity: 0.2;
-}
-
-.pillar-title {
-  font-family: var(--font-accent);
-  font-size: 1.8rem;
-  font-weight: 950;
-  margin-bottom: 1.5rem;
-  letter-spacing: -1px;
-}
-
-.pillar-desc {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 2.5rem;
-  flex-grow: 1;
-}
-
-.pillar-list {
-  list-style: none;
-  margin-bottom: 3.5rem;
-}
-
-.pillar-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-}
-
-.pillar-list :deep(svg) {
-  color: var(--primary-color);
-}
-
-.pillar-btn {
-  width: 100%;
-  padding: 1.2rem;
-  border-radius: 100px;
-  font-family: var(--font-accent);
-  font-weight: 900;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pillar-btn.primary {
-  background: var(--primary-color);
-  color: #000;
-  border: none;
-}
-
-.pillar-btn.secondary {
-  background: #fff;
-  color: #000;
-  border: none;
-}
-
-.pillar-btn.text-link {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-}
-
-.pillar-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-
-/* 5. CTA */
-.elite-cta {
-  padding-bottom: 12rem;
-}
-
-.cta-box {
-  position: relative;
-  background: var(--accent-gradient);
-  border-radius: 60px;
-  padding: 6rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #000;
-  overflow: hidden;
-}
-
-.cta-title {
-  font-family: var(--font-accent);
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 950;
+  margin-bottom: 1.2rem;
   line-height: 1;
 }
 
-.cta-subtitle {
-  font-size: 1.4rem;
-  font-weight: 700;
-  opacity: 0.7;
-  margin-top: 1rem;
+.heading-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1.1rem;
+  max-width: 600px;
 }
 
-.cta-actions {
+.carousel-viewport {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
   display: flex;
-  gap: 1.5rem;
+  padding: 5rem 0;
+  cursor: grab;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none;
+  scrollbar-width: none;
 }
 
-.btn-action {
-  background: #000;
-  color: #fff;
-  padding: 1.6rem 3.5rem;
-  border-radius: 100px;
-  border: none;
+.carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-viewport.dragging {
+  cursor: grabbing;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 3.5rem;
+  padding: 0 calc(50vw - 220px);
+}
+
+.carousel-card {
+  flex: 0 0 440px;
+  height: 580px;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out, border-color 0.4s ease, background 0.4s ease;
+}
+
+.carousel-nav-hints {
+  text-align: center;
+  margin-top: 2.5rem;
   font-family: var(--font-accent);
-  font-weight: 900;
-  transition: all 0.3s ease;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+}
+
+.staff-card-cyber {
+  position: relative;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 0.4rem;
+  overflow: hidden;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   cursor: pointer;
 }
 
-.btn-outline {
-  background: transparent;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  padding: 1.6rem 3.5rem;
-  border-radius: 100px;
-  font-family: var(--font-accent);
-  font-weight: 900;
-  cursor: pointer;
+.staff-card-cyber:hover {
+  border-color: var(--primary-color);
+  background: rgba(255, 94, 0, 0.03);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6),
+              0 0 20px rgba(255, 94, 0, 0.08);
 }
 
-.cta-decor {
+.card-image-wrap {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #111;
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.05) saturate(0.9);
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.staff-card-cyber:hover .card-image-wrap img {
+  transform: scale(1.08);
+}
+
+.card-scanline {
   position: absolute;
-  top: 50%;
-  right: -5%;
-  transform: translateY(-50%);
-  font-family: var(--font-accent);
-  font-size: 14rem;
-  font-weight: 950;
-  color: rgba(0, 0, 0, 0.03);
-  letter-spacing: 40px;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 90%,
+    rgba(255, 94, 0, 0.08) 95%,
+    transparent 100%
+  );
+  background-size: 100% 8px;
   pointer-events: none;
+  opacity: 0.45;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Tech Brackets */
+.tech-bracket {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  transition: border-color 0.4s ease;
 }
 
-@media (max-width: 1024px) {
-  .elite-paths__grid { grid-template-columns: 1fr; }
-  
-  .cta-box { 
-    flex-direction: column; 
-    text-align: center; 
-    padding: 4rem 2rem;
-    gap: 3rem; 
-  }
-
-  .cta-actions { width: 100%; flex-direction: column; }
-  .btn-action, .btn-outline { width: 100%; }
+.staff-card-cyber:hover .tech-bracket {
+  border-color: var(--primary-color);
 }
 
-@media (max-width: 768px) {
-  .elite-hero { height: auto; padding: 120px 0 80px; }
-  .hero-title { letter-spacing: -3px; line-height: 0.9; margin-bottom: 2rem; }
-  .hero-desc { font-size: 1.1rem; }
-  
-  .elite-manifesto, .elite-paths, .elite-cta { padding: 6rem 0; }
-  
-  .altar-circle { width: 240px; height: 240px; }
-  .trophy-icon-gold { width: 80px; height: 80px; }
-  
-  .manifesto-headline { font-size: 1.8rem; margin-bottom: 2rem; }
-  .manifesto-separator { margin-bottom: 2rem; }
-  .manifesto-paragraph { font-size: 1.1rem; margin: 0 auto; }
+.tech-bracket.top-left { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+.tech-bracket.top-right { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.tech-bracket.bottom-left { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.tech-bracket.bottom-right { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-  .path-pillar { padding: 3rem 2rem; }
-  .pillar-title { font-size: 1.6rem; }
-
-  /* Disable Tilt on Mobile for UX */
-  .path-pillar { transform: none !important; }
-}
-
-@media (max-width: 480px) {
-  .hero-title { font-size: 3.5rem; }
-  .manifesto-card { border-radius: 40px; }
-  .path-pillar { border-radius: 35px; }
-  .cta-box { border-radius: 40px; }
-  .cta-decor { display: none; }
-  .cta-title { font-size: 2.2rem; }
-}
-
-/* Base Primary Color */
-.primary-text {
-  color: var(--primary-color);
-}
-
-/* 6. MODAL STYLES */
-.staff-modal-overlay {
+/* 4. ELABORATE FRIENDSHIP & TRIBUTE LIGHTBOX STYLES */
+.lightbox-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
-  z-index: 9999;
+  background: rgba(2, 2, 2, 0.97);
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  overflow: hidden;
 }
 
-.staff-modal {
-  width: 100%;
-  max-width: 500px;
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 94, 0, 0.2);
-  border-radius: 40px;
-  padding: 4rem 3rem;
-  position: relative;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 
-              0 0 40px rgba(255, 94, 0, 0.05);
-}
-
-.modal-close {
+.lightbox-ambient-bg {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  transition: all 0.3s ease;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(50px) brightness(0.2) saturate(1.4);
+  opacity: 0.9;
+  z-index: 1;
+  transition: background-image 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
 }
 
-.modal-close:hover {
-  color: #fff;
-  transform: rotate(90deg);
-}
-
-.modal-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.modal-title {
-  font-family: var(--font-accent);
-  font-size: 2.5rem;
-  font-weight: 950;
-  margin: 1rem 0 0.5rem;
-  letter-spacing: -1px;
-}
-
-.modal-subtitle {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.staff-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.form-group label {
-  font-family: var(--font-accent);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.input-wrap {
-  position: relative;
-}
-
-.input-wrap input {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1.25rem;
-  border-radius: 12px;
-  color: #fff;
-  font-family: inherit;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.input-wrap input:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 94, 0, 0.4);
-}
-
-.input-focus-line {
+.lightbox-warm-leak {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--primary-color);
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 94, 0, 0.12) 0%, transparent 60%),
+              radial-gradient(circle at 20% 80%, rgba(255, 184, 0, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 2;
 }
 
-.input-wrap input:focus + .input-focus-line {
-  width: 100%;
-}
-
-.submit-btn {
-  margin-top: 1rem;
-  background: var(--primary-color);
-  color: #000;
-  border: none;
-  padding: 1.4rem;
-  border-radius: 15px;
-  font-family: var(--font-accent);
-  font-weight: 950;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.lightbox-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.85);
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  cursor: pointer;
+  z-index: 10005;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(255, 94, 0, 0.3);
+.lightbox-close:hover {
+  background: var(--primary-color);
+  color: #000;
+  border-color: var(--primary-color);
+  transform: rotate(90deg) scale(1.05);
+  box-shadow: 0 0 15px var(--primary-color);
 }
 
-.submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(10, 10, 10, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10002;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
 }
 
-/* Success State */
-.success-content {
-  text-align: center;
-  padding: 2rem 0;
-  animation: scaleUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+.lightbox-nav:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: rgba(255, 94, 0, 0.1);
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.2);
 }
 
-@keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+.lightbox-nav.prev {
+  left: 2.5rem;
 }
 
-.success-icon-wrap {
-  margin-bottom: 2rem;
+.lightbox-nav.next {
+  right: 2.5rem;
 }
 
-/* Transitions */
-.modal-bounce-enter-active {
-  animation: modalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-bounce-leave-active {
-  animation: modalIn 0.3s reverse ease-in;
-}
-
-@keyframes modalIn {
-  0% { opacity: 0; transform: scale(0.9) translateY(40px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@media (max-width: 768px) {
-  .staff-modal {
-    padding: 3rem 1.5rem;
-    border-radius: 30px;
-  }
-  .modal-title { font-size: 1.8rem; }
-}
-/* 7. DOME GALLERY */
-.elite-dome {
-  padding-bottom: 15rem;
-  overflow: hidden;
-}
-
-.dome-container {
+.lightbox-content-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  perspective: 2000px; /* Strong perspective for dome effect */
-  padding: 4rem 0;
+  z-index: 10001;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dome-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1.5rem;
-  transform: rotateX(15deg) rotateY(0deg) scale(1.1);
-  transform-style: preserve-3d;
-  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.dome-item {
+.tribute-canvas {
   position: relative;
-  aspect-ratio: 1;
-  border-radius: 24px;
+  display: flex;
+  flex-direction: row;
+  background: rgba(10, 10, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-width: 1050px;
+  width: 90vw;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8),
+              0 0 40px rgba(255, 94, 0, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+}
+
+.tribute-photo-frame {
+  flex: 0 0 52%;
+  position: relative;
+  overflow: hidden;
   background: #000;
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  opacity: 0.8;
-  transform: translateZ(0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dome-item img {
+.tribute-photo-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.8s ease;
+  aspect-ratio: 4/3;
+  display: block;
 }
 
-.dome-item:hover {
-  opacity: 1;
-  transform: translateZ(50px) scale(1.1);
-  border-color: var(--primary-color);
-  z-index: 10;
-  box-shadow: 0 20px 40px rgba(255, 94, 0, 0.3);
+.tribute-narrative-card {
+  flex: 1;
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
 
-.dome-item:hover img {
-  transform: scale(1.2);
+.tribute-heart-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 94, 0, 0.1);
+  border: 1px solid rgba(255, 94, 0, 0.25);
+  color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  font-family: var(--font-accent);
+  font-weight: 850;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  width: max-content;
 }
 
-.dome-item-overlay {
+.heart-pulse-icon {
+  animation: heartBeat 1.4s infinite ease-in-out;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+.tribute-title {
+  font-family: var(--font-accent);
+  font-size: 2.2rem;
+  font-weight: 950;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin-top: 1.2rem;
+  color: #fff;
+}
+
+.tribute-quote-body {
+  position: relative;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--primary-color);
+}
+
+.tribute-quote {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.tribute-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 2rem;
+}
+
+.tribute-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.meta-label {
+  font-family: var(--font-accent);
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 800;
+}
+
+.meta-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Lightbox Transitions */
+.lightbox-fade-enter-active,
+.lightbox-fade-leave-active {
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lightbox-fade-enter-from,
+.lightbox-fade-leave-to {
+  opacity: 0;
+}
+
+.lightbox-fade-enter-active .tribute-canvas {
+  animation: hudSlideIn 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes hudSlideIn {
+  from {
+    transform: scale(0.95) translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.lightbox-scanlines {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+  background: linear-gradient(
+    to bottom,
+    transparent 92%,
+    rgba(255, 94, 0, 0.03) 96%,
+    transparent 100%
+  );
+  background-size: 100% 10px;
   pointer-events: none;
+  opacity: 0.4;
 }
 
-.dome-lens-effect {
+/* HUD Brackets inside lightbox */
+.hud-bracket {
   position: absolute;
-  inset: -10%;
-  background: radial-gradient(circle, transparent 20%, rgba(2, 2, 2, 0.8) 80%);
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid rgba(255, 94, 0, 0.3);
   pointer-events: none;
-  z-index: 20;
 }
 
-.footer-bottom-line {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(to right, transparent, var(--primary-color), transparent);
-  opacity: 0.2;
+.hud-bracket.top-left { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+.hud-bracket.top-right { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+.hud-bracket.bottom-left { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+.hud-bracket.bottom-right { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+
+@media (min-width: 901px) {
+  /* Hide top-right bracket on desktop to make space for close button */
+  .tribute-narrative-card .hud-bracket.top-right {
+    display: none;
+  }
 }
 
 @media (max-width: 1024px) {
-  .dome-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .dome-container { padding: 2rem 0; }
+  .lightbox-nav.prev { left: 1.5rem; }
+  .lightbox-nav.next { right: 1.5rem; }
+  .lightbox-nav { width: 50px; height: 50px; }
+  .tribute-narrative-card { padding: 2.5rem 2rem; gap: 1.5rem; }
+  .tribute-title { font-size: 1.8rem; }
+}
+
+@media (max-width: 900px) {
+  .tribute-canvas {
+    flex-direction: column;
+    max-width: 500px;
+    height: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .tribute-photo-frame {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+  .tribute-narrative-card {
+    padding: 2.2rem 1.8rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .elite-dome { padding-bottom: 8rem; }
-  .dome-grid { grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
-  .dome-item { border-radius: 12px; }
+  .lightbox-overlay { padding: 1rem; }
+  .lightbox-nav { display: none; }
+  .lightbox-close { 
+    top: 1rem; 
+    right: 1rem; 
+    width: 38px; 
+    height: 38px; 
+    background: rgba(0, 0, 0, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
 }
 
 @media (max-width: 480px) {
-  .dome-grid { grid-template-columns: repeat(2, 1fr); }
+  .lightbox-overlay { padding: 0.5rem; }
+  .lightbox-close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  .tribute-canvas {
+    border-radius: 12px;
+  }
+  .tribute-narrative-card {
+    padding: 1.8rem 1.2rem;
+    gap: 1.2rem;
+  }
+  .tribute-title {
+    font-size: 1.5rem;
+  }
+  .tribute-quote {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .tribute-card-footer {
+    gap: 0.8rem;
+    padding-top: 1.5rem;
+  }
+  .meta-val {
+    font-size: 0.75rem;
+  }
+}
+
+/* REVEAL COMPONENT TRANSITIONS */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.primary-text {
+  color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .elite-hero { height: auto; padding: 140px 0 60px; }
+  .elite-hero__content {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+  .bg-gradient {
+    background: linear-gradient(to top, #020202 8%, rgba(2, 2, 2, 0.45) 50%, rgba(2, 2, 2, 0.6) 98%),
+                linear-gradient(to right, #020202 8%, rgba(2, 2, 2, 0.3) 50%, transparent 95%) !important;
+  }
+  .bg-img {
+    opacity: 0;
+    object-position: left 15% center;
+  }
+  .bg-img.active {
+    opacity: 0.65;
+  }
+  .hero-title { letter-spacing: -3px; line-height: 0.9; margin-bottom: 2rem; }
+  .hero-desc { font-size: 1.1rem; }
+  
+  .staff-gallery-section { padding: 5rem 0; }
+  .carousel-card {
+    flex: 0 0 340px;
+    height: 460px;
+  }
+  .carousel-track {
+    gap: 1.8rem;
+    padding: 0 calc(50vw - 170px);
+  }
+  .heading-title { font-size: 2.2rem; }
+  .heading-subtitle { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 3.5rem; }
+  .carousel-card {
+    flex: 0 0 280px;
+    height: 380px;
+  }
+  .carousel-track {
+    gap: 1.2rem;
+    padding: 0 calc(50vw - 140px);
+  }
 }
 </style>

@@ -12,18 +12,23 @@ import {
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
+// Import actual logo images
+import logoMain from '@/assets/images/logo.webp';
+import logo1 from '@/assets/images/logo1.png';
+import unnamedLogo from '@/assets/images/unnamed.webp';
+import imagenaus from '@/assets/images/imagenaus.jpg';
+
 const { t } = useI18n();
 
-// Placeholder logos for sponsors
 const sponsorLogos = [
-  { name: 'Brand 1', icon: 'logo1' },
-  { name: 'Brand 2', icon: 'logo2' },
-  { name: 'Brand 3', icon: 'logo3' },
-  { name: 'Brand 4', icon: 'logo4' },
-  { name: 'Brand 5', icon: 'logo5' },
-  { name: 'Brand 6', icon: 'logo6' },
-  { name: 'Brand 7', icon: 'logo7' },
-  { name: 'Brand 8', icon: 'logo8' },
+  { name: 'Sponsor 1', img: logoMain },
+  { name: 'Sponsor 2', img: logo1 },
+  { name: 'Sponsor 3', img: unnamedLogo },
+  { name: 'Sponsor 4', img: logoMain },
+  { name: 'Sponsor 5', img: logo1 },
+  { name: 'Sponsor 6', img: unnamedLogo },
+  { name: 'Sponsor 7', img: logoMain },
+  { name: 'Sponsor 8', img: logo1 }
 ];
 
 onMounted(() => {
@@ -81,7 +86,9 @@ onMounted(() => {
                  class="logo-circle float-anim" 
                  :style="`--f-delay: ${index * 0.2}s`"
             >
-               <div class="logo-placeholder">LOGO {{ (index % 8) + 1 }}</div>
+               <div class="logo-inner">
+                  <img :src="logo.img" :alt="logo.name" class="sponsor-logo-img" />
+               </div>
                <div class="circle-border"></div>
             </div>
           </div>
@@ -97,35 +104,32 @@ onMounted(() => {
         <div class="mission-text reveal">
           <div class="text-block">
             <div class="line-accent"></div>
-            <h2 class="editorial-title">{{ t('sponsors.editorial_title') }} <span class="gradient-text">{{ t('sponsors.editorial_title_highlight') }}</span></h2>
-            <p>
+            <h2 class="editorial-title font-podium">{{ t('sponsors.editorial_title') }} <span class="gradient-text">{{ t('sponsors.editorial_title_highlight') }}</span></h2>
+            <p class="font-inter">
               {{ t('sponsors.editorial_p1') }}
             </p>
           </div>
           
           <div class="text-block secondary">
-            <p>
+            <p class="font-inter">
               {{ t('sponsors.editorial_p2') }}
             </p>
           </div>
 
           <div class="final-quote">
-            <h3>{{ t('sponsors.final_quote') }}</h3>
+            <h3 class="font-podium">{{ t('sponsors.final_quote') }}</h3>
           </div>
         </div>
 
         <div class="mission-visual reveal">
-           <div class="visual-card glass-premium aura-pulse">
-              <div class="impact-stat">
-                 <span class="stat-number">+100</span>
-                 <span class="stat-label">{{ t('sponsors.impact.kids') }}</span>
-              </div>
-              <div class="impact-stat">
-                 <span class="stat-number">2026</span>
-                 <span class="stat-label">{{ t('sponsors.impact.goal') }}</span>
-              </div>
-              <div class="stat-badge">{{ t('sponsors.impact.badge') }}</div>
-              <div class="card-glow"></div>
+           <div class="visual-card-premium">
+              <img :src="imagenaus" alt="Proyecto Social Chacas" class="visual-card-bg" />
+              <div class="visual-card-overlay"></div>
+
+              <div class="card-decor-bracket top-left"></div>
+              <div class="card-decor-bracket top-right"></div>
+              <div class="card-decor-bracket bottom-left"></div>
+              <div class="card-decor-bracket bottom-right"></div>
            </div>
         </div>
       </div>
@@ -134,19 +138,25 @@ onMounted(() => {
     <!-- 4. VALUES GRID -->
     <section class="values-grid container">
       <div class="value-card reveal">
-        <Target :size="40" class="primary-text" />
-        <h3>{{ t('sponsors.values[0].title') }}</h3>
-        <p>{{ t('sponsors.values[0].desc') }}</p>
+        <div class="card-decor-corner top-left"></div>
+        <div class="card-decor-corner bottom-right"></div>
+        <Target :size="40" class="primary-text value-icon" />
+        <h3 class="font-podium">{{ t('sponsors.values[0].title') }}</h3>
+        <p class="font-inter">{{ t('sponsors.values[0].desc') }}</p>
       </div>
       <div class="value-card reveal">
+        <div class="card-decor-corner top-left"></div>
+        <div class="card-decor-corner bottom-right"></div>
         <TrendingUp :size="40" class="primary-text" />
-        <h3>{{ t('sponsors.values[1].title') }}</h3>
-        <p>{{ t('sponsors.values[1].desc') }}</p>
+        <h3 class="font-podium">{{ t('sponsors.values[1].title') }}</h3>
+        <p class="font-inter">{{ t('sponsors.values[1].desc') }}</p>
       </div>
       <div class="value-card reveal">
+        <div class="card-decor-corner top-left"></div>
+        <div class="card-decor-corner bottom-right"></div>
         <Users :size="40" class="primary-text" />
-        <h3>{{ t('sponsors.values[2].title') }}</h3>
-        <p>{{ t('sponsors.values[2].desc') }}</p>
+        <h3 class="font-podium">{{ t('sponsors.values[2].title') }}</h3>
+        <p class="font-inter">{{ t('sponsors.values[2].desc') }}</p>
       </div>
     </section>
   </div>
@@ -309,17 +319,38 @@ onMounted(() => {
 }
 
 .logo-circle {
-  width: 130px;
-  height: 130px;
-  min-width: 130px;
+  width: 135px;
+  height: 135px;
+  min-width: 135px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 50%;
-  transition: all 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   cursor: pointer;
+}
+
+.logo-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.sponsor-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  filter: grayscale(0.2) contrast(1.1) brightness(0.95);
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .float-anim {
@@ -329,33 +360,34 @@ onMounted(() => {
 
 @keyframes floatCircle {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+  50% { transform: translateY(-12px); }
 }
 
 .logo-circle:hover {
-  background: rgba(255, 184, 0, 0.1);
-  border-color: #ffb800;
-  transform: translateY(-20px) scale(1.1) !important;
+  background: rgba(255, 94, 0, 0.08);
+  border-color: var(--primary-color);
+  transform: translateY(-15px) scale(1.08) !important;
   z-index: 10;
+  box-shadow: 0 15px 30px rgba(255, 94, 0, 0.15);
+}
+
+.logo-circle:hover .sponsor-logo-img {
+  filter: grayscale(0) contrast(1.05) brightness(1.1);
+  transform: scale(1.12);
 }
 
 .circle-border {
   position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  inset: -6px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: 50%;
-  transition: all 0.4s ease;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .logo-circle:hover .circle-border {
   border-color: var(--primary-color);
-  inset: -10px;
-}
-
-.logo-placeholder {
-  font-weight: 800;
-  font-size: 0.8rem;
-  opacity: 0.5;
+  inset: -12px;
+  transform: rotate(45deg);
 }
 
 @keyframes scrollLogos {
@@ -396,43 +428,35 @@ onMounted(() => {
 }
 
 .text-block h2 {
-  font-family: var(--font-accent);
-  font-size: 4rem;
+  font-size: clamp(2rem, 5vw, 3.8rem);
   font-weight: 950;
-  margin: 2rem 0;
-  line-height: 1;
+  margin-bottom: 2rem;
+  line-height: 0.95;
+  letter-spacing: -2px;
 }
 
 .text-block p {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .text-block.secondary {
-  margin-top: 4rem;
-  padding-left: 3rem;
+  margin-top: 3rem;
+  padding-left: 2rem;
   border-left: 2px solid var(--primary-color);
 }
 
 .final-quote h3 {
-  font-family: var(--font-accent);
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 900;
-  margin-top: 6rem;
+  margin-top: 4.5rem;
   color: var(--primary-color);
-}
-
-.text-block h2 {
-  font-family: var(--font-accent);
-  font-size: 4rem;
-  font-weight: 950;
-  margin: 2rem 0;
-  line-height: 1;
+  letter-spacing: -1px;
 }
 
 .gradient-text {
-  background: linear-gradient(to right, var(--primary-color), #ffb800);
+  background: var(--accent-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -440,117 +464,159 @@ onMounted(() => {
 
 .mission-visual {
   position: relative;
+  padding: 0 2rem;
 }
 
-.visual-card {
+.visual-card-premium {
   position: relative;
   aspect-ratio: 4/5;
-  padding: 4rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4rem;
-  border-radius: 60px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  border-radius: 24px;
+  overflow: visible; /* Allow floating stats to overflow slightly */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+  background: #050505;
 }
 
-.aura-pulse::before {
-  content: '';
-  position: absolute;
-  inset: -100px;
-  background: radial-gradient(circle, rgba(255, 94, 0, 0.1) 0%, transparent 70%);
-  animation: auraPulse 4s infinite ease-in-out;
-  z-index: -1;
-}
-
-@keyframes auraPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
-}
-
-.card-glow {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
+.visual-card-bg {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
-  transform: skewX(-25deg);
-  animation: cardSlide 6s infinite;
+  object-fit: cover;
+  border-radius: 24px;
+  opacity: 0.75;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease;
 }
 
-@keyframes cardSlide {
-  0% { left: -100%; }
-  30% { left: 200%; }
-  100% { left: 200%; }
+.visual-card-premium:hover .visual-card-bg {
+  transform: scale(1.06);
+  opacity: 0.9;
 }
 
-.impact-stat {
+.visual-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 2, 2, 0.85) 0%, rgba(2, 2, 2, 0.1) 50%, rgba(2, 2, 2, 0.4) 100%);
+  z-index: 1;
+  border-radius: 24px;
+  pointer-events: none;
+}
+
+.floating-stat {
+  position: absolute;
+  z-index: 2;
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.4rem 2.2rem;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.stat-number {
-  font-family: var(--font-accent);
-  font-size: 5rem;
+.floating-stat:hover {
+  border-color: var(--primary-color);
+  background: rgba(255, 94, 0, 0.1);
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 25px 50px rgba(255, 94, 0, 0.15);
+}
+
+.stat-top {
+  top: 15%;
+  left: -12%;
+}
+
+.stat-bottom {
+  bottom: 18%;
+  right: -12%;
+}
+
+.visual-card-premium .stat-number {
+  font-size: 3.5rem;
   font-weight: 950;
-  color: var(--primary-color);
+  color: white;
   line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
-.stat-label {
-  font-size: 1.2rem;
-  opacity: 0.6;
+.visual-card-premium .stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.7;
+  color: var(--text-secondary);
   letter-spacing: 2px;
   text-transform: uppercase;
+  margin-top: 0.3rem;
 }
 
-.stat-badge {
+.card-decor-bracket {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
-  background: var(--primary-color);
-  color: #000;
-  padding: 0.5rem 1rem;
-  font-weight: 950;
-  font-size: 0.7rem;
-  border-radius: 4px;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 94, 0, 0.4);
+  pointer-events: none;
+  z-index: 2;
 }
+
+.card-decor-bracket.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+.card-decor-bracket.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+.card-decor-bracket.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+.card-decor-bracket.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
 
 /* 4. VALUES GRID */
 .values-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4rem;
+  gap: 3rem;
 }
 
 .value-card {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 4rem 3rem;
-  border-radius: 40px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.01);
+  padding: 5rem 3rem 4rem;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   text-align: center;
-  transition: all 0.4s ease;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow: hidden;
 }
 
 .value-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--primary-color);
-  transform: translateY(-10px);
+  background: rgba(255, 94, 0, 0.03);
+  border-color: rgba(255, 94, 0, 0.35);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 
+              0 0 20px rgba(255, 94, 0, 0.05);
 }
 
 .value-card h3 {
-  font-family: var(--font-accent);
   font-size: 1.5rem;
   margin: 2rem 0 1rem;
+  letter-spacing: -1px;
 }
 
 .value-card p {
-  opacity: 0.6;
+  opacity: 0.55;
   line-height: 1.6;
+  font-size: 0.95rem;
 }
+
+.card-decor-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: border-color 0.4s ease;
+}
+
+.value-card:hover .card-decor-corner {
+  border-color: var(--primary-color);
+}
+
+.card-decor-corner.top-left { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+.card-decor-corner.bottom-right { bottom: 15px; right: 15px; border-left: none; border-top: none; }
 
 /* LIGHT LEAKS */
 .light-leak {
@@ -598,9 +664,9 @@ onMounted(() => {
 }
 
 .btn-back:hover {
-  background: #ffb800;
+  background: var(--accent-gradient);
   color: #000;
-  border-color: #ffb800;
+  border-color: var(--primary-color);
   transform: translateX(-5px);
 }
 
@@ -613,7 +679,7 @@ onMounted(() => {
   .mission-grid { grid-template-columns: 1fr; gap: 4rem; }
   .values-grid { grid-template-columns: 1fr; }
   .sponsor-hero { height: auto; min-width: 100%; padding: 180px 0 100px; }
-  .visual-card { aspect-ratio: auto; padding: 3rem; }
+  .visual-card-premium { aspect-ratio: 16/10; }
 }
 
 @media (max-width: 768px) {
@@ -671,7 +737,7 @@ onMounted(() => {
 
   .stat-number { font-size: 3rem; }
   .stat-label { font-size: 0.8rem; }
-  .visual-card { gap: 2.5rem; border-radius: 30px; }
+  .visual-card-premium { border-radius: 20px; }
 }
 
 @media (max-width: 480px) {
