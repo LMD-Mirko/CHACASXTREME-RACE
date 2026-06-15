@@ -1,4 +1,34 @@
 {
+    "seo": {
+        "home": {
+            "title": "Chacas Xtreme Race | Mountain Bike Estrema nelle Andes",
+            "description": "Sfida la Cordillera Blanca nella gara di mountain bike più estrema delle Ande. 100% gratuita. Iscriviti ora alla sfida MTB definitiva in Perù."
+        },
+        "sponsors": {
+            "title": "Sponsor | Chacas Xtreme Race",
+            "description": "Diventa sponsor di Chacas Xtreme Race. Connetti il tuo brand allo sport d'avventura e alla sostenibilità nel cuore delle Ande."
+        },
+        "cyclist-registration": {
+            "title": "Registrazione Rider | Chacas Xtreme Race",
+            "description": "Iscriviti alla sfida di ciclismo estremo nelle Ande. Scopri il percorso di Chacas, i requisiti tecnici e assicurati un posto."
+        },
+        "discover-chacas": {
+            "title": "Scopri Chacas | Chacas Xtreme Race",
+            "description": "Scopri Chacas nella regione di Ancash, Perù. Paesaggi di alta montagna, percorsi di ciclismo estremo e tradizioni nel Huascarán."
+        },
+        "events": {
+            "title": "Eventi ed Edizioni | Chacas Xtreme Race",
+            "description": "Rivivi le edizioni passate della gara di mountain bike a Chacas e rimani aggiornato sulle prossime date della competizione."
+        },
+        "how-to-participate": {
+            "title": "Come Partecipare | Chacas Xtreme Race",
+            "description": "Scopri come far parte della gara di mountain bike a Chacas. Informazioni per rider, volontari, staff e brand partner."
+        },
+        "countdown": {
+            "title": "Chacas Xtreme Race | Prossimamente",
+            "description": "Preparati per l'estremo. È iniziato il conto alla rovescia per la sfida di mountain bike definitiva nelle Ande."
+        }
+    },
     "nav": {
         "home": "Home",
         "riders": "I Riders",
@@ -93,7 +123,7 @@
         ]
     },
     "about": {
-        "badge_text": "Anni di Passione",
+        "badge_text": "Edizioni",
         "section_title": "CONOSCICI",
         "headline": "MANKA RIDER'S",
         "p1": "La nostra avventura è iniziata quando abbiamo deciso di mostrare quanto sia incredibile percorrere <strong>Chacas</strong> in bicicletta. Da allora, la comunità <strong>Manka Rider's</strong> si è dedicata a condividere la nostra passione con tutti coloro che vogliono vivere l'emozione di pedalare in questo bellissimo luogo.",

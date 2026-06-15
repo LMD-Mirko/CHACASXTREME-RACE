@@ -258,3 +258,42 @@ button {
     animation-delay: 0.4s;
     opacity: 0;
 }
+
+/* --- Custom Font Space & Legibility Corrections (PODIUM Sharp) --- */
+.font-podium,
+.hero__title,
+.events-title,
+.hero-title,
+.page-title,
+.tribute-title,
+.heading-title,
+.portal-title,
+.editorial-title,
+.about__subheadline,
+.info__title,
+.gallery__headline,
+.watermark-name,
+.rider-name {
+    word-spacing: 0.35em !important;
+}
+
+/* Relax letter-spacing and increase word-spacing on mobile devices to prevent character overlap */
+@media (max-width: 768px) {
+    .font-podium,
+    .hero__title,
+    .events-title,
+    .hero-title,
+    .page-title,
+    .tribute-title,
+    .heading-title,
+    .portal-title,
+    .editorial-title,
+    .about__subheadline,
+    .info__title,
+    .gallery__headline,
+    .watermark-name,
+    .rider-name {
+        letter-spacing: 0px !important;
+        word-spacing: 0.45em !important;
+    }
+}

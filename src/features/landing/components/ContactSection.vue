@@ -83,7 +83,7 @@ const copyEmail = () => {
                 <div class="ring-tick tick-4"></div>
               </div>
               <div class="logo-frame">
-                <img :src="mankaLogo" alt="Manka Riders Logo" class="logo-img" loading="lazy" />
+                <img :src="mankaLogo" alt="Manka Riders - Club organizador de Chacas Xtreme Race competencia de ciclismo de montaña" class="logo-img" loading="lazy" />
               </div>
               <div class="logo-glow"></div>
             </div>
@@ -331,6 +331,7 @@ const copyEmail = () => {
   border-radius: 50%;
   z-index: 2;
   animation: rotate-ring 24s linear infinite;
+  will-change: transform;
 }
 
 .ring-tick {

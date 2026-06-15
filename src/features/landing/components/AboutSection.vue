@@ -305,24 +305,25 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.55);
   will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 /* EXPERIENCE BADGE OVERLAP */
 .about__experience-badge {
   position: absolute;
-  bottom: -1.5rem;
-  right: -1.5rem;
+  bottom: -1rem;
+  right: 1rem;
   background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   color: white;
-  padding: 1.1rem 1.6rem;
+  padding: 0.6rem 1rem;
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: 0.8rem;
   border: 1px solid rgba(255, 94, 0, 0.35);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   z-index: 5;
 }
 
@@ -334,14 +335,14 @@ onUnmounted(() => {
 }
 
 .about__experience-badge .number {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 950;
   line-height: 1;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -2px;
+  letter-spacing: -1px;
 }
 
 .badge-text-group {
@@ -350,19 +351,19 @@ onUnmounted(() => {
 }
 
 .about__experience-badge .text-top {
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: 0.55rem;
+  font-weight: 850;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
 .about__experience-badge .text-edition {
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   font-weight: 900;
   color: white;
-  letter-spacing: 1px;
-  margin-top: 0.2rem;
+  letter-spacing: 0.5px;
+  margin-top: 0.1rem;
 }
 
 /* TEXT CONTENT */
@@ -502,7 +503,7 @@ onUnmounted(() => {
   .about__image-container {
     order: 2;
     max-width: 560px;
-    margin: 0 auto;
+    margin: 3.5rem auto 0;
     width: 100%;
     padding: 0 24px;
     box-sizing: border-box;
@@ -531,13 +532,13 @@ onUnmounted(() => {
   }
 
   .about__experience-badge {
-    padding: 0.9rem 1.3rem;
-    bottom: 0.75rem;
-    right: 0.75rem;
+    padding: 0.5rem 0.8rem;
+    bottom: 0.5rem;
+    right: 0.5rem;
   }
 
   .about__experience-badge .number {
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-size: 1.6rem;
   }
 }
 
@@ -570,14 +571,27 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .about__experience-badge {
-    position: relative;
-    bottom: auto;
-    right: auto;
-    margin-top: -2rem;
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content;
-    max-width: 100%;
+    position: absolute;
+    bottom: -0.75rem;
+    right: 50%;
+    transform: translateX(50%);
+    margin: 0;
+    width: max-content;
+    padding: 0.4rem 0.7rem;
+  }
+  
+  .about__experience-badge .number {
+    font-size: 1.4rem;
+  }
+  
+  .about__experience-badge .text-top {
+    font-size: 0.48rem;
+    letter-spacing: 1px;
+  }
+  
+  .about__experience-badge .text-edition {
+    font-size: 0.58rem;
+    letter-spacing: 0.5px;
   }
 
   .about__image-wrapper {

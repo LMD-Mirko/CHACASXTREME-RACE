@@ -46,9 +46,9 @@ const hoveredIndex = ref(null);
     <!-- SVG Filter for Jagged Electric / Lightning Effect -->
     <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
       <defs>
-        <filter id="electric-arc-filter" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.09" numOctaves="3" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+        <filter id="electric-arc-filter" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04 0.08" numOctaves="1" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>
@@ -62,13 +62,12 @@ const hoveredIndex = ref(null);
     </div>
     <div class="carbon-mesh-overlay"></div>
 
-    <!-- Back Button to Home -->
-    <RouterLink to="/inicio" class="btn-back">
-      <ArrowLeft :size="16" /> VOLVER AL INICIO
-    </RouterLink>
-
     <!-- Header badge and title -->
     <div class="page-header container">
+      <!-- Back Button to Home -->
+      <RouterLink to="/inicio" class="btn-back">
+        <ArrowLeft :size="16" /> VOLVER AL INICIO
+      </RouterLink>
       <span class="header-badge">{{ t('events.hall.badge') }}</span>
       <h1 class="page-title font-podium">
         {{ t('events.hall.title_prefix') }} 
@@ -187,11 +186,7 @@ const hoveredIndex = ref(null);
 
 /* Floating back button */
 .btn-back {
-  position: absolute;
-  top: 100px;
-  left: 5%;
-  z-index: 100;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   color: #fff;
@@ -207,6 +202,8 @@ const hoveredIndex = ref(null);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  z-index: 100;
 }
 .btn-back:hover {
   background: var(--primary-color);
@@ -226,6 +223,9 @@ const hoveredIndex = ref(null);
   text-align: center;
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .header-badge {
@@ -318,10 +318,10 @@ const hoveredIndex = ref(null);
   stroke-linecap: round;
   stroke-dasharray: 240 800;
   stroke-dashoffset: 1040;
-  animation: moveBorder 2.5s linear infinite, electricCrackle 0.08s steps(2) infinite;
+  animation: moveBorder 2.5s linear infinite;
   filter: url(#electric-arc-filter);
   transform-origin: center;
-  will-change: stroke-dashoffset, transform, opacity;
+  will-change: stroke-dashoffset;
 }
 
 .electric-rect--glow {
@@ -611,14 +611,17 @@ const hoveredIndex = ref(null);
     padding-bottom: 8rem;
   }
   .btn-back {
-    top: 90px;
-    left: 1.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.65rem;
+    margin-bottom: 1.5rem;
+    align-self: flex-start;
   }
   .page-header {
-    padding-top: 150px;
+    padding-top: 130px;
     padding-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   .page-title {
     font-size: 2.2rem;

@@ -231,6 +231,7 @@ const animateEntrance = () => {
   background: #ff5e00;
   box-shadow: -15px 0 50px rgba(0, 0, 0, 0.6);
   transform: skewX(-15deg);
+  will-change: transform;
 }
 
 /* OVERLAYS & BACKGROUND */
@@ -240,6 +241,7 @@ const animateEntrance = () => {
   background: radial-gradient(circle at center, #150801 0%, #020202 100%);
   z-index: 0;
   overflow: hidden;
+  will-change: transform;
 }
 
 .noise-bg {
@@ -690,10 +692,20 @@ const animateEntrance = () => {
 @media (max-height: 670px) {
   .content {
     height: 98%;
-    padding-top: 2rem;
+    padding-top: 1.5rem;
+    padding-bottom: 0.5rem;
   }
   .raider-bg {
-    height: 60%;
+    height: 55%;
+  }
+  .timer-item {
+    padding: 0.5rem 0.1rem;
+  }
+  .stats-container {
+    padding: 0.4rem 0;
+  }
+  .title {
+    margin-bottom: 0.2rem;
   }
 }
 </style>

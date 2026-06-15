@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /inicio
+Allow: /conoce-chacas
+Allow: /como-participar
+Allow: /auspiciadores
+Allow: /registro/ciclista
+Allow: /eventos
+Disallow: /api/
+Disallow: /dist/
+
+Sitemap: https://chacasxtremerace.com/sitemap.xml

@@ -108,7 +108,7 @@ const nextImage = () => {
                :key="'r1-s1-'+index" 
                class="gallery__item"
                @click="openLightbox(img)">
-            <img :src="img" alt="Galería Chacas Xtreme" loading="lazy" decoding="async" />
+            <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
             <div class="gallery__overlay">
               <span class="gallery__label font-inter">AMPLIAR</span>
             </div>
@@ -120,7 +120,7 @@ const nextImage = () => {
                :key="'r1-s2-'+index" 
                class="gallery__item"
                @click="openLightbox(img)">
-            <img :src="img" alt="Galería Chacas Xtreme" loading="lazy" decoding="async" />
+            <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
             <div class="gallery__overlay">
               <span class="gallery__label font-inter">AMPLIAR</span>
             </div>
@@ -138,7 +138,7 @@ const nextImage = () => {
                :key="'r2-s1-'+index" 
                class="gallery__item"
                @click="openLightbox(img)">
-            <img :src="img" alt="Galería Chacas Xtreme" loading="lazy" decoding="async" />
+            <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
             <div class="gallery__overlay">
               <span class="gallery__label font-inter">AMPLIAR</span>
             </div>
@@ -150,7 +150,7 @@ const nextImage = () => {
                :key="'r2-s2-'+index" 
                class="gallery__item"
                @click="openLightbox(img)">
-            <img :src="img" alt="Gallery 2 Duplicate" loading="lazy" />
+            <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
             <div class="gallery__overlay">
               <span class="gallery__label font-inter">AMPLIAR</span>
             </div>
@@ -242,6 +242,7 @@ const nextImage = () => {
 .gallery__track {
   display: flex;
   width: max-content;
+  will-change: transform;
 }
 
 .gallery__set {

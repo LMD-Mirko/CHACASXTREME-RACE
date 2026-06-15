@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Teaser / Countdown -->
+  <url>
+    <loc>https://chacasxtremerace.com/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Inicio -->
+  <url>
+    <loc>https://chacasxtremerace.com/inicio</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/inicio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/inicio?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/inicio?lang=it" />
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Auspiciadores -->
+  <url>
+    <loc>https://chacasxtremerace.com/auspiciadores</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/auspiciadores" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/auspiciadores?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/auspiciadores?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Conoce Chacas -->
+  <url>
+    <loc>https://chacasxtremerace.com/conoce-chacas</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/conoce-chacas" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/conoce-chacas?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/conoce-chacas?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Como Participar -->
+  <url>
+    <loc>https://chacasxtremerace.com/como-participar</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/como-participar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/como-participar?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/como-participar?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Registro Ciclista -->
+  <url>
+    <loc>https://chacasxtremerace.com/registro/ciclista</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/registro/ciclista" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/registro/ciclista?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/registro/ciclista?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Eventos -->
+  <url>
+    <loc>https://chacasxtremerace.com/eventos</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://chacasxtremerace.com/eventos" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://chacasxtremerace.com/eventos?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://chacasxtremerace.com/eventos?lang=it" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+</urlset>

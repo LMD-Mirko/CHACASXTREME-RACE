@@ -14,7 +14,10 @@ useScrollReveal({ selector: '.reveal-stagger' });
       <div class="footer__brand entry-anim entry-anim--up" style="--stagger: 0s">
         <div class="navbar__logo mb-2">
           <span class="logo-text">CHACAS</span>
-          <span class="logo-accent"><span class="x-accent">X</span>TREME RACE</span>
+          <span class="logo-accent">
+            <span class="x-accent">X</span>TREME
+            <span class="logo-race">RACE</span>
+          </span>
         </div>
         <p class="footer__text">
           {{ t('footer.brand_text') }}
@@ -102,6 +105,13 @@ useScrollReveal({ selector: '.reveal-stagger' });
 
 .mb-2 { margin-bottom: 1.5rem; }
 
+.footer__brand .navbar__logo {
+  font-family: var(--font-podium);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .footer__brand .logo-text {
   font-size: 1.5rem;
   font-weight: 800;
@@ -112,6 +122,9 @@ useScrollReveal({ selector: '.reveal-stagger' });
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--primary-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .footer__brand .x-accent {

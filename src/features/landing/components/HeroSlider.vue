@@ -194,6 +194,7 @@ onUnmounted(() => {
   background-repeat: no-repeat;
   filter: brightness(0.78) contrast(1.08) saturate(0.95); /* Bright, visible, slightly polished */
   animation: kenburns 16s ease-in-out forwards;
+  will-change: transform;
 }
 
 @keyframes kenburns {

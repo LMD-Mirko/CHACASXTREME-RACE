@@ -40,8 +40,9 @@ onUnmounted(() => {
     <section class="chacas-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img :src="chacasHero" alt="Chacas Hero" class="hero-img" />
+        <img :src="chacasHero" alt="Paisaje de alta montaña en Chacas, Áncash, Perú - Ruta Chacas Xtreme Race" class="hero-img" />
       </div>
+
       <div class="container relative z-10">
         <h1 class="hero-title reveal" v-html="t('discover.hero_title').replace('\n', '<br/>')"></h1>
       </div>
@@ -53,30 +54,41 @@ onUnmounted(() => {
         <!-- Image Box with Auto-Slide Transition -->
         <div class="image-box reveal">
           <Transition name="fade" mode="out-in">
-            <img :key="currentImageIndex" :src="images[currentImageIndex]" alt="Chacas Landscape" class="sliding-img" />
+            <img :key="currentImageIndex" :src="images[currentImageIndex]" alt="Ruta de ciclismo extremo en los Andes, Chacas Perú" class="sliding-img" />
           </Transition>
+          <!-- Corner Marks -->
+          <div class="corner-mark top-left"></div>
+          <div class="corner-mark top-right"></div>
+          <div class="corner-mark bottom-left"></div>
+          <div class="corner-mark bottom-right"></div>
         </div>
 
         <!-- Text Content -->
         <div class="text-box reveal">
-          <h2 class="section-title">{{ t('discover.section_title') }}</h2>
-          <div class="text-content">
+          <h2 class="section-title font-podium">{{ t('discover.section_title') }}</h2>
+          <div class="text-content font-inter">
             <p>{{ t('discover.p1') }}</p>
             <p>{{ t('discover.p2') }}</p>
           </div>
           
           <div class="technical-details">
             <div class="detail-item">
-              <span class="label">{{ t('discover.specs.location_label') }}</span>
-              <span class="value">{{ t('discover.specs.location_val') }}</span>
+              <div class="item-decor top-left"></div>
+              <div class="item-decor bottom-right"></div>
+              <span class="label font-inter">{{ t('discover.specs.location_label') }}</span>
+              <span class="value font-podium">{{ t('discover.specs.location_val') }}</span>
             </div>
             <div class="detail-item">
-              <span class="label">{{ t('discover.specs.altitude_label') }}</span>
-              <span class="value">{{ t('discover.specs.altitude_val') }}</span>
+              <div class="item-decor top-left"></div>
+              <div class="item-decor bottom-right"></div>
+              <span class="label font-inter">{{ t('discover.specs.altitude_label') }}</span>
+              <span class="value font-podium">{{ t('discover.specs.altitude_val') }}</span>
             </div>
             <div class="detail-item">
-              <span class="label">{{ t('discover.specs.climate_label') }}</span>
-              <span class="value">{{ t('discover.specs.climate_val') }}</span>
+              <div class="item-decor top-left"></div>
+              <div class="item-decor bottom-right"></div>
+              <span class="label font-inter">{{ t('discover.specs.climate_label') }}</span>
+              <span class="value font-podium">{{ t('discover.specs.climate_val') }}</span>
             </div>
           </div>
         </div>
@@ -162,6 +174,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  will-change: opacity;
 }
 
 /* TEXT BOX */
@@ -196,10 +209,41 @@ onUnmounted(() => {
 }
 
 .detail-item {
+  position: relative;
+  padding: 2rem 1.5rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow: hidden;
 }
+
+.detail-item:hover {
+  background: rgba(255, 94, 0, 0.03);
+  border-color: rgba(255, 94, 0, 0.35);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 94, 0, 0.05);
+}
+
+.item-decor {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: border-color 0.4s ease;
+}
+
+.detail-item:hover .item-decor {
+  border-color: var(--primary-color);
+}
+
+.item-decor.top-left { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+.item-decor.bottom-right { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
 .label {
   font-size: 0.7rem;
@@ -214,6 +258,23 @@ onUnmounted(() => {
   font-size: 1.1rem;
   color: var(--primary-color);
 }
+
+/* Corner markers for engineering style */
+.corner-mark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--primary-color);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.corner-mark.top-left { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+.corner-mark.top-right { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+.corner-mark.bottom-left { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+.corner-mark.bottom-right { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+
+
 
 /* TRANSITIONS */
 .fade-enter-active, .fade-leave-active {

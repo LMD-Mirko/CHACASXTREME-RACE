@@ -54,15 +54,14 @@ onMounted(() => {
     <section class="sponsor-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img src="https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1200" alt="Chacas Mountain" class="parallax-img" />
+        <img src="https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1200" alt="Montañas de la Cordillera Blanca en Chacas, Áncash - Auspiciadores Chacas Xtreme Race" class="parallax-img" />
       </div>
 
-      <!-- Navigation Link Back -->
-      <RouterLink to="/como-participar" class="btn-back reveal">
-        <ArrowLeft :size="18" /> {{ t('sponsors.back') }}
-      </RouterLink>
-
-      <div class="container relative z-10">
+      <div class="container hero-content-wrapper relative z-10">
+        <!-- Navigation Link Back -->
+        <RouterLink to="/como-participar" class="btn-back reveal">
+          <ArrowLeft :size="18" /> {{ t('sponsors.back') }}
+        </RouterLink>
         <div class="badge-gold reveal shimmer-gold">{{ t('sponsors.badge') }}</div>
         <h1 class="sponsor-title reveal">{{ t('sponsors.title') }}</h1>
         <p class="sponsor-subtitle reveal">
@@ -87,7 +86,7 @@ onMounted(() => {
                  :style="`--f-delay: ${index * 0.2}s`"
             >
                <div class="logo-inner">
-                  <img :src="logo.img" :alt="logo.name" class="sponsor-logo-img" />
+                  <img :src="logo.img" :alt="logo.name + ' - Auspiciador Oficial de Chacas Xtreme Race'" class="sponsor-logo-img" />
                </div>
                <div class="circle-border"></div>
             </div>
@@ -123,8 +122,9 @@ onMounted(() => {
 
         <div class="mission-visual reveal">
            <div class="visual-card-premium">
-              <img :src="imagenaus" alt="Proyecto Social Chacas" class="visual-card-bg" />
+              <img :src="imagenaus" alt="Apoyo social infantil y comunidad de ciclistas en Chacas - Manka Riders" class="visual-card-bg" />
               <div class="visual-card-overlay"></div>
+
 
               <div class="card-decor-bracket top-left"></div>
               <div class="card-decor-bracket top-right"></div>
@@ -311,6 +311,7 @@ onMounted(() => {
 .logo-list {
   display: flex;
   animation: scrollLogos 40s linear infinite;
+  will-change: transform;
 }
 
 .logo-group {
@@ -332,6 +333,8 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   cursor: pointer;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .logo-inner {
@@ -357,6 +360,7 @@ onMounted(() => {
 .float-anim {
   animation: floatCircle 6s ease-in-out infinite;
   animation-delay: var(--f-delay);
+  will-change: transform;
 }
 
 @keyframes floatCircle {
@@ -642,12 +646,15 @@ onMounted(() => {
   left: -5%;
   background: #ffb800;
 }
-.btn-back {
-  position: absolute;
-  top: 120px;
-  left: 5%;
-  z-index: 100;
+.hero-content-wrapper {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.btn-back {
+  display: inline-flex;
   align-items: center;
   gap: 0.8rem;
   color: #fff;
@@ -661,7 +668,10 @@ onMounted(() => {
   border-radius: 100px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  z-index: 100;
 }
 
 .btn-back:hover {
@@ -684,11 +694,15 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .hero-content-wrapper {
+    align-items: center;
+  }
+  
   .btn-back { 
-    top: 100px; 
-    left: 2rem;
-    font-size: 0.6rem; 
-    padding: 0.5rem 1.2rem; 
+    font-size: 0.65rem; 
+    padding: 0.6rem 1.2rem; 
+    margin-bottom: 1.5rem;
+    align-self: flex-start;
   }
   
   .badge-gold { 
@@ -738,17 +752,50 @@ onMounted(() => {
 
   .stat-number { font-size: 3rem; }
   .stat-label { font-size: 0.8rem; }
-  .visual-card-premium { border-radius: 20px; }
+  .visual-card-premium {
+    border-radius: 20px;
+    aspect-ratio: 1/1; /* Square on mobile to show the cyclists better */
+  }
+  .visual-card-bg {
+    opacity: 0.95 !important;
+    filter: brightness(1.15) contrast(1.05) !important;
+  }
+  .visual-card-overlay {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 60%, rgba(0, 0, 0, 0.3) 100%) !important;
+  }
+  .stat-top {
+    top: 10%;
+    left: -4%;
+  }
+  .stat-bottom {
+    bottom: 12%;
+    right: -4%;
+  }
 }
 
 @media (max-width: 480px) {
   .sponsor-hero { padding: 160px 0 80px; }
   .sponsor-title { font-size: 2.8rem; }
-  .btn-back { top: 90px; left: 1rem; }
   
   .logo-circle { width: 75px; height: 75px; min-width: 75px; }
   .logo-group { gap: 1.5rem; }
 
   .value-card { padding: 3rem 1.5rem; }
+  
+  .stat-top {
+    top: 8%;
+    left: -2%;
+  }
+  .stat-bottom {
+    bottom: 10%;
+    right: -2%;
+  }
+  .floating-stat {
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+  }
+  .visual-card-premium .stat-number {
+    font-size: 2.2rem;
+  }
 }
 </style>

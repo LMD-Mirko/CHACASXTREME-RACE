@@ -574,14 +574,14 @@ onUnmounted(() => {
   object-position: center;
   opacity: 0;
   transition: opacity 1.8s ease-in-out;
-  filter: contrast(1.05) brightness(0.7) saturate(0.85);
+  filter: contrast(1.05) brightness(0.85) saturate(0.9);
   animation: heroParallax linear both;
   animation-timeline: scroll();
   z-index: 1;
 }
 
 .bg-img.active {
-  opacity: 0.65;
+  opacity: 0.82;
 }
 
 @keyframes heroParallax {
@@ -600,8 +600,7 @@ onUnmounted(() => {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, #020202 5%, rgba(2, 2, 2, 0.1) 50%, rgba(2, 2, 2, 0.5) 100%),
-              linear-gradient(to right, #020202 10%, rgba(2, 2, 2, 0.1) 60%, transparent 90%);
+  background: linear-gradient(to top, #020202 12%, rgba(2, 2, 2, 0.2) 65%, rgba(2, 2, 2, 0.4) 100%);
   z-index: 3;
 }
 
@@ -645,6 +644,7 @@ onUnmounted(() => {
   line-height: 0.9;
   letter-spacing: -2px;
   text-transform: uppercase;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.75);
 }
 
 .text-outline {
@@ -671,6 +671,7 @@ onUnmounted(() => {
   max-width: 580px;
   margin-top: 1.8rem;
   line-height: 1.7;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
 .hero-actions {

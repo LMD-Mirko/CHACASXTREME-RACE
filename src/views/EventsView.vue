@@ -66,7 +66,7 @@ onMounted(() => {
     <section class="events-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img src="@/assets/images/chacas /4.webp" alt="Events Background" class="parallax-img" />
+        <img src="@/assets/images/chacas /4.webp" alt="Ediciones anteriores de la competencia de ciclismo de montaña Chacas Xtreme Race" class="parallax-img" />
       </div>
       
       <!-- Large Watermark Text -->
@@ -143,7 +143,7 @@ onMounted(() => {
 
               <!-- High-end curved image preview on the right -->
               <div class="portal-image-frame">
-                <img :src="events[activeIndex].image" :alt="events[activeIndex].edition" class="p-img" />
+                <img :src="events[activeIndex].image" :alt="events[activeIndex].edition + ' - Competencia de Ciclismo de Montaña Chacas Xtreme'" class="p-img" />
                 <div class="p-overlay"></div>
               </div>
             </div>
@@ -171,7 +171,7 @@ onMounted(() => {
           <div class="map-corner-bracket bottom-right"></div>
           <div class="map-scanlines"></div>
 
-          <img :src="routeMapImg" alt="Detalle de Carrera" class="massive-img" />
+          <img :src="routeMapImg" alt="Mapa técnico de la ruta de ciclismo Chacas Xtreme Race - Altimetría y Puntos Clave" class="massive-img" />
           <div class="massive-overlay">
             <!-- Blinking Tactical Points Plaza Ugo Censi -->
             <div class="tactical-point p-start">

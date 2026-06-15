@@ -69,7 +69,7 @@ onUnmounted(() => {
         <!-- Left: Image with sharp editorial design -->
         <div class="challenge__visual entry-anim entry-anim--left" style="--stagger: 0s">
           <div class="visual__frame">
-            <img :src="challengeImg" alt="Chacas Xtreme Challenge" class="visual__img" loading="lazy" />
+            <img :src="challengeImg" alt="Competencia de ciclismo de montaña extrema Chacas Xtreme Race - Manka Riders" class="visual__img" loading="lazy" />
             <div class="visual__overlay"></div>
             <!-- Technical frame markings -->
             <div class="corner-mark top-left"></div>
