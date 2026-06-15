@@ -124,12 +124,12 @@ onUnmounted(() => {
 }
 
 .hero-title {
-  font-family: var(--font-accent);
-  font-size: clamp(4rem, 10vw, 8rem);
-  font-weight: 950;
-  line-height: 0.9;
+  font-family: var(--font-podium);
+  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.95;
   letter-spacing: -2px;
-  background: linear-gradient(to bottom, #fff, rgba(255,255,255,0.3));
+  background: linear-gradient(to bottom, #ffffff 40%, rgba(255,255,255,0.25) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -170,9 +170,9 @@ onUnmounted(() => {
 }
 
 .section-title {
-  font-family: var(--font-accent);
+  font-family: var(--font-podium);
   font-size: 3rem;
-  font-weight: 950;
+  font-weight: 900;
   color: var(--primary-color);
   margin-bottom: 2.5rem;
   letter-spacing: -1px;
@@ -209,7 +209,7 @@ onUnmounted(() => {
 }
 
 .value {
-  font-family: var(--font-accent);
+  font-family: var(--font-podium);
   font-weight: 900;
   font-size: 1.1rem;
   color: var(--primary-color);

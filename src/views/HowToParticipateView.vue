@@ -103,10 +103,6 @@ const rolesList = [
   "FOTOGRAFÍA OFICIAL", "GUÍA DE RUTA EXTREMA"
 ];
 
-const getRole = (idx) => {
-  return rolesList[idx % rolesList.length];
-};
-
 const scrollContainer = ref(null);
 const cardsRefs = ref([]);
 
@@ -139,7 +135,7 @@ const updateCardTransforms = () => {
     
     // Apply transform
     card.style.transform = `perspective(1000px) rotateY(${rotateY}deg) scale(${scale}) translateZ(${translateZ}px)`;
-    card.style.opacity = 1; // Keep images fully visible
+    card.style.opacity = 1;
   });
 };
 
@@ -160,7 +156,7 @@ const startAutoplay = () => {
   autoplayInterval = setInterval(() => {
     if (isUserInteracting || isDragging || !scrollContainer.value) return;
     scrollContainer.value.scrollLeft += 1.2;
-  }, 16); // Smooth ~60fps autoplay scroll
+  }, 16);
 };
 
 const stopAutoplay = () => {
@@ -209,8 +205,6 @@ const onScroll = () => {
   
   updateCardTransforms();
 };
-
-
 
 // Lightbox logic
 const showLightbox = ref(false);
@@ -290,7 +284,7 @@ const onLightboxTouchStart = (e) => {
 
 const onLightboxTouchEnd = (e) => {
   touchEndX = e.changedTouches[0].screenX;
-  const swipeThreshold = 50; // pixels
+  const swipeThreshold = 50;
   if (touchEndX < touchStartX - swipeThreshold) {
     nextLightboxImage();
   } else if (touchEndX > touchStartX + swipeThreshold) {
@@ -344,6 +338,14 @@ onUnmounted(() => {
 
 <template>
   <div class="elite-participate">
+    <!-- Decorative Grid Lines -->
+    <div class="editorial-grid">
+      <div class="grid-col-line"></div>
+      <div class="grid-col-line"></div>
+      <div class="grid-col-line"></div>
+      <div class="grid-col-line"></div>
+    </div>
+
     <!-- 1. CINEMATIC HERO -->
     <section class="elite-hero">
       <div class="elite-hero__bg">
@@ -358,6 +360,9 @@ onUnmounted(() => {
           :class="{ active: currentHeroBgIdx === idx }"
         />
       </div>
+
+      <!-- Large Watermark text -->
+      <div class="hero-watermark font-podium">STAFF</div>
       
       <div class="container elite-hero__content">
         <div class="hero-tag reveal">
@@ -371,18 +376,20 @@ onUnmounted(() => {
           Detrás de cada cumbre conquistada y cada récord batido, hay un equipo incansable. Un homenaje a nuestro staff y voluntarios locales que operan el evento de manera 100% gratuita, con pura pasión y de corazón.
         </p>
         <div class="hero-actions reveal">
-          <a href="https://chat.whatsapp.com/placeholder" target="_blank" rel="noopener noreferrer" class="btn-primary">
-            UNIRSE AL EQUIPO <ChevronRight :size="16" />
+          <a href="https://chat.whatsapp.com/placeholder" target="_blank" rel="noopener noreferrer" class="whatsapp-btn-premium">
+            <span class="btn-glow"></span>
+            <span class="btn-text">UNIRSE AL GRUPO DE TRABAJO</span>
+            <ChevronRight :size="18" class="arrow-icon" />
           </a>
         </div>
       </div>
     </section>
 
-    <!-- 2. CYBER-TACTICAL GALLERY CAROUSEL -->
+    <!-- 2. INTERACTIVE PHOTO ARCHIVE CAROUSEL -->
     <section class="staff-gallery-section">
       <div class="container section-heading reveal">
-        <div class="heading-badge">TACTICAL ARCHIVE</div>
-        <h2 class="heading-title">OPERACIONES EN <span class="primary-text">RUTA</span></h2>
+        <div class="heading-badge">GALERÍA DE OPERACIONES</div>
+        <h2 class="heading-title font-podium">EL CORAZÓN DE <span class="primary-text">CHACAS</span></h2>
         <p class="heading-subtitle">Archivo fotográfico de la tripulación en cumbres, abastecimiento y logística de seguridad.</p>
       </div>
 
@@ -405,28 +412,20 @@ onUnmounted(() => {
             class="staff-card-cyber carousel-card"
             @click="openLightbox(idx)"
           >
-            <!-- Tactical Brackets -->
-            <div class="tech-bracket top-left"></div>
-            <div class="tech-bracket top-right"></div>
-            <div class="tech-bracket bottom-left"></div>
-            <div class="tech-bracket bottom-right"></div>
-
             <div class="card-image-wrap">
               <img :src="img" alt="Staff Volunteer Action" loading="lazy" />
-              <div class="card-scanline"></div>
+              <div class="card-glow-overlay"></div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="carousel-nav-hints">
-        <span class="hint-drag">ARRASTRA O DESLIZA PARA EXPLORAR</span>
+        <span class="hint-drag">ARRASTRA O DESLIZA PARA EXPLORAR LAS IMÁGENES</span>
       </div>
     </section>
 
-    <!-- Registration modal removed as WhatsApp group link is used directly -->
-
-    <!-- 4. ELABORATE FRIENDSHIP & TRIBUTE LIGHTBOX -->
+    <!-- 4. FRIENDSHIP & TRIBUTE LIGHTBOX -->
     <Teleport to="body">
       <Transition name="lightbox-fade">
         <div 
@@ -441,58 +440,63 @@ onUnmounted(() => {
           <div class="lightbox-warm-leak"></div>
           
           <!-- Nav Buttons -->
-          <button class="lightbox-nav prev" @click="prevLightboxImage">
-            <ChevronLeft :size="30" />
+          <button class="lightbox-nav prev" @click="prevLightboxImage" aria-label="Anterior">
+            <ChevronLeft :size="24" />
           </button>
-          <button class="lightbox-nav next" @click="nextLightboxImage">
-            <ChevronRight :size="30" />
+          <button class="lightbox-nav next" @click="nextLightboxImage" aria-label="Siguiente">
+            <ChevronRight :size="24" />
           </button>
 
           <div class="lightbox-content-wrapper">
             <!-- Tribute Canvas Card -->
             <div class="tribute-canvas">
-              <!-- Close Button inside the card to align perfectly on all screens -->
+              <!-- Close Button inside the card to prevent status-bar overlay issues -->
               <button class="lightbox-close" @click="closeLightbox" aria-label="Cerrar">
                 <X :size="20" />
               </button>
 
-              <!-- Left side: The Photo -->
+              <!-- Left side: The Photo in fine frame -->
               <div class="tribute-photo-frame">
                 <img :src="staffImages[activeLightboxIdx]" alt="Manka Riders Staff Action" />
-                <div class="lightbox-scanlines"></div>
+                <div class="photo-fine-overlay">
+                  <span class="photo-coord">[ LAT 09°15'0\"S // LON 77°22'0\"W ]</span>
+                </div>
               </div>
               
-              <!-- Right side: The Narrative -->
+              <!-- Right side: The Narrative Glassmorphism Dashboard -->
               <div class="tribute-narrative-card">
-                <!-- Corner brackets -->
-                <div class="hud-bracket top-left"></div>
-                <div class="hud-bracket top-right"></div>
-                <div class="hud-bracket bottom-left"></div>
-                <div class="hud-bracket bottom-right"></div>
-
-                <div class="tribute-card-header">
-                  <div class="tribute-heart-badge">
-                    <Heart class="heart-pulse-icon" :size="14" />
+                <div class="narrative-header">
+                  <!-- Friendship Union Emblem -->
+                  <div class="unity-emblem">
+                    <div class="emblem-ring-outer"></div>
+                    <div class="emblem-ring-inner"></div>
+                    <Heart class="emblem-heart" :size="16" />
+                  </div>
+                  
+                  <div class="tribute-badge-label">
                     <span>{{ getTributeData(activeLightboxIdx).tag }}</span>
                   </div>
-                  <h3 class="tribute-title">{{ getTributeData(activeLightboxIdx).title }}</h3>
                 </div>
                 
-                <div class="tribute-quote-body">
-                  <p class="tribute-quote">"{{ getTributeData(activeLightboxIdx).quote }}"</p>
+                <div class="narrative-body">
+                  <h3 class="tribute-title font-podium">{{ getTributeData(activeLightboxIdx).title }}</h3>
+                  <div class="quote-container">
+                    <span class="quote-mark">“</span>
+                    <p class="tribute-quote">{{ getTributeData(activeLightboxIdx).quote }}</p>
+                  </div>
                 </div>
                 
                 <div class="tribute-card-footer">
                   <div class="tribute-meta-item">
                     <span class="meta-label">COMUNIDAD</span>
-                    <span class="meta-val font-accent primary-text">MANKA RIDERS</span>
+                    <span class="meta-val primary-text">MANKA RIDERS</span>
                   </div>
                   <div class="tribute-meta-item">
-                    <span class="meta-label">UBICACIÓN</span>
+                    <span class="meta-label">SECTOR</span>
                     <span class="meta-val">CHACAS, ANCASH</span>
                   </div>
                   <div class="tribute-meta-item">
-                    <span class="meta-label">PASIÓN</span>
+                    <span class="meta-label">COMPROMISO</span>
                     <span class="meta-val">100% CORAZÓN</span>
                   </div>
                 </div>
@@ -512,15 +516,46 @@ onUnmounted(() => {
   min-height: 100vh;
   padding-bottom: 8rem;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Background Grid Lines */
+.editorial-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  pointer-events: none;
+  z-index: 0;
+}
+.grid-col-line {
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
+  height: 100%;
+}
+
+/* REVEAL TRANSITION */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.primary-text {
+  color: var(--primary-color);
 }
 
 /* 1. CINEMATIC HERO */
 .elite-hero {
   position: relative;
-  height: 92vh;
+  height: 90vh;
   display: flex;
   align-items: flex-end;
-  padding-bottom: 1rem;
+  padding-bottom: 4rem;
   overflow: hidden;
 }
 
@@ -534,48 +569,61 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 120%;
+  height: 115%;
   object-fit: cover;
-  object-position: left center;
+  object-position: center;
   opacity: 0;
-  transition: opacity 1.5s ease-in-out;
-  filter: contrast(1.05) brightness(0.9);
+  transition: opacity 1.8s ease-in-out;
+  filter: contrast(1.05) brightness(0.7) saturate(0.85);
   animation: heroParallax linear both;
   animation-timeline: scroll();
   z-index: 1;
 }
 
 .bg-img.active {
-  opacity: 0.75;
+  opacity: 0.65;
 }
 
 @keyframes heroParallax {
   from { transform: translateY(0); }
-  to { transform: translateY(12%); }
+  to { transform: translateY(10%); }
 }
 
 .bg-pattern {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 94, 0, 0.08) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background-image: radial-gradient(rgba(255, 94, 0, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
   z-index: 2;
 }
 
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, #020202 2%, rgba(2, 2, 2, 0.05) 50%, rgba(2, 2, 2, 0.4) 100%),
-              linear-gradient(to right, #020202 15%, rgba(2, 2, 2, 0.1) 45%, transparent 80%);
+  background: linear-gradient(to top, #020202 5%, rgba(2, 2, 2, 0.1) 50%, rgba(2, 2, 2, 0.5) 100%),
+              linear-gradient(to right, #020202 10%, rgba(2, 2, 2, 0.1) 60%, transparent 90%);
   z-index: 3;
+}
+
+.hero-watermark {
+  position: absolute;
+  top: 15%;
+  right: 5%;
+  font-size: clamp(8rem, 22vw, 20rem);
+  font-weight: 950;
+  line-height: 0.8;
+  color: rgba(255, 255, 255, 0.01);
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.008);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .elite-hero__content {
   position: relative;
   z-index: 10;
-  max-width: 100% !important;
-  margin-left: 0 !important;
-  padding-left: clamp(1.5rem, 6vw, 7rem) !important;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: clamp(1.5rem, 6vw, 6rem);
 }
 
 .hero-tag {
@@ -584,17 +632,19 @@ onUnmounted(() => {
   gap: 0.8rem;
   font-family: var(--font-accent);
   font-weight: 850;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 4px;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
 }
 
 .hero-title {
-  font-family: var(--font-accent);
-  font-size: clamp(3.5rem, 10vw, 8.5rem);
+  font-family: var(--font-podium);
+  font-size: clamp(3.5rem, 9.5vw, 7.8rem);
   font-weight: 950;
-  line-height: 0.85;
-  letter-spacing: -5px;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  text-transform: uppercase;
 }
 
 .text-outline {
@@ -616,51 +666,74 @@ onUnmounted(() => {
 }
 
 .hero-desc {
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.7);
-  max-width: 600px;
-  margin-top: 2rem;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 580px;
+  margin-top: 1.8rem;
   line-height: 1.7;
 }
 
 .hero-actions {
-  margin-top: 3rem;
+  margin-top: 2.5rem;
 }
 
-.btn-primary {
+/* Premium WhatsApp Capsule Button */
+.whatsapp-btn-premium {
+  position: relative;
   background: var(--primary-color);
   color: #000;
   font-family: var(--font-accent);
-  font-weight: 950;
-  font-size: 0.85rem;
-  letter-spacing: 1.5px;
-  padding: 1.3rem 2.8rem;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  padding: 1.25rem 2.5rem;
   border-radius: 100px;
-  border: none;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  box-shadow: 0 10px 30px rgba(255, 94, 0, 0.3);
-  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  gap: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 10px 30px rgba(255, 94, 0, 0.25);
 }
 
-.btn-primary:hover {
-  transform: scale(1.04) translateY(-3px);
+.btn-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease-in-out;
+}
+
+.whatsapp-btn-premium:hover .btn-glow {
+  transform: translateX(100%);
+}
+
+.whatsapp-btn-premium:hover {
+  transform: scale(1.03) translateY(-2px);
   box-shadow: 0 15px 40px rgba(255, 94, 0, 0.45);
 }
 
-/* 2. CYBER-TACTICAL GALLERY CAROUSEL */
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+.whatsapp-btn-premium:hover .arrow-icon {
+  transform: translateX(4px);
+}
+
+/* 2. INTERACTIVE PHOTO CAROUSEL */
 .staff-gallery-section {
   padding: 8rem 0;
   overflow: hidden;
   position: relative;
   width: 100%;
+  z-index: 10;
 }
 
 .section-heading {
   text-align: center;
-  margin-bottom: 6rem;
+  margin-bottom: 5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -669,26 +742,23 @@ onUnmounted(() => {
 .heading-badge {
   color: var(--primary-color);
   font-family: var(--font-accent);
-  font-weight: 900;
-  letter-spacing: 4px;
-  font-size: 0.75rem;
-  margin-bottom: 1.2rem;
-  border-bottom: 1px dashed var(--primary-color);
-  padding-bottom: 0.3rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  font-size: 0.7rem;
+  margin-bottom: 1rem;
 }
 
 .heading-title {
-  font-family: var(--font-accent);
-  font-size: clamp(2.2rem, 5vw, 4.2rem);
-  font-weight: 950;
-  letter-spacing: -2px;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -1px;
   margin-bottom: 1.2rem;
   line-height: 1;
 }
 
 .heading-subtitle {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.05rem;
   max-width: 600px;
 }
 
@@ -697,11 +767,10 @@ onUnmounted(() => {
   overflow-x: auto;
   overflow-y: visible;
   display: flex;
-  padding: 5rem 0;
+  padding: 4rem 0;
   cursor: grab;
   scroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: none;
   scrollbar-width: none;
 }
 
@@ -720,100 +789,79 @@ onUnmounted(() => {
 }
 
 .carousel-card {
-  flex: 0 0 440px;
-  height: 580px;
+  flex: 0 0 420px;
+  height: 540px;
   transform-style: preserve-3d;
-  will-change: transform, opacity;
-  transition: transform 0.15s ease-out, opacity 0.15s ease-out, border-color 0.4s ease, background 0.4s ease;
-}
-
-.carousel-nav-hints {
-  text-align: center;
-  margin-top: 2.5rem;
-  font-family: var(--font-accent);
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.3);
-  text-transform: uppercase;
+  will-change: transform;
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out;
 }
 
 .staff-card-cyber {
   position: relative;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  padding: 0.4rem;
+  background: rgba(10, 10, 10, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 0.5rem;
   overflow: hidden;
-  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
   cursor: pointer;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
 .staff-card-cyber:hover {
-  border-color: var(--primary-color);
-  background: rgba(255, 94, 0, 0.03);
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6),
-              0 0 20px rgba(255, 94, 0, 0.08);
+  border-color: rgba(255, 94, 0, 0.25);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7),
+              0 0 30px rgba(255, 94, 0, 0.05);
 }
 
 .card-image-wrap {
   width: 100%;
   height: 100%;
+  border-radius: 14px;
   overflow: hidden;
   position: relative;
-  background: #111;
+  background: #0a0a0a;
 }
 
 .card-image-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: contrast(1.05) saturate(0.9);
-  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  filter: contrast(1.05) saturate(0.85);
+  transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .staff-card-cyber:hover .card-image-wrap img {
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
-.card-scanline {
+.card-glow-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 90%,
-    rgba(255, 94, 0, 0.08) 95%,
-    transparent 100%
-  );
-  background-size: 100% 8px;
+  background: radial-gradient(circle at 50% 100%, rgba(255, 94, 0, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
   pointer-events: none;
-  opacity: 0.45;
 }
 
-/* Tech Brackets */
-.tech-bracket {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  pointer-events: none;
-  transition: border-color 0.4s ease;
+.staff-card-cyber:hover .card-glow-overlay {
+  opacity: 1;
 }
 
-.staff-card-cyber:hover .tech-bracket {
-  border-color: var(--primary-color);
+.carousel-nav-hints {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-family: var(--font-accent);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.25);
 }
 
-.tech-bracket.top-left { top: 8px; left: 8px; border-right: none; border-bottom: none; }
-.tech-bracket.top-right { top: 8px; right: 8px; border-left: none; border-bottom: none; }
-.tech-bracket.bottom-left { bottom: 8px; left: 8px; border-right: none; border-top: none; }
-.tech-bracket.bottom-right { bottom: 8px; right: 8px; border-left: none; border-top: none; }
-
-/* 4. ELABORATE FRIENDSHIP & TRIBUTE LIGHTBOX STYLES */
+/* 4. TRIBUTE LIGHTBOX STYLES */
 .lightbox-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2, 2, 2, 0.97);
+  background: rgba(2, 2, 2, 0.98);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -822,12 +870,13 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+/* Immersive Sunset Warm Backdrop */
 .lightbox-ambient-bg {
   position: absolute;
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(50px) brightness(0.2) saturate(1.4);
+  filter: blur(60px) brightness(0.12) saturate(1.5);
   opacity: 0.9;
   z-index: 1;
   transition: background-image 0.6s cubic-bezier(0.25, 1, 0.5, 1);
@@ -837,30 +886,35 @@ onUnmounted(() => {
 .lightbox-warm-leak {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 80% 20%, rgba(255, 94, 0, 0.12) 0%, transparent 60%),
-              radial-gradient(circle at 20% 80%, rgba(255, 184, 0, 0.08) 0%, transparent 60%);
+  background: radial-gradient(circle at 75% 20%, rgba(255, 94, 0, 0.14) 0%, transparent 60%),
+              radial-gradient(circle at 25% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 60%);
   pointer-events: none;
   z-index: 2;
+  animation: pulseSunset 10s infinite alternate ease-in-out;
+}
+
+@keyframes pulseSunset {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; }
 }
 
 .lightbox-close {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(15, 15, 15, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
-  color: rgba(255, 255, 255, 0.85);
-  width: 42px;
-  height: 42px;
+  color: rgba(255, 255, 255, 0.7);
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10005;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .lightbox-close:hover {
@@ -868,18 +922,18 @@ onUnmounted(() => {
   color: #000;
   border-color: var(--primary-color);
   transform: rotate(90deg) scale(1.05);
-  box-shadow: 0 0 15px var(--primary-color);
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
 }
 
 .lightbox-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(10, 10, 10, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  width: 54px;
-  height: 54px;
+  background: rgba(15, 15, 15, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -897,13 +951,8 @@ onUnmounted(() => {
   box-shadow: 0 0 15px rgba(255, 94, 0, 0.2);
 }
 
-.lightbox-nav.prev {
-  left: 2.5rem;
-}
-
-.lightbox-nav.next {
-  right: 2.5rem;
-}
+.lightbox-nav.prev { left: 2.5rem; }
+.lightbox-nav.next { right: 2.5rem; }
 
 .lightbox-content-wrapper {
   position: relative;
@@ -919,21 +968,21 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: row;
-  background: rgba(10, 10, 10, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
+  background: rgba(8, 8, 8, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
   overflow: hidden;
-  max-width: 1050px;
+  max-width: 1000px;
   width: 90vw;
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8),
-              0 0 40px rgba(255, 94, 0, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   transition: all 0.4s ease;
 }
 
+/* Photo Frame on Left */
 .tribute-photo-frame {
-  flex: 0 0 52%;
+  flex: 0 0 50%;
   position: relative;
   overflow: hidden;
   background: #000;
@@ -950,95 +999,163 @@ onUnmounted(() => {
   display: block;
 }
 
+.photo-fine-overlay {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.photo-coord {
+  font-family: monospace;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Glassmorphism Narrative Card on Right */
 .tribute-narrative-card {
   flex: 1;
-  padding: 3.5rem 3rem;
+  padding: 4rem 3.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 2.5rem;
   position: relative;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
 
-.tribute-heart-badge {
+.narrative-header {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Rotating Friendship / Unity Emblem */
+.unity-emblem {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 94, 0, 0.05);
+  border: 1px solid rgba(255, 94, 0, 0.2);
+}
+
+.emblem-ring-outer {
+  position: absolute;
+  inset: -3px;
+  border: 1.5px dashed rgba(255, 94, 0, 0.25);
+  border-radius: 50%;
+  animation: rotateCounter 15s linear infinite;
+}
+
+.emblem-ring-inner {
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+}
+
+.emblem-heart {
+  color: var(--primary-color);
+  animation: pulseHeart 2s infinite ease-in-out;
+}
+
+@keyframes rotateCounter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pulseHeart {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 1px var(--primary-color)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--primary-color)); }
+}
+
+.tribute-badge-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  background: rgba(255, 94, 0, 0.1);
-  border: 1px solid rgba(255, 94, 0, 0.25);
-  color: var(--primary-color);
-  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.4rem 0.9rem;
   border-radius: 100px;
   font-family: var(--font-accent);
-  font-weight: 850;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  width: max-content;
-}
-
-.heart-pulse-icon {
-  animation: heartBeat 1.4s infinite ease-in-out;
-}
-
-@keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.25); }
+  font-weight: 800;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
 }
 
 .tribute-title {
-  font-family: var(--font-accent);
   font-size: 2.2rem;
-  font-weight: 950;
-  letter-spacing: -1px;
+  font-weight: 900;
   line-height: 1.15;
-  margin-top: 1.2rem;
   color: #fff;
+  margin: 0;
+  text-transform: uppercase;
 }
 
-.tribute-quote-body {
+.quote-container {
   position: relative;
-  padding-left: 1.5rem;
-  border-left: 2px solid var(--primary-color);
+  margin-top: 1.5rem;
+}
+
+.quote-mark {
+  position: absolute;
+  top: -2.5rem;
+  left: -1rem;
+  font-size: 5rem;
+  font-family: serif;
+  color: rgba(255, 94, 0, 0.15);
+  line-height: 1;
+  pointer-events: none;
 }
 
 .tribute-quote {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.75);
   font-style: italic;
   font-weight: 400;
+  margin: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .tribute-card-footer {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 2rem;
+  gap: 1.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1.8rem;
 }
 
 .tribute-meta-item {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.2rem;
 }
 
 .meta-label {
   font-family: var(--font-accent);
-  font-size: 0.6rem;
-  letter-spacing: 1.5px;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 800;
 }
 
 .meta-val {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #fff;
 }
 
-/* Lightbox Transitions */
+/* Transitions */
 .lightbox-fade-enter-active,
 .lightbox-fade-leave-active {
   transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -1055,7 +1172,7 @@ onUnmounted(() => {
 
 @keyframes hudSlideIn {
   from {
-    transform: scale(0.95) translateY(15px);
+    transform: scale(0.96) translateY(12px);
     opacity: 0;
   }
   to {
@@ -1064,53 +1181,19 @@ onUnmounted(() => {
   }
 }
 
-.lightbox-scanlines {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 92%,
-    rgba(255, 94, 0, 0.03) 96%,
-    transparent 100%
-  );
-  background-size: 100% 10px;
-  pointer-events: none;
-  opacity: 0.4;
-}
-
-/* HUD Brackets inside lightbox */
-.hud-bracket {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid rgba(255, 94, 0, 0.3);
-  pointer-events: none;
-}
-
-.hud-bracket.top-left { top: 15px; left: 15px; border-right: none; border-bottom: none; }
-.hud-bracket.top-right { top: 15px; right: 15px; border-left: none; border-bottom: none; }
-.hud-bracket.bottom-left { bottom: 15px; left: 15px; border-right: none; border-top: none; }
-.hud-bracket.bottom-right { bottom: 15px; right: 15px; border-left: none; border-top: none; }
-
-@media (min-width: 901px) {
-  /* Hide top-right bracket on desktop to make space for close button */
-  .tribute-narrative-card .hud-bracket.top-right {
-    display: none;
-  }
-}
-
+/* RESPONSIVE SYSTEM */
 @media (max-width: 1024px) {
   .lightbox-nav.prev { left: 1.5rem; }
   .lightbox-nav.next { right: 1.5rem; }
-  .lightbox-nav { width: 50px; height: 50px; }
-  .tribute-narrative-card { padding: 2.5rem 2rem; gap: 1.5rem; }
+  .lightbox-nav { width: 44px; height: 44px; }
+  .tribute-narrative-card { padding: 3rem 2.2rem; gap: 2rem; }
   .tribute-title { font-size: 1.8rem; }
 }
 
 @media (max-width: 900px) {
   .tribute-canvas {
     flex-direction: column;
-    max-width: 500px;
+    max-width: 480px;
     height: auto;
     max-height: 85vh;
     overflow-y: auto;
@@ -1120,11 +1203,43 @@ onUnmounted(() => {
     width: 100%;
   }
   .tribute-narrative-card {
-    padding: 2.2rem 1.8rem;
+    padding: 2.5rem 1.8rem;
   }
 }
 
 @media (max-width: 768px) {
+  .elite-hero { height: auto; padding: 130px 0 50px; }
+  .elite-hero__content {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+  .hero-title { letter-spacing: -2px; line-height: 0.95; }
+  .hero-desc { font-size: 1.05rem; }
+  
+  .bg-gradient {
+    background: linear-gradient(to top, #020202 8%, rgba(2, 2, 2, 0.4) 50%, rgba(2, 2, 2, 0.6) 98%),
+                linear-gradient(to right, #020202 8%, rgba(2, 2, 2, 0.3) 50%, transparent 95%) !important;
+  }
+  .bg-img {
+    opacity: 0;
+  }
+  .bg-img.active {
+    opacity: 0.55;
+  }
+  .hero-watermark { display: none; }
+  
+  .staff-gallery-section { padding: 5rem 0; }
+  .carousel-card {
+    flex: 0 0 320px;
+    height: 440px;
+  }
+  .carousel-track {
+    gap: 1.8rem;
+    padding: 0 calc(50vw - 160px);
+  }
+  .heading-title { font-size: 2.2rem; }
+  .heading-subtitle { font-size: 0.95rem; }
+  
   .lightbox-overlay { padding: 1rem; }
   .lightbox-nav { display: none; }
   .lightbox-close { 
@@ -1132,30 +1247,31 @@ onUnmounted(() => {
     right: 1rem; 
     width: 38px; 
     height: 38px; 
-    background: rgba(0, 0, 0, 0.7);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
   }
 }
 
 @media (max-width: 480px) {
-  .lightbox-overlay { padding: 0.5rem; }
-  .lightbox-close {
-    top: 0.75rem;
-    right: 0.75rem;
+  .hero-title { font-size: 3.2rem; }
+  .carousel-card {
+    flex: 0 0 270px;
+    height: 370px;
+  }
+  .carousel-track {
+    gap: 1.2rem;
+    padding: 0 calc(50vw - 135px);
   }
   .tribute-canvas {
-    border-radius: 12px;
+    border-radius: 16px;
   }
   .tribute-narrative-card {
-    padding: 1.8rem 1.2rem;
-    gap: 1.2rem;
+    padding: 2rem 1.25rem;
+    gap: 1.5rem;
   }
   .tribute-title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
   .tribute-quote {
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.5;
   }
   .tribute-card-footer {
@@ -1163,68 +1279,7 @@ onUnmounted(() => {
     padding-top: 1.5rem;
   }
   .meta-val {
-    font-size: 0.75rem;
-  }
-}
-
-/* REVEAL COMPONENT TRANSITIONS */
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.primary-text {
-  color: var(--primary-color);
-}
-
-@media (max-width: 768px) {
-  .elite-hero { height: auto; padding: 140px 0 60px; }
-  .elite-hero__content {
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
-  }
-  .bg-gradient {
-    background: linear-gradient(to top, #020202 8%, rgba(2, 2, 2, 0.45) 50%, rgba(2, 2, 2, 0.6) 98%),
-                linear-gradient(to right, #020202 8%, rgba(2, 2, 2, 0.3) 50%, transparent 95%) !important;
-  }
-  .bg-img {
-    opacity: 0;
-    object-position: left 15% center;
-  }
-  .bg-img.active {
-    opacity: 0.65;
-  }
-  .hero-title { letter-spacing: -3px; line-height: 0.9; margin-bottom: 2rem; }
-  .hero-desc { font-size: 1.1rem; }
-  
-  .staff-gallery-section { padding: 5rem 0; }
-  .carousel-card {
-    flex: 0 0 340px;
-    height: 460px;
-  }
-  .carousel-track {
-    gap: 1.8rem;
-    padding: 0 calc(50vw - 170px);
-  }
-  .heading-title { font-size: 2.2rem; }
-  .heading-subtitle { font-size: 1rem; }
-}
-
-@media (max-width: 480px) {
-  .hero-title { font-size: 3.5rem; }
-  .carousel-card {
-    flex: 0 0 280px;
-    height: 380px;
-  }
-  .carousel-track {
-    gap: 1.2rem;
-    padding: 0 calc(50vw - 140px);
+    font-size: 0.7rem;
   }
 }
 </style>

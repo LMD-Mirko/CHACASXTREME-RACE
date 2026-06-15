@@ -204,6 +204,7 @@ onMounted(() => {
   opacity: 0.4;
   animation: parallaxHero linear both;
   animation-timeline: scroll();
+  will-change: transform;
 }
 
 @keyframes parallaxHero {

@@ -389,7 +389,7 @@
             "altitude_label": "ALTITUDE",
             "altitude_val": "3,359 MASL",
             "climate_label": "CLIMATE",
-            "climate_val": "COLD_MOUNTAIN"
+            "climate_val": "COLD-MOUNTAIN"
         }
     }
 }

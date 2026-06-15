@@ -389,7 +389,7 @@
             "altitude_label": "ALTITUD",
             "altitude_val": "3,359 MSNM",
             "climate_label": "CLIMA",
-            "climate_val": "MONTAÑA_FRIO"
+            "climate_val": "MONTAÑA-FRÍO"
         }
     }
 }

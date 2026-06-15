@@ -389,7 +389,7 @@
             "altitude_label": "ALTITUDINE",
             "altitude_val": "3.359 MSLM",
             "climate_label": "CLIMA",
-            "climate_val": "MONTAGNA_FREDDA"
+            "climate_val": "MONTAGNA-FREDDA"
         }
     }
 }
