@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ArrowRight } from 'lucide-vue-next';
 import { gsap } from 'gsap';
+import { fetchGalleryByType } from '@/composables/useBackendApi';
 
 // Import image assets
 import hero1 from '@/assets/images/hero1.webp';
@@ -11,7 +12,26 @@ import hero3 from '@/assets/images/hero3.webp';
 
 const { t } = useI18n();
 
-const slideImages = [hero2, hero1, hero3];
+const localSlideImages = [hero2, hero1, hero3];
+const remoteSlideImages = ref([]);
+const slideImages = computed(() => {
+  // combine remote + local, dedupe and ensure at least 3 images
+  const merged = [...(remoteSlideImages.value || []), ...localSlideImages];
+  const seen = new Set();
+  const uniq = merged.filter((u) => {
+    if (!u) return false;
+    if (seen.has(u)) return false;
+    seen.add(u);
+    return true;
+  });
+
+  // Return first 3 unique images (fill with local if needed)
+  const result = uniq.slice(0, 3);
+  while (result.length < 3) {
+    result.push(localSlideImages[result.length % localSlideImages.length]);
+  }
+  return result;
+});
 const currentActive = ref(0);
 const isHovered = ref(false);
 const cardRefs = ref([]);
@@ -179,13 +199,41 @@ const handleMouseLeave = () => {
   }
 };
 
+const loadAboutGallery = async () => {
+  try {
+    const [competidores, staff] = await Promise.all([
+      fetchGalleryByType('competidores', 12),
+      fetchGalleryByType('staff', 12)
+    ]);
+
+    const combined = [...(competidores || []), ...(staff || [])].filter(Boolean);
+    // Merge remote with local, dedupe and store (we keep all remote but the computed will use first 3)
+    const merged = [...combined, ...localSlideImages];
+    const seen = new Set();
+    const uniq = merged.filter((u) => {
+      if (!u) return false;
+      if (seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+
+    if (uniq.length) {
+      remoteSlideImages.value = uniq;
+      animateStack(currentActive.value, true);
+    }
+  } catch (error) {
+    console.warn('About section gallery unavailable:', error.message);
+  }
+};
+
 onMounted(() => {
-  // Initialize card positions
+  // Initialize card positions with local content
   animateStack(currentActive.value, true);
+  loadAboutGallery();
 
   // Rotate slide stack positions every 4 seconds
   cycleInterval = setInterval(() => {
-    currentActive.value = (currentActive.value + 1) % slideImages.length;
+    currentActive.value = (currentActive.value + 1) % slideImages.value.length;
     animateStack(currentActive.value);
   }, 4000);
 });

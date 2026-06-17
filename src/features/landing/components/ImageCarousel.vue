@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { fetchGalleryAll } from '@/composables/useBackendApi';
 
 // ─── Carga dinámica: las imágenes NO entran al bundle JS ───────────────────
 // import.meta.glob con eager:false = carga solo cuando se necesitan
@@ -60,15 +61,24 @@ const sortedFolder3 = Object.entries(folder3ImgsEager)
   .map(([, url]) => url);
 
 // Fila 1: imágenes principales + chacas + primeras de la subcarpeta
-const imagesRow1 = [...sortedMain, chacasUrl, ...sortedFolder3.slice(0, 6)];
+const defaultImages = computed(() => [...sortedMain, chacasUrl, ...sortedFolder3.slice(0, 6), ...sortedFolder3.slice(6)]);
+const remoteGalleryImages = ref([]);
+const sourceImages = computed(() => {
+  const merged = [...(remoteGalleryImages.value || []), ...defaultImages.value];
+  const seen = new Set();
+  return merged.filter((u) => {
+    if (!u) return false;
+    if (seen.has(u)) return false;
+    seen.add(u);
+    return true;
+  });
+});
 
-// Fila 2: resto de imágenes de acción
-const imagesRow2 = sortedFolder3.slice(6);
-
-// Todas las imágenes para el lightbox
-const allImages = computed(() => [...imagesRow1, ...imagesRow2]);
+const imagesRow1 = computed(() => sourceImages.value.slice(0, Math.ceil(sourceImages.value.length / 2)));
+const imagesRow2 = computed(() => sourceImages.value.slice(Math.ceil(sourceImages.value.length / 2)));
 
 const selectedImage = ref(null);
+const allImages = computed(() => sourceImages.value);
 
 const activeIndex = computed(() => {
   if (!selectedImage.value) return -1;
@@ -89,6 +99,21 @@ const nextImage = () => {
   const newIndex = (activeIndex.value + 1) % allImages.value.length;
   selectedImage.value = allImages.value[newIndex];
 };
+
+const loadGalleryImages = async () => {
+  try {
+    const galleryImages = await fetchGalleryAll(30);
+    if (galleryImages.length) {
+      remoteGalleryImages.value = galleryImages;
+    }
+  } catch (error) {
+    console.warn('Gallery API unavailable:', error.message);
+  }
+};
+
+onMounted(() => {
+  loadGalleryImages();
+});
 </script>
 
 

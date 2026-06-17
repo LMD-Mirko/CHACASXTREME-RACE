@@ -19,6 +19,10 @@ let timerInterval = null;
 const mouseX = ref(0);
 const mouseY = ref(0);
 const isExiting = ref(false);
+const typedChacas = ref('');
+const typedX = ref('');
+const typedTreme = ref('');
+const typedRace = ref('');
 
 const updateCountdown = () => {
   const now = new Date().getTime();
@@ -39,6 +43,10 @@ const handleMouseMove = (e) => {
 
 const handleStartExit = () => {
   isExiting.value = true;
+  typedChacas.value = '';
+  typedX.value = '';
+  typedTreme.value = '';
+  typedRace.value = '';
 
   // Initialize transition timeline
   const exitTl = gsap.timeline({
@@ -50,7 +58,36 @@ const handleStartExit = () => {
 
   // Play clean slanted sweep animation (slower and smoother transition)
   exitTl.to('.content', { opacity: 0, x: -30, duration: 0.45, ease: "power2.in" })
-        .to('.slanted-wipe-panel', { x: '-20vw', duration: 0.85, ease: "power2.inOut" }, 0.05);
+        .to('.slanted-wipe-panel', { x: '-20vw', duration: 0.75, ease: "power3.inOut" }, 0.05);
+
+  // Typewriter helper to animate letters typing and pop them on completion
+  const typeText = (refVar, text, duration, selectorToPop) => {
+    const obj = { val: 0 };
+    return gsap.to(obj, {
+      val: text.length,
+      duration: duration,
+      ease: "none",
+      onUpdate: () => {
+        refVar.value = text.slice(0, Math.ceil(obj.val));
+      },
+      onComplete: () => {
+        if (selectorToPop) {
+          gsap.fromTo(selectorToPop, 
+            { scale: 1.25, rotate: selectorToPop === '.logo-x-char' ? -12 : (Math.random() - 0.5) * 6 }, 
+            { scale: 1, rotate: selectorToPop === '.logo-x-char' ? -5 : 0, duration: 0.22, ease: "back.out(2)" }
+          );
+        }
+      }
+    });
+  };
+
+  // Add typing steps to the transition timeline
+  exitTl.add(typeText(typedX, 'X', 0.2, '.logo-x-char'), 0.35)
+        .add(typeText(typedChacas, 'CHACAS', 0.3, '.logo-row-chacas'), '+=0.02')
+        .add(typeText(typedTreme, 'TREME', 0.25, '.treme-text'), '+=0.02')
+        .add(typeText(typedRace, 'RACE', 0.2, '.race-text'), '+=0.02')
+        .to({}, { duration: 0.8 }) // Keep the completed text on screen for a moment
+        .to('.transition-logo-container', { opacity: 0, scale: 0.95, y: -20, duration: 0.35, ease: "power2.in" });
 };
 
 onMounted(() => {
@@ -98,6 +135,20 @@ const animateEntrance = () => {
     <!-- Cinematic Circular Shutter & Speed Tunnel Exit Transition -->
     <div class="custom-transition-container" v-if="isExiting">
       <div class="slanted-wipe-panel"></div>
+      <div class="transition-logo-container">
+        <div class="logo-x-wrapper">
+          <div class="logo-x-char">{{ typedX }}</div>
+        </div>
+        <div class="logo-text-stack">
+          <div class="logo-row-chacas">
+            {{ typedChacas }}
+          </div>
+          <div class="logo-row-treme-race">
+            <span class="treme-text">{{ typedTreme }}</span>
+            <span class="race-text">{{ typedRace }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Background Parallax Canvas -->
@@ -228,8 +279,11 @@ const animateEntrance = () => {
   left: 0;
   width: 140vw;
   height: 100%;
-  background: #ff5e00;
-  box-shadow: -15px 0 50px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at 75% 20%, rgba(255, 94, 0, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 25% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 60%),
+              #0c0c0c;
+  border-left: 5px solid #ff5e00;
+  box-shadow: -15px 0 45px rgba(255, 94, 0, 0.45), -30px 0 80px rgba(0, 0, 0, 0.85);
   transform: skewX(-15deg);
   will-change: transform;
 }
@@ -706,6 +760,99 @@ const animateEntrance = () => {
   }
   .title {
     margin-bottom: 0.2rem;
+  }
+}
+
+/* TRANSITION TEXT ANIMATIONS */
+.transition-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3.5vw, 2.2rem);
+  z-index: 10005; /* Higher than .slanted-wipe-panel (9999) */
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  max-width: 90%;
+  will-change: transform, opacity;
+}
+
+.logo-x-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-x-char {
+  font-family: 'Rubik Glitch', system-ui, var(--font-podium);
+  font-size: clamp(5.5rem, 18vh, 10.5rem);
+  font-weight: 950;
+  color: #ff221c;
+  line-height: 0.8;
+  transform: rotate(-5deg);
+  text-shadow: 0 0 25px rgba(255, 34, 28, 0.5);
+  will-change: transform;
+}
+
+.logo-text-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.logo-row-chacas {
+  font-family: var(--font-podium);
+  font-size: clamp(2.8rem, 9vh, 5.2rem);
+  font-weight: 950;
+  line-height: 0.95;
+  color: #ffcc00;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  text-shadow: 3px 3px 0px #990000;
+  will-change: transform;
+}
+
+.logo-row-treme-race {
+  font-family: var(--font-podium);
+  font-size: clamp(2rem, 7vh, 4rem);
+  font-weight: 950;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.treme-text {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  will-change: transform;
+}
+
+.race-text {
+  color: #ff5e00;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  will-change: transform;
+}
+
+@media (max-width: 480px) {
+  .transition-logo-container {
+    gap: 0.8rem;
+  }
+  .logo-x-char {
+    font-size: clamp(4rem, 15vh, 7rem);
+  }
+  .logo-row-chacas {
+    font-size: clamp(2rem, 8vh, 3.5rem);
+    text-shadow: 2px 2px 0px #990000;
+  }
+  .logo-row-treme-race {
+    font-size: clamp(1.5rem, 6vh, 2.6rem);
+    gap: 0.25rem;
   }
 }
 </style>

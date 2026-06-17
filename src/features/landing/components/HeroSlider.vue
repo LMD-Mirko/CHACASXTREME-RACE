@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { fetchSponsorsNames } from '@/composables/useBackendApi';
 
 import hero1 from '@/assets/images/hero1.webp';
 import hero2 from '@/assets/images/hero2.webp';
@@ -12,6 +13,17 @@ const { t } = useI18n();
 const router = useRouter();
 
 const bgImages = [hero1, hero2, hero3];
+
+const localSponsorList = [
+  'Nombre de Auspiciador',
+  'Manka Riders Partner',
+  'Auspiciador Oficial',
+  'Nombre de Auspiciador',
+  'Sponsor Destacado',
+  'Nombre de Auspiciador'
+];
+const sponsorList = ref([...localSponsorList]);
+const sponsorLoading = ref(true);
 
 const slides = computed(() => [
   {
@@ -47,17 +59,48 @@ const navigateToRegister = () => {
   router.push('/registro/ciclista');
 };
 
-const sponsorList = [
-  'Nombre de Auspiciador',
-  'Manka Riders Partner',
-  'Auspiciador Oficial',
-  'Nombre de Auspiciador',
-  'Sponsor Destacado',
-  'Nombre de Auspiciador'
-];
+const TICKER_MIN = 20;
+const repeatToLength = (items = [], minLen = TICKER_MIN) => {
+  const uniq = Array.from(new Set((items || []).map(i => String(i || '').trim()).filter(Boolean)));
+  // If API returned nothing, fallback will be handled by caller
+  if (!uniq.length) return [];
+
+  // If we already have many items, return all (show "completo")
+  if (uniq.length >= minLen) {
+    return uniq;
+  }
+
+  // Otherwise repeat the unique remote items until we reach minLen
+  const result = [];
+  let i = 0;
+  while (result.length < minLen) {
+    result.push(uniq[i % uniq.length]);
+    i++;
+  }
+  return result;
+};
+
+const loadSponsorNames = async () => {
+  try {
+    const names = await fetchSponsorsNames();
+    if (Array.isArray(names) && names.length) {
+      // Use only remote names, dedupe and repeat them to reach the baseline length
+      sponsorList.value = repeatToLength(names, localSponsorList.length);
+    } else {
+      // No names returned — fallback to local defaults
+      sponsorList.value = [...localSponsorList];
+    }
+  } catch (error) {
+    console.warn('Sponsors API unavailable:', error.message);
+    sponsorList.value = [...localSponsorList];
+  } finally {
+    sponsorLoading.value = false;
+  }
+};
 
 onMounted(() => {
   startTimer();
+  loadSponsorNames();
 });
 
 onUnmounted(() => {
@@ -685,11 +728,11 @@ onUnmounted(() => {
 }
 
 .move-left {
-  animation: scroll-left-tape 25s linear infinite;
+  animation: scroll-left-tape 14s linear infinite;
 }
 
 .move-right {
-  animation: scroll-right-tape 25s linear infinite;
+  animation: scroll-right-tape 14s linear infinite;
 }
 
 .tape-segment {
@@ -731,11 +774,11 @@ onUnmounted(() => {
 
 @keyframes scroll-left-tape {
   0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(-60%, 0, 0); }
 }
 
 @keyframes scroll-right-tape {
-  0% { transform: translate3d(-50%, 0, 0); }
+  0% { transform: translate3d(-60%, 0, 0); }
   100% { transform: translate3d(0, 0, 0); }
 }
 </style>

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { 
   Handshake, 
   Target, 
@@ -7,29 +8,42 @@ import {
   Globe, 
   TrendingUp, 
   Download,
-  Info,
-  ArrowLeft
+  ArrowLeft,
+  Instagram,
+  Facebook,
+  Link2
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
-
-// Import actual logo images
-import logoMain from '@/assets/images/logo.webp';
-import logo1 from '@/assets/images/logo1.png';
-import unnamedLogo from '@/assets/images/unnamed.webp';
+import { fetchSponsors } from '@/composables/useBackendApi';
 import imagenaus from '@/assets/images/imagenaus.jpg';
 
 const { t } = useI18n();
+const sponsors = ref([]);
+const selectedSponsor = ref(null);
+const showModal = ref(false);
+const loadingSponsors = ref(true);
 
-const sponsorLogos = [
-  { name: 'Sponsor 1', img: logoMain },
-  { name: 'Sponsor 2', img: logo1 },
-  { name: 'Sponsor 3', img: unnamedLogo },
-  { name: 'Sponsor 4', img: logoMain },
-  { name: 'Sponsor 5', img: logo1 },
-  { name: 'Sponsor 6', img: unnamedLogo },
-  { name: 'Sponsor 7', img: logoMain },
-  { name: 'Sponsor 8', img: logo1 }
-];
+const loadSponsors = async () => {
+  try {
+    const data = await fetchSponsors();
+    sponsors.value = data.length ? data : [];
+  } catch (error) {
+    console.warn('Sponsors API unavailable:', error.message);
+    sponsors.value = [];
+  } finally {
+    loadingSponsors.value = false;
+  }
+};
+
+const openSponsorModal = (sponsor) => {
+  selectedSponsor.value = sponsor;
+  showModal.value = true;
+};
+
+const closeSponsorModal = () => {
+  selectedSponsor.value = null;
+  showModal.value = false;
+};
 
 onMounted(() => {
   const observer = new IntersectionObserver((entries) => {
@@ -39,8 +53,8 @@ onMounted(() => {
       }
     });
   }, { threshold: 0.1 });
-  
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  loadSponsors();
 });
 </script>
 
@@ -79,23 +93,65 @@ onMounted(() => {
     <section class="logo-carousel-section">
       <div class="carousel-track">
         <div class="logo-list">
-          <!-- Double list for seamless loop -->
-          <div v-for="n in 2" :key="n" class="logo-group">
-            <div v-for="(logo, index) in sponsorLogos" :key="`${n}-${index}`" 
-                 class="logo-circle float-anim" 
-                 :style="`--f-delay: ${index * 0.2}s`"
-            >
-               <div class="logo-inner">
-                  <img :src="logo.img" :alt="logo.name + ' - Auspiciador Oficial de Chacas Xtreme Race'" class="sponsor-logo-img" />
-               </div>
-               <div class="circle-border"></div>
+          <template v-if="loadingSponsors">
+            <div class="sponsor-placeholder">Cargando auspiciadores...</div>
+          </template>
+          <template v-else>
+            <div v-if="sponsors.length" class="logo-group">
+              <div v-for="n in 2" :key="n" class="logo-group-inner">
+                <div v-for="(sponsor, index) in sponsors" :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`" 
+                     class="logo-circle float-anim"
+                     :style="`--f-delay: ${index * 0.16}s`"
+                     @click="openSponsorModal(sponsor)"
+                >
+                  <div class="logo-inner">
+                    <img :src="sponsor.logo_url" :alt="sponsor.company_name + ' - Auspiciador Oficial de Chacas Xtreme Race'" class="sponsor-logo-img" />
+                  </div>
+                  <div class="circle-border"></div>
+                </div>
+              </div>
             </div>
-          </div>
+            <div v-else class="sponsor-placeholder">
+              No hay auspiciadores disponibles en este momento.
+            </div>
+          </template>
         </div>
       </div>
       <div class="carousel-glow-left"></div>
       <div class="carousel-glow-right"></div>
     </section>
+
+    <!-- 2.5 SPONSOR DETAILS MODAL -->
+    <div v-if="showModal" class="sponsor-modal-backdrop" @click.self="closeSponsorModal">
+      <div class="sponsor-modal reveal reveal--visible">
+        <button class="modal-close" @click="closeSponsorModal">×</button>
+        <div class="modal-hero">
+          <div class="modal-logo-wrap">
+            <img :src="selectedSponsor.logo_url" :alt="selectedSponsor.company_name" class="modal-logo" />
+          </div>
+          <div class="modal-copy">
+            <h2>{{ selectedSponsor.company_name }}</h2>
+            <p v-if="selectedSponsor.description">{{ selectedSponsor.description }}</p>
+            <p v-else>Conoce más sobre este auspiciador y su apoyo a Chacas Xtreme Race.</p>
+          </div>
+        </div>
+
+        <div class="modal-socials">
+          <a v-if="selectedSponsor.website_url" :href="selectedSponsor.website_url" target="_blank" rel="noreferrer noopener" class="social-pill">
+            <Link2 size="16" /> Sitio web
+          </a>
+          <a v-if="selectedSponsor.instagram_url" :href="selectedSponsor.instagram_url" target="_blank" rel="noreferrer noopener" class="social-pill">
+            <Instagram size="16" /> Instagram
+          </a>
+          <a v-if="selectedSponsor.facebook_url" :href="selectedSponsor.facebook_url" target="_blank" rel="noreferrer noopener" class="social-pill">
+            <Facebook size="16" /> Facebook
+          </a>
+          <a v-if="selectedSponsor.tiktok_url" :href="selectedSponsor.tiktok_url" target="_blank" rel="noreferrer noopener" class="social-pill">
+            <span class="tiktok-icon">TikTok</span>
+          </a>
+        </div>
+      </div>
+    </div>
 
     <!-- 3. MISSION SECTION (EDITORIAL STYLE) -->
     <section class="mission-section container">
@@ -393,6 +449,141 @@ onMounted(() => {
   border-color: var(--primary-color);
   inset: -12px;
   transform: rotate(45deg);
+}
+
+.logo-group-inner {
+  display: flex;
+  gap: 2rem;
+}
+
+.sponsor-placeholder {
+  width: 100%;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  text-align: center;
+  padding: 5rem 0;
+}
+
+.sponsor-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 999;
+}
+
+.sponsor-modal {
+  width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+  background: rgba(10, 10, 10, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+  padding: 2.5rem;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1.2rem;
+  top: 1.2rem;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.modal-hero {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1.8rem;
+  align-items: center;
+}
+
+.modal-logo-wrap {
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.modal-copy h2 {
+  font-size: clamp(2rem, 4vw, 2.4rem);
+  margin-bottom: 1rem;
+}
+
+.modal-copy p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+}
+
+.modal-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.social-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.social-pill:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 184, 0, 0.16);
+  border-color: rgba(255, 184, 0, 0.3);
+}
+
+.tiktok-icon {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .modal-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-logo-wrap {
+    width: 100%;
+    height: 200px;
+  }
 }
 
 @keyframes scrollLogos {

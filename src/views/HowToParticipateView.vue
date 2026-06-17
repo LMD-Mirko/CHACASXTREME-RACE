@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { 
   Heart, 
@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ChevronLeft
 } from 'lucide-vue-next';
+import { fetchGalleryPaginated } from '@/composables/useBackendApi';
 
 import imgStaffHero from '@/assets/images/staff .jpg';
 import imgStaffHero1 from '@/assets/images/staff1.jpg';
@@ -84,18 +85,77 @@ import img3_16 from '@/assets/images/chacas /3/X94A1864.webp';
 import img3_17 from '@/assets/images/chacas /3/X94A1869.webp';
 import img3_18 from '@/assets/images/chacas /3/X94A1892.webp';
 
+const tributeTexts = [
+  {
+    title: "La Unión en las Cumbres",
+    quote: "En el punto más alto de la cordillera, la fuerza del viento se supera con la sonrisa y el apoyo de un compañero de ruta.",
+    tag: "AMISTAD Y CONFIANZA"
+  },
+  {
+    title: "Logística con Pasión",
+    quote: "No es solo entregar agua o asistencia; es transmitir al ciclista que hay toda una familia cuidando sus pasos.",
+    tag: "EQUIPO DE CORAZÓN"
+  },
+  {
+    title: "Hermandad Manka Riders",
+    quote: "Nuestra pasión por las dos ruedas nos unió, pero el Chacas Xtreme nos convirtió en una hermandad indomable.",
+    tag: "LEALTAD EN RUTA"
+  },
+  {
+    title: "El Alma Detrás del Evento",
+    quote: "Cada voluntario dona su tiempo y su energía con un único propósito: ver a otros conquistar sus propios imposibles.",
+    tag: "ENTREGA ABSOLUTA"
+  },
+  {
+    title: "Seguridad y Compañerismo",
+    quote: "Cuidar la ruta es un compromiso silencioso. Nos respaldamos mutuamente para que cada rider regrese a casa con gloria.",
+    tag: "CUIDADO MUTUO"
+  },
+  {
+    title: "Risas en la Adversidad",
+    quote: "Incluso bajo la lluvia o el frío andino, el staff siempre tiene una palabra de aliento y un abrazo listo para calentar el alma.",
+    tag: "ESPÍRITU INQUEBRANTABLE"
+  },
+  {
+    title: "Legado de Chacas",
+    quote: "Hacemos esto de forma 100% gratuita por el amor a nuestro pueblo, a nuestras montañas y a esta hermosa comunidad ciclista.",
+    tag: "AMOR POR LA TIERRA"
+  },
+  {
+    title: "Guardias del Camino",
+    quote: "Vigilando los senderos más duros de los Andes, la verdadera recompensa es el saludo sincero y el agradecimiento del competidor.",
+    tag: "OROPEL DE LA RUTA"
+  }
+];
+
 const { t } = useI18n();
 
-const staffImages = [
+const localStaffImages = [
   img1, img2, img3, img4, imgChacas,
   img3_1, img3_2, img3_3, img3_4, img3_5, img3_6,
   img3_7, img3_8, img3_9, img3_10, img3_11, img3_12,
   img3_13, img3_14, img3_15, img3_16, img3_17, img3_18
-];
+].map((url, idx) => ({
+  url,
+  ...tributeTexts[idx % tributeTexts.length]
+}));
+
+// Remote backend images and pagination state
+const remoteStaffImages = ref([]);
+const remotePage = ref(1);
+const remoteLastPage = ref(1);
+const remoteTotal = ref(0);
+const isFetchingRemote = ref(false);
+const remoteFetchError = ref(false);
+
+const staffImages = computed(() => {
+  return [...localStaffImages, ...remoteStaffImages.value];
+});
 
 const doubledOrTripledImages = computed(() => {
-  return [...staffImages, ...staffImages, ...staffImages];
+  return [...staffImages.value, ...staffImages.value, ...staffImages.value];
 });
+
 
 const rolesList = [
   "APOYO TÁCTICO", "LOGÍSTICA DE PISTA", "PUNTO DE CONTROL", 
@@ -210,55 +270,8 @@ const onScroll = () => {
 const showLightbox = ref(false);
 const activeLightboxIdx = ref(0);
 
-const tributeTexts = [
-  {
-    title: "La Unión en las Cumbres",
-    quote: "En el punto más alto de la cordillera, la fuerza del viento se supera con la sonrisa y el apoyo de un compañero de ruta.",
-    tag: "AMISTAD Y CONFIANZA"
-  },
-  {
-    title: "Logística con Pasión",
-    quote: "No es solo entregar agua o asistencia; es transmitir al ciclista que hay toda una familia cuidando sus pasos.",
-    tag: "EQUIPO DE CORAZÓN"
-  },
-  {
-    title: "Hermandad Manka Riders",
-    quote: "Nuestra pasión por las dos ruedas nos unió, pero el Chacas Xtreme nos convirtió en una hermandad indomable.",
-    tag: "LEALTAD EN RUTA"
-  },
-  {
-    title: "El Alma Detrás del Evento",
-    quote: "Cada voluntario dona su tiempo y su energía con un único propósito: ver a otros conquistar sus propios imposibles.",
-    tag: "ENTREGA ABSOLUTA"
-  },
-  {
-    title: "Seguridad y Compañerismo",
-    quote: "Cuidar la ruta es un compromiso silencioso. Nos respaldamos mutuamente para que cada rider regrese a casa con gloria.",
-    tag: "CUIDADO MUTUO"
-  },
-  {
-    title: "Risas en la Adversidad",
-    quote: "Incluso bajo la lluvia o el frío andino, el staff siempre tiene una palabra de aliento y un abrazo listo para calentar el alma.",
-    tag: "ESPÍRITU INQUEBRANTABLE"
-  },
-  {
-    title: "Legado de Chacas",
-    quote: "Hacemos esto de forma 100% gratuita por el amor a nuestro pueblo, a nuestras montañas y a esta hermosa comunidad ciclista.",
-    tag: "AMOR POR LA TIERRA"
-  },
-  {
-    title: "Guardias del Camino",
-    quote: "Vigilando los senderos más duros de los Andes, la verdadera recompensa es el saludo sincero y el agradecimiento del competidor.",
-    tag: "OROPEL DE LA RUTA"
-  }
-];
-
-const getTributeData = (idx) => {
-  return tributeTexts[idx % tributeTexts.length];
-};
-
 const openLightbox = (idx) => {
-  activeLightboxIdx.value = idx % staffImages.length;
+  activeLightboxIdx.value = idx % staffImages.value.length;
   showLightbox.value = true;
 };
 
@@ -267,12 +280,47 @@ const closeLightbox = () => {
 };
 
 const nextLightboxImage = () => {
-  activeLightboxIdx.value = (activeLightboxIdx.value + 1) % staffImages.length;
+  activeLightboxIdx.value = (activeLightboxIdx.value + 1) % staffImages.value.length;
 };
 
 const prevLightboxImage = () => {
-  activeLightboxIdx.value = (activeLightboxIdx.value - 1 + staffImages.length) % staffImages.length;
+  activeLightboxIdx.value = (activeLightboxIdx.value - 1 + staffImages.value.length) % staffImages.value.length;
 };
+
+// Remote background loading method
+const loadRemoteImages = async (page = 1) => {
+  if (isFetchingRemote.value) return;
+  isFetchingRemote.value = true;
+  remoteFetchError.value = false;
+  try {
+    const response = await fetchGalleryPaginated('staff', page, 12);
+    remoteStaffImages.value = response.data || [];
+    remotePage.value = response.pagination.currentPage || 1;
+    remoteLastPage.value = response.pagination.lastPage || 1;
+    remoteTotal.value = response.pagination.total || 0;
+  } catch (error) {
+    console.error('Failed to load remote staff images:', error);
+    remoteFetchError.value = true;
+  } finally {
+    isFetchingRemote.value = false;
+  }
+};
+
+const changeRemotePage = async (page) => {
+  if (page < 1 || page > remoteLastPage.value || page === remotePage.value) return;
+  await loadRemoteImages(page);
+};
+
+// Watch for changes in staffImages to reset carousel scroll position and layout transforms
+watch(staffImages, () => {
+  nextTick(() => {
+    if (scrollContainer.value) {
+      const singleThird = Math.round(scrollContainer.value.scrollWidth / 3);
+      scrollContainer.value.scrollLeft = singleThird;
+    }
+    updateCardTransforms();
+  });
+}, { deep: true });
 
 // Touch swipe gestures for mobile navigation
 let touchStartX = 0;
@@ -314,6 +362,9 @@ onMounted(() => {
   }, 6000);
 
   typeText();
+  
+  // Load remote gallery images in the background
+  loadRemoteImages(1);
 
   setTimeout(() => {
     if (scrollContainer.value) {
@@ -413,18 +464,52 @@ onUnmounted(() => {
             @click="openLightbox(idx)"
           >
             <div class="card-image-wrap">
-              <img :src="img" alt="Staff Volunteer Action" loading="lazy" />
+              <img :src="img.url" alt="Staff Volunteer Action" loading="lazy" />
               <div class="card-glow-overlay"></div>
             </div>
           </div>
         </div>
       </div>
-
+ 
       <div class="carousel-nav-hints">
         <span class="hint-drag">ARRASTRA O DESLIZA PARA EXPLORAR LAS IMÁGENES</span>
       </div>
-    </section>
 
+      <!-- Cyberpunk Pagination Controls -->
+      <div v-if="remoteLastPage > 1" class="gallery-pagination-wrapper">
+        <button 
+          class="pag-btn prev-page" 
+          :disabled="remotePage === 1 || isFetchingRemote" 
+          @click="changeRemotePage(remotePage - 1)"
+          aria-label="Página anterior"
+        >
+          <ChevronLeft :size="16" />
+        </button>
+        
+        <div class="pag-pages">
+          <button 
+            v-for="page in remoteLastPage" 
+            :key="page" 
+            class="pag-page-num" 
+            :class="{ active: remotePage === page, loading: isFetchingRemote && remotePage === page }"
+            :disabled="isFetchingRemote"
+            @click="changeRemotePage(page)"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button 
+          class="pag-btn next-page" 
+          :disabled="remotePage === remoteLastPage || isFetchingRemote" 
+          @click="changeRemotePage(remotePage + 1)"
+          aria-label="Página siguiente"
+        >
+          <ChevronRight :size="16" />
+        </button>
+      </div>
+    </section>
+ 
     <!-- 4. FRIENDSHIP & TRIBUTE LIGHTBOX -->
     <Teleport to="body">
       <Transition name="lightbox-fade">
@@ -436,7 +521,7 @@ onUnmounted(() => {
           @touchend="onLightboxTouchEnd"
         >
           <!-- Ambient Blurred Backdrop Photo for Emotional Depth -->
-          <div class="lightbox-ambient-bg" :style="{ backgroundImage: `url(${staffImages[activeLightboxIdx]})` }"></div>
+          <div class="lightbox-ambient-bg" :style="{ backgroundImage: `url(${staffImages[activeLightboxIdx]?.url})` }"></div>
           <div class="lightbox-warm-leak"></div>
           
           <!-- Nav Buttons -->
@@ -446,7 +531,7 @@ onUnmounted(() => {
           <button class="lightbox-nav next" @click="nextLightboxImage" aria-label="Siguiente">
             <ChevronRight :size="24" />
           </button>
-
+ 
           <div class="lightbox-content-wrapper">
             <!-- Tribute Canvas Card -->
             <div class="tribute-canvas">
@@ -454,10 +539,10 @@ onUnmounted(() => {
               <button class="lightbox-close" @click="closeLightbox" aria-label="Cerrar">
                 <X :size="20" />
               </button>
-
+ 
               <!-- Left side: The Photo in fine frame -->
               <div class="tribute-photo-frame">
-                <img :src="staffImages[activeLightboxIdx]" alt="Manka Riders Staff Action" />
+                <img :src="staffImages[activeLightboxIdx]?.url" alt="Manka Riders Staff Action" />
                 <div class="photo-fine-overlay">
                   <span class="photo-coord">[ LAT 09°15'0\"S // LON 77°22'0\"W ]</span>
                 </div>
@@ -474,15 +559,15 @@ onUnmounted(() => {
                   </div>
                   
                   <div class="tribute-badge-label">
-                    <span>{{ getTributeData(activeLightboxIdx).tag }}</span>
+                    <span>{{ staffImages[activeLightboxIdx]?.tag || 'STAFF' }}</span>
                   </div>
                 </div>
                 
                 <div class="narrative-body">
-                  <h3 class="tribute-title font-podium">{{ getTributeData(activeLightboxIdx).title }}</h3>
+                  <h3 class="tribute-title font-podium">{{ staffImages[activeLightboxIdx]?.title || 'Staff Volunteer' }}</h3>
                   <div class="quote-container">
                     <span class="quote-mark">“</span>
-                    <p class="tribute-quote">{{ getTributeData(activeLightboxIdx).quote }}</p>
+                    <p class="tribute-quote">{{ staffImages[activeLightboxIdx]?.quote || staffImages[activeLightboxIdx]?.description || '' }}</p>
                   </div>
                 </div>
                 
@@ -1281,6 +1366,108 @@ onUnmounted(() => {
   }
   .meta-val {
     font-size: 0.7rem;
+  }
+}
+
+/* Cyberpunk Pagination Styles */
+.gallery-pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  z-index: 15;
+  position: relative;
+}
+
+.pag-btn {
+  background: rgba(20, 20, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  backdrop-filter: blur(10px);
+}
+
+.pag-btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: rgba(255, 94, 0, 0.1);
+  box-shadow: 0 0 10px rgba(255, 94, 0, 0.2);
+  transform: scale(1.05);
+}
+
+.pag-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pag-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.pag-page-num {
+  background: rgba(20, 20, 20, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-accent);
+  font-weight: 800;
+  font-size: 0.8rem;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+
+.pag-page-num:hover:not(.active) {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.pag-page-num.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #000;
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+.pag-page-num.loading {
+  animation: pagPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes pagPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@media (max-width: 768px) {
+  .gallery-pagination-wrapper {
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .pag-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .pag-page-num {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 }
 </style>
