@@ -19,6 +19,8 @@ let timerInterval = null;
 const mouseX = ref(0);
 const mouseY = ref(0);
 const isExiting = ref(false);
+const showZooming4 = ref(false);
+const showTransitionStyled4 = ref(false);
 const typedChacas = ref('');
 const typedX = ref('');
 const typedTreme = ref('');
@@ -43,6 +45,8 @@ const handleMouseMove = (e) => {
 
 const handleStartExit = () => {
   isExiting.value = true;
+  showZooming4.value = true;
+  showTransitionStyled4.value = false;
   typedChacas.value = '';
   typedX.value = '';
   typedTreme.value = '';
@@ -53,14 +57,29 @@ const handleStartExit = () => {
     onComplete: () => router.push('/inicio')
   });
 
-  // Set initial state for slanted panel (offscreen to the right)
-  gsap.set('.slanted-wipe-panel', { x: '120vw' });
+  // Set initial states
+  gsap.set('.giant-zoom-4', { scale: 0.1, opacity: 0 });
+  gsap.set('.slanted-wipe-panel', { x: '120vw', opacity: 0 });
+  gsap.set('.transition-logo-container', { opacity: 0 });
 
-  // Play clean slanted sweep animation (slower and smoother transition)
-  exitTl.to('.content', { opacity: 0, x: -30, duration: 0.45, ease: "power2.in" })
-        .to('.slanted-wipe-panel', { x: '-20vw', duration: 0.75, ease: "power3.inOut" }, 0.05);
+  // 1. Zoom in the giant number 4
+  exitTl.to('.giant-zoom-4', { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.2)", force3D: true })
+        .to('.giant-zoom-4', { 
+          scale: 20, 
+          opacity: 0.95, 
+          duration: 0.55, 
+          ease: "power2.in",
+          force3D: true,
+          onComplete: () => {
+            showZooming4.value = false;
+          }
+        }, "+=0.1");
 
-  // Typewriter helper to animate letters typing and pop them on completion
+  // 2. Wipe in slanted panel background and activate logo container overlay
+  exitTl.to('.slanted-wipe-panel', { opacity: 1, x: '-20vw', duration: 0.75, ease: "power3.inOut" }, 0.8)
+        .to('.transition-logo-container', { opacity: 1, duration: 0.15 }, 0.95);
+
+  // Typewriter helper
   const typeText = (refVar, text, duration, selectorToPop) => {
     const obj = { val: 0 };
     return gsap.to(obj, {
@@ -81,13 +100,23 @@ const handleStartExit = () => {
     });
   };
 
-  // Add typing steps to the transition timeline
-  exitTl.add(typeText(typedX, 'X', 0.2, '.logo-x-char'), 0.35)
-        .add(typeText(typedChacas, 'CHACAS', 0.3, '.logo-row-chacas'), '+=0.02')
-        .add(typeText(typedTreme, 'TREME', 0.25, '.treme-text'), '+=0.02')
-        .add(typeText(typedRace, 'RACE', 0.2, '.race-text'), '+=0.02')
-        .to({}, { duration: 0.8 }) // Keep the completed text on screen for a moment
-        .to('.transition-logo-container', { opacity: 0, scale: 0.95, y: -20, duration: 0.35, ease: "power2.in" });
+  // 3. Type writer animation steps
+  exitTl.add(typeText(typedX, 'X', 0.22, '.logo-x-char'), 1.1)
+        .add(typeText(typedChacas, 'CHACAS', 0.35, '.logo-row-chacas'), '+=0.02')
+        .add(typeText(typedTreme, 'TREME', 0.28, '.treme-text'), '+=0.02')
+        .add(typeText(typedRace, 'RACE', 0.22, '.race-text'), '+=0.02')
+        
+        // 4. Pop styled "4" badge next to RACE
+        .add(() => {
+          showTransitionStyled4.value = true;
+          gsap.fromTo('.transition-styled-4',
+            { scale: 0, opacity: 0, rotate: -25 },
+            { scale: 1, opacity: 1, rotate: -12, duration: 0.45, ease: "back.out(2.2)" }
+          );
+        }, '+=0.05')
+        
+        .to({}, { duration: 1.3 }) // Read time
+        .to('.custom-transition-container', { opacity: 0, duration: 0.45, ease: "power2.out" });
 };
 
 onMounted(() => {
@@ -134,6 +163,10 @@ const animateEntrance = () => {
 
     <!-- Cinematic Circular Shutter & Speed Tunnel Exit Transition -->
     <div class="custom-transition-container" v-if="isExiting">
+      <div class="zooming-intro-4" v-if="showZooming4">
+        <div class="giant-zoom-4 font-podium">4</div>
+      </div>
+      
       <div class="slanted-wipe-panel"></div>
       <div class="transition-logo-container">
         <div class="logo-x-wrapper">
@@ -146,6 +179,7 @@ const animateEntrance = () => {
           <div class="logo-row-treme-race">
             <span class="treme-text">{{ typedTreme }}</span>
             <span class="race-text">{{ typedRace }}</span>
+            <span class="transition-styled-4 font-podium" v-if="showTransitionStyled4">4</span>
           </div>
         </div>
       </div>
@@ -248,9 +282,7 @@ const animateEntrance = () => {
 <style scoped>
 /* Force single viewport layout to prevent any scroll behavior completely */
 .countdown-view {
-  height: 100dvh;
   min-height: 100dvh;
-  max-height: 100dvh;
   background: #020202;
   display: flex;
   flex-direction: column;
@@ -258,9 +290,9 @@ const animateEntrance = () => {
   justify-content: center;
   color: white;
   position: relative;
-  overflow: hidden; /* Strict scroll block */
+  overflow-y: auto; /* Enable scroll fallback if zoomed or short screen */
   font-family: 'Bebas Neue', sans-serif;
-  padding: 0;
+  padding: 2.5rem 1rem;
 }
 
 /* CINEMATIC SLANTED SWEEP EXIT TRANSITION OVERLAY */
@@ -273,6 +305,53 @@ const animateEntrance = () => {
   overflow: hidden;
 }
 
+/* Zooming 4 Layer on Exit */
+.zooming-intro-4 {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #010101;
+  z-index: 10010;
+  pointer-events: none;
+}
+
+.giant-zoom-4 {
+  font-family: var(--font-podium);
+  font-size: clamp(15rem, 30vw, 25rem);
+  font-weight: 950;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-style: italic;
+  line-height: 1.25; /* Increased to prevent top and bottom clip cut-off */
+  padding: 1rem 2rem; /* Added padding to prevent slanted edge clip */
+  text-shadow: 0 0 35px rgba(255, 94, 0, 0.45); /* High-performance text shadow */
+  will-change: transform;
+}
+
+/* Styled 4 badge next to RACE */
+.transition-styled-4 {
+  font-family: var(--font-podium);
+  font-size: clamp(2rem, 7vh, 4rem);
+  font-weight: 950;
+  color: #000 !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  padding: 0 0.8rem;
+  margin-left: 0.6rem;
+  border-radius: 6px;
+  line-height: 1.15;
+  transform: skewX(-12deg);
+  display: inline-block;
+  font-style: italic;
+  box-shadow: 0 0 10px rgba(255, 94, 0, 0.35);
+  will-change: transform;
+  transform-origin: center;
+}
+
 .slanted-wipe-panel {
   position: absolute;
   top: 0;
@@ -283,7 +362,7 @@ const animateEntrance = () => {
               radial-gradient(circle at 25% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 60%),
               #0c0c0c;
   border-left: 5px solid #ff5e00;
-  box-shadow: -15px 0 45px rgba(255, 94, 0, 0.45), -30px 0 80px rgba(0, 0, 0, 0.85);
+  box-shadow: -8px 0 20px rgba(0, 0, 0, 0.6); /* Reduced shadow depth for GPU performance */
   transform: skewX(-15deg);
   will-change: transform;
 }
@@ -401,11 +480,10 @@ const animateEntrance = () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  justify-content: space-evenly;
   width: 100%;
-  height: 96%;
   max-width: 680px;
-  padding: 2.8rem 0.5rem 0.5rem 0.5rem;
+  gap: clamp(1.5rem, 4vh, 2.5rem); /* Responsive gaps to compress on shorter viewports */
+  padding: 1.5rem 0.5rem;
 }
 
 /* LOGO SECTION */

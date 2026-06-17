@@ -10,6 +10,11 @@ const routes = [
         component: () => import('../views/CountdownView.vue')
     },
     {
+        path: '/edicion-4',
+        name: 'edition-4',
+        component: () => import('../views/Edition4View.vue')
+    },
+    {
         path: '/inicio',
         name: 'home',
         component: () => import('../views/HomeView.vue')

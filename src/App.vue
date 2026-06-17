@@ -12,8 +12,8 @@ const showSplash = ref(true);
 const route = useRoute();
 const { t, te, locale } = useI18n();
 
-// Hide navigation on the teaser page
-const showNavigation = computed(() => route.name !== 'countdown');
+// Hide navigation on the teaser page and special edition page
+const showNavigation = computed(() => route.name !== 'countdown' && route.name !== 'edition-4');
 
 const handleSplashFinish = () => {
   showSplash.value = false;

@@ -9,7 +9,7 @@ import hero1 from '@/assets/images/hero1.webp';
 import hero2 from '@/assets/images/hero2.webp';
 import hero3 from '@/assets/images/hero3.webp';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const router = useRouter();
 
 const bgImages = [hero1, hero2, hero3];
@@ -55,8 +55,8 @@ const startTimer = () => {
   timer = setInterval(nextSlide, 7500);
 };
 
-const navigateToRegister = () => {
-  router.push('/registro/ciclista');
+const navigateToEdition4 = () => {
+  router.push('/edicion-4');
 };
 
 const TICKER_MIN = 20;
@@ -142,8 +142,10 @@ onUnmounted(() => {
                 {{ slide.subtitle }}
               </p>
               <div class="hero__actions hero-enter hero-enter--4">
-                <button @click="navigateToRegister" class="btn btn--primary group">
-                  <span>{{ t('hero.cta_primary') }}</span>
+                <button @click="navigateToEdition4" class="btn btn--primary group">
+                  <span v-if="locale === 'es'">4TA EDICIÓN — 28 DE JULIO</span>
+                  <span v-else-if="locale === 'it'">4ª EDIZIONE — 28 LUGLIO</span>
+                  <span v-else>4TH EDITION — JULY 28</span>
                   <ArrowUpRight :size="16" class="arrow-icon" />
                 </button>
               </div>
@@ -205,11 +207,10 @@ onUnmounted(() => {
   min-height: 100vh;
   min-height: 100svh;
   min-height: 100dvh;
-  height: 100vh;
-  height: 100svh;
-  height: 100dvh;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto; /* Enable scroll fallback if zoomed or short screen */
   background-color: #020202;
 }
 
@@ -279,11 +280,13 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* SLIDER */
 .hero__slider {
-  height: 100%;
+  flex: 1 0 auto;
+  min-height: 520px; /* Strong baseline height to contain text and action buttons */
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero__slide {
@@ -675,9 +678,8 @@ onUnmounted(() => {
 
 /* SPONSOR TICKER TAPE SYSTEM */
 .sponsor-tape-container {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 0;
+  position: relative; /* Changed to relative to sit naturally below slide content */
+  margin-top: auto; /* Push to the bottom in flex flow */
   width: 100%;
   z-index: 25;
   overflow: hidden;
@@ -685,6 +687,7 @@ onUnmounted(() => {
   flex-direction: column;
   pointer-events: none;
   padding-bottom: 2rem;
+  padding-top: 1rem;
 }
 
 .sponsor-tape {
