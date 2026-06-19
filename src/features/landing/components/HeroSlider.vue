@@ -211,6 +211,7 @@ onUnmounted(() => {
   flex-direction: column;
   position: relative;
   overflow-y: auto; /* Enable scroll fallback if zoomed or short screen */
+  overflow-x: hidden; /* Prevent horizontal scroll on all viewports */
   background-color: #020202;
 }
 
@@ -626,8 +627,8 @@ onUnmounted(() => {
     padding: 0.5rem 0;
     font-size: clamp(0.72rem, 2.8vw, 0.85rem);
     letter-spacing: 1.5px;
-    width: 112vw;
-    margin-left: -6vw;
+    width: 112%;
+    margin-left: -6%;
   }
 
   .sponsor-tape--1 {
@@ -691,8 +692,8 @@ onUnmounted(() => {
 }
 
 .sponsor-tape {
-  width: 110vw; /* Bleed past screen edges to prevent rotation clipping */
-  margin-left: -5vw;
+  width: 110%; /* Bleed past screen edges to prevent rotation clipping */
+  margin-left: -5%;
   padding: 0.75rem 0; /* Slightly thinner */
   font-family: var(--font-podium);
   font-weight: 900;

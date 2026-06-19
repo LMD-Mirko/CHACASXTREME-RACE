@@ -23,9 +23,9 @@ useScrollReveal({ selector: '.reveal-stagger' });
           {{ t('footer.brand_text') }}
         </p>
         <div class="footer__socials">
-          <a href="#" class="social-link" aria-label="Instagram"><Instagram :size="20" /></a>
-          <a href="#" class="social-link" aria-label="Facebook"><Facebook :size="20" /></a>
-          <a href="#" class="social-link social-link--wa" aria-label="WhatsApp"><MessageCircle :size="20" /></a>
+          <a href="https://www.instagram.com/manka_riders_team/" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram"><Instagram :size="20" /></a>
+          <a href="https://www.facebook.com/profile.php?id=61567035784750&locale=es_LA" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook"><Facebook :size="20" /></a>
+          <a href="https://wa.me/51983426996" target="_blank" rel="noopener noreferrer" class="social-link social-link--wa" aria-label="WhatsApp"><MessageCircle :size="20" /></a>
         </div>
       </div>
 
@@ -50,7 +50,7 @@ useScrollReveal({ selector: '.reveal-stagger' });
           </li>
           <li>
             <Phone :size="18" class="contact-icon" />
-            <span>+51 987 654 321</span>
+            <span>+51 983 426 996</span>
           </li>
           <li>
             <Mail :size="18" class="contact-icon" />

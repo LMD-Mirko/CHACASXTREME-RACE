@@ -7,7 +7,6 @@ import {
   Users, 
   Globe, 
   TrendingUp, 
-  Download,
   ArrowLeft,
   Instagram,
   Facebook,
@@ -81,11 +80,7 @@ onMounted(() => {
         <p class="sponsor-subtitle reveal">
           {{ t('sponsors.subtitle') }}
         </p>
-        <div class="hero-actions reveal">
-          <a href="#" class="btn-gold-glow shimmer-gold">
-            <Download :size="20" /> {{ t('sponsors.download') }}
-          </a>
-        </div>
+
       </div>
     </section>
 

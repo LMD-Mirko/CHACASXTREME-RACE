@@ -116,8 +116,8 @@ const updateStructuredData = () => {
         "longitude": -77.37121
       },
       "sameAs": [
-        "https://www.instagram.com/eldemonio.mtb/",
-        "https://www.facebook.com/mankariders"
+        "https://www.instagram.com/manka_riders_team/",
+        "https://www.facebook.com/profile.php?id=61567035784750&locale=es_LA"
       ]
     });
   }

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Trophy } from 'lucide-vue-next';
+import { Trophy, Clock, Award, MapPin } from 'lucide-vue-next';
 
 const props = defineProps({
   riders: {
@@ -76,7 +76,7 @@ const finalLeaderboard = computed(() => {
       </div>
     </div>
 
-    <!-- Leaderboard Table -->
+    <!-- Leaderboard Table (Desktop View) -->
     <div class="results-table-panel">
       <table class="results-table">
         <thead>
@@ -150,6 +150,117 @@ const finalLeaderboard = computed(() => {
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Leaderboard Cards (Mobile View) -->
+    <div class="results-mobile-view">
+      <div 
+        v-for="(rider, idx) in finalLeaderboard" 
+        :key="idx"
+        class="rider-card"
+        :class="{ 
+          'podium-card-1st': idx === 0 && rider.estado_carrera === 'llego',
+          'podium-card-2nd': idx === 1 && rider.estado_carrera === 'llego',
+          'podium-card-3rd': idx === 2 && rider.estado_carrera === 'llego'
+        }"
+      >
+        <!-- Carbon background texture / lines -->
+        <div class="rider-card__bg-pattern"></div>
+        
+        <!-- Corner brackets for high-tech look -->
+        <span class="card-bracket tl"></span>
+        <span class="card-bracket tr"></span>
+        <span class="card-bracket bl"></span>
+        <span class="card-bracket br"></span>
+
+        <!-- Card Header: Position, Avatar, Pilot, Dorsal -->
+        <div class="rider-card__header">
+          <!-- Position badge -->
+          <div class="rider-card__position">
+            <div class="podium-badge-premium" v-if="idx < 3 && rider.estado_carrera === 'llego'" :class="'podium-rank-' + (idx + 1)">
+              <Trophy :size="12" class="trophy-icon" />
+              <span>{{ idx + 1 }}</span>
+            </div>
+            <span v-else class="normal-position-badge font-podium">#{{ String(idx + 1).padStart(2, '0') }}</span>
+          </div>
+
+          <!-- Avatar Frame with glowing rings -->
+          <div class="rider-card__avatar-frame-wrap">
+            <div class="rider-card__avatar-frame">
+              <img :src="rider.foto_url" :alt="rider.nombres_completos" class="rider-card__avatar" />
+            </div>
+            <!-- Glowing status indicator dot -->
+            <span class="status-dot" :class="rider.estado_carrera"></span>
+          </div>
+
+          <!-- Pilot Name & Team -->
+          <div class="rider-card__pilot-details">
+            <h3 class="rider-card__name font-podium">{{ rider.nombres_completos }}</h3>
+            <span class="rider-card__team" v-if="rider.club_team">
+              <span class="team-icon">🏁</span> {{ rider.club_team }}
+            </span>
+            <span class="rider-card__team no-team" v-else>
+              <span class="team-icon">🏁</span> INDEPENDIENTE
+            </span>
+          </div>
+
+          <!-- Dorsal Pill styled like a race plate -->
+          <div class="rider-card__dorsal font-podium">
+            <div class="dorsal-plate">
+              <span class="dorsal-plate__title">DORSAL</span>
+              <span class="dorsal-plate__number">{{ rider.numero_dorsal ?? '--' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body: Origin and Stats Grid -->
+        <div class="rider-card__body">
+          <!-- Procedencia -->
+          <div class="rider-card__info-row">
+            <div class="rider-card__origin">
+              <MapPin :size="12" class="origin-icon" />
+              <span class="rider-card__label">Procedencia:</span>
+              <span class="rider-card__value">{{ rider.procedencia }}</span>
+            </div>
+          </div>
+          
+          <!-- Grid of stats -->
+          <div class="rider-card__stats-grid">
+            <!-- Tiempo Total -->
+            <div class="rider-card__stat-item">
+              <div class="stat-hdr">
+                <Clock :size="10" class="stat-icon" />
+                <span class="rider-card__stat-label">TIEMPO TOTAL</span>
+              </div>
+              <span class="rider-card__stat-value font-podium highlight-time">
+                {{ rider.tiempo_meta ?? '--:--' }}
+              </span>
+            </div>
+
+            <!-- Diferencia -->
+            <div class="rider-card__stat-item">
+              <div class="stat-hdr">
+                <Award :size="10" class="stat-icon" />
+                <span class="rider-card__stat-label">DIFERENCIA</span>
+              </div>
+              <span class="rider-card__stat-value font-podium" :class="{ 'first-place-color': idx === 0 }">
+                {{ rider.diferencia }}
+              </span>
+            </div>
+
+            <!-- Estado -->
+            <div class="rider-card__stat-item status-col">
+              <span class="rider-card__stat-label">ESTADO</span>
+              <div class="rider-card__stat-value flex-center">
+                <span v-if="rider.estado_carrera === 'llego'" class="status-pill status-pill--arrived">LLEGÓ</span>
+                <span v-else-if="rider.estado_carrera === 'DNF'" class="status-pill status-pill--dnf">DNF</span>
+                <span v-else-if="rider.estado_carrera === 'DNS'" class="status-pill status-pill--dns">DNS</span>
+                <span v-else class="status-pill status-pill--dns">DNS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -406,6 +517,407 @@ const finalLeaderboard = computed(() => {
   .results-table th:nth-child(4),
   .results-table td:nth-child(4) {
     display: none;
+  }
+}
+
+/* Cards view hidden by default */
+.results-mobile-view {
+  display: none;
+}
+
+/* Card layout styles */
+.rider-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(18, 18, 18, 0.95) 0%, rgba(8, 8, 8, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.rider-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 94, 0, 0.3);
+  box-shadow: 0 12px 30px rgba(255, 94, 0, 0.05);
+}
+
+/* Background Carbon Pattern */
+.rider-card__bg-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 94, 0, 0.015) 1px, transparent 0);
+  background-size: 12px 12px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Corner Brackets for Tech Look */
+.card-bracket {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 1;
+}
+.card-bracket.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+.card-bracket.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.card-bracket.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.card-bracket.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+.rider-card:hover .card-bracket {
+  border-color: rgba(255, 94, 0, 0.35);
+}
+
+/* Podium Border Highlights and subtle glowing backgrounds */
+.podium-card-1st {
+  border-left: 4px solid #fbbf24;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.03) 0%, rgba(12, 12, 12, 0.95) 100%);
+  box-shadow: inset 3px 0 15px rgba(251, 191, 36, 0.02), 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+.podium-card-1st .card-bracket.tl, .podium-card-1st .card-bracket.bl {
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.podium-card-2nd {
+  border-left: 4px solid #94a3b8;
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.03) 0%, rgba(12, 12, 12, 0.95) 100%);
+}
+.podium-card-2nd .card-bracket.tl, .podium-card-2nd .card-bracket.bl {
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.podium-card-3rd {
+  border-left: 4px solid #e27d34;
+  background: linear-gradient(135deg, rgba(226, 125, 52, 0.03) 0%, rgba(12, 12, 12, 0.95) 100%);
+}
+.podium-card-3rd .card-bracket.tl, .podium-card-3rd .card-bracket.bl {
+  border-color: rgba(226, 125, 52, 0.25);
+}
+
+/* Premium Podium Badge */
+.podium-badge-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  font-family: var(--font-podium);
+  font-weight: 900;
+  font-size: 0.8rem;
+  min-width: 42px;
+}
+
+.podium-rank-1st {
+  background: rgba(251, 191, 36, 0.08);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+}
+
+.podium-rank-2nd {
+  background: rgba(148, 163, 184, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.podium-rank-3rd {
+  background: rgba(226, 125, 52, 0.08);
+  color: #fb923c;
+  border: 1px solid rgba(226, 125, 52, 0.2);
+}
+
+.normal-position-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  min-width: 42px;
+}
+
+/* Header */
+.rider-card__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  z-index: 2;
+}
+
+/* Avatar layout with glowing indicators */
+.rider-card__avatar-frame-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.rider-card__avatar-frame {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 2.5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.podium-card-1st .rider-card__avatar-frame {
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+
+.podium-card-2nd .rider-card__avatar-frame {
+  border-color: rgba(203, 213, 225, 0.5);
+}
+
+.podium-card-3rd .rider-card__avatar-frame {
+  border-color: rgba(251, 146, 60, 0.5);
+}
+
+.rider-card__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #080808;
+}
+.status-dot.llego { background-color: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.status-dot.DNF { background-color: #ef4444; }
+.status-dot.DNS { background-color: #9ca3af; }
+
+/* Pilot Details & Name */
+.rider-card__pilot-details {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.rider-card__name {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+  line-height: 1.25;
+  text-transform: uppercase;
+  word-wrap: break-word;
+  letter-spacing: 0.5px;
+}
+
+.rider-card__team {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-accent);
+  color: var(--primary-color);
+  font-size: 0.68rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.rider-card__team.no-team {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.team-icon {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Dorsal Plate DH Style */
+.dorsal-plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+  color: #000;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  min-width: 48px;
+  transform: skewX(-6deg);
+  box-shadow: 0 4px 10px rgba(255, 94, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dorsal-plate__title {
+  font-size: 0.45rem;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.dorsal-plate__number {
+  font-size: 0.95rem;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.podium-card-1st .dorsal-plate {
+  background: #fbbf24;
+  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+}
+
+/* Card Body */
+.rider-card__body {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 2;
+}
+
+/* Origin Info Row */
+.rider-card__origin {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.origin-icon {
+  color: var(--primary-color);
+  opacity: 0.85;
+}
+
+.rider-card__label {
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+}
+
+.rider-card__value {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+}
+
+/* Stats HUD Grid */
+.rider-card__stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.rider-card__stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding-right: 0.25rem;
+}
+
+.rider-card__stat-item:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.stat-hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.6;
+}
+
+.stat-icon {
+  color: var(--primary-color);
+}
+
+.rider-card__stat-label {
+  font-family: var(--font-accent);
+  font-size: 0.52rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.5px;
+  font-weight: 800;
+}
+
+.rider-card__stat-value {
+  font-size: 0.85rem;
+  color: #ffffff;
+  font-weight: 850;
+  letter-spacing: 0.2px;
+}
+
+.rider-card__stat-value.highlight-time {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+.rider-card__stat-value .status-pill {
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* Helper flex layout styles */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.status-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-col .rider-card__stat-label {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .results-table-panel {
+    display: none; /* Hide table on mobile */
+  }
+
+  .results-mobile-view {
+    display: flex; /* Show cards on mobile */
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .rider-card__stats-grid {
+    padding: 0.5rem;
+  }
+  .rider-card__stat-value {
+    font-size: 0.78rem;
   }
 }
 </style>

@@ -149,9 +149,9 @@ onUnmounted(() => {
         <!-- Futuristic Footer with Socials & Coords -->
         <div class="mobile-menu__footer" :style="{ '--delay': (navLinks.length * 0.08 + 0.1) + 's' }">
           <div class="mobile-menu__socials">
-            <a href="https://instagram.com/eldemonio.mtb" target="_blank" class="social-icon" aria-label="Instagram"><Instagram :size="18" /></a>
-            <a href="https://facebook.com" target="_blank" class="social-icon" aria-label="Facebook"><Facebook :size="18" /></a>
-            <a href="https://wa.me/51983426996" target="_blank" class="social-icon" aria-label="WhatsApp"><MessageCircle :size="18" /></a>
+            <a href="https://www.instagram.com/manka_riders_team/" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram"><Instagram :size="18" /></a>
+            <a href="https://www.facebook.com/profile.php?id=61567035784750&locale=es_LA" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook"><Facebook :size="18" /></a>
+            <a href="https://wa.me/51983426996" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="WhatsApp"><MessageCircle :size="18" /></a>
           </div>
           <div class="mobile-menu__coords font-inter">SYS.LOC // 8.52S.77.22W</div>
         </div>
