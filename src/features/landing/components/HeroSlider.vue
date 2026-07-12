@@ -319,7 +319,10 @@ onUnmounted(() => {
 .hero-enter--2 { animation-delay: 0.3s; }
 .hero-enter--3 { animation-delay: 0.45s; }
 .hero-enter--4 { animation-delay: 0.6s; }
-.hero-enter--5 { animation-delay: 0.75s; }
+.hero-enter--5 { 
+  opacity: 0;
+  animation: controls-fade-up 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.75s forwards; 
+}
 
 @keyframes hero-fade-up {
   from {
@@ -329,6 +332,17 @@ onUnmounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes controls-fade-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -405,6 +419,9 @@ onUnmounted(() => {
   letter-spacing: 2px;
   cursor: pointer;
   outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn--primary {
@@ -413,6 +430,7 @@ onUnmounted(() => {
   border: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.8rem;
   box-shadow: 0 10px 25px rgba(255, 94, 0, 0.25);
 }

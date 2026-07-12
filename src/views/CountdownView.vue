@@ -282,7 +282,9 @@ const animateEntrance = () => {
 <style scoped>
 /* Force single viewport layout to prevent any scroll behavior completely */
 .countdown-view {
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
   background: #020202;
   display: flex;
   flex-direction: column;
@@ -290,9 +292,10 @@ const animateEntrance = () => {
   justify-content: center;
   color: white;
   position: relative;
-  overflow-y: auto; /* Enable scroll fallback if zoomed or short screen */
+  overflow: hidden !important; /* Force NO scrollbars at all */
   font-family: 'Bebas Neue', sans-serif;
-  padding: 2.5rem 1rem;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
 }
 
 /* CINEMATIC SLANTED SWEEP EXIT TRANSITION OVERLAY */
@@ -479,11 +482,14 @@ const animateEntrance = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-evenly;
   text-align: center;
   width: 100%;
-  max-width: 680px;
-  gap: clamp(1.5rem, 4vh, 2.5rem); /* Responsive gaps to compress on shorter viewports */
-  padding: 1.5rem 0.5rem;
+  height: 100%;
+  max-width: 600px;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  gap: 0.5rem;
 }
 
 /* LOGO SECTION */
@@ -799,45 +805,93 @@ const animateEntrance = () => {
   100% { transform: translate(0); }
 }
 
-/* MOBILE DYNAMIC LAYOUT CORRECTIONS */
+/* MOBILE DYNAMIC LAYOUT CORRECTIONS & SMALL HEIGHT SAFETY */
 @media (max-width: 480px) {
   .content {
-    padding-top: 2.2rem;
-    height: 94%;
+    padding: 0.5rem;
+    height: 100%;
   }
-  .title-bottom {
-    gap: 0.2rem;
+  .main-logo {
+    width: 110px;
+  }
+  .edition-badge {
+    font-size: 0.72rem;
+    padding: 0.15rem 1.2rem;
+    margin-top: -0.3rem;
+  }
+  .title {
+    font-size: clamp(1.4rem, 5.5vw, 2.5rem);
+    margin-bottom: 0.2rem;
+  }
+  .subtitle {
+    font-size: 0.62rem;
+    letter-spacing: 1.5px;
+    line-height: 1.3;
   }
   .timer-container {
+    max-width: 320px;
     gap: 0.3rem;
   }
   .timer-item {
     border-bottom-width: 2px;
-    padding: 0.55rem 0.1rem;
+    padding: 0.4rem 0.1rem;
+    min-width: 50px;
+  }
+  .timer-value {
+    font-size: 1.6rem;
+  }
+  .timer-label {
+    font-size: 0.52rem;
+    margin-top: 0.15rem;
+  }
+  .btn-extreme {
+    padding: 0.75rem 2.2rem;
+    font-size: 0.85rem;
+    box-shadow: 0 0 15px rgba(255, 94, 0, 0.25);
+  }
+  .stats-container {
+    gap: 0.8rem;
+    padding: 0.3rem 0;
+  }
+  .stat-number {
+    font-size: 1.05rem;
+  }
+  .stat-name {
+    font-size: 0.48rem;
   }
   .social-footer {
-    gap: 1.8rem;
+    gap: 1.5rem;
   }
 }
 
-/* Safe margins for small heights (iPhone SE / folding screens) */
-@media (max-height: 670px) {
+@media (max-height: 750px) {
   .content {
-    height: 98%;
-    padding-top: 1.5rem;
+    height: 100%;
+    gap: 0.3rem;
+    padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }
-  .raider-bg {
-    height: 55%;
-  }
-  .timer-item {
-    padding: 0.5rem 0.1rem;
-  }
-  .stats-container {
-    padding: 0.4rem 0;
+  .main-logo {
+    width: 95px;
   }
   .title {
-    margin-bottom: 0.2rem;
+    font-size: 1.6rem;
+    margin-bottom: 0.15rem;
+  }
+  .timer-item {
+    padding: 0.35rem 0.1rem;
+  }
+  .timer-value {
+    font-size: 1.4rem;
+  }
+  .btn-extreme {
+    padding: 0.65rem 2rem;
+  }
+  .stats-container {
+    padding: 0.25rem 0;
+  }
+  .raider-bg {
+    height: 50%;
   }
 }
 

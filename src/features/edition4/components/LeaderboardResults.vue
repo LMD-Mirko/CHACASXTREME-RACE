@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Trophy, Clock, Award, MapPin } from 'lucide-vue-next';
+import { Trophy, Clock, Award, MapPin, BarChart2, Table as TableIcon } from 'lucide-vue-next';
+import LeaderboardChart from './LeaderboardChart.vue';
 
 const props = defineProps({
   riders: {
@@ -11,6 +12,8 @@ const props = defineProps({
 
 const selectedResultsCategory = ref('Elite');
 const categoriesList = ['Elite', 'Junior', 'Rígidas', 'Locales'];
+const viewMode = ref('chart'); // 'chart' by default, switchable to 'table'
+
 
 // Computed category-filtered leaderboard results
 const finalLeaderboard = computed(() => {
@@ -36,7 +39,43 @@ const finalLeaderboard = computed(() => {
         { nombres_completos: "Mirko Daniel Ramos Limas", numero_dorsal: 45, procedencia: "Chacas", club_team: "Ancash Riders Team", tiempo_meta: "03:14.450", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1541614101331-1a5a3a194e92?auto=format&fit=crop&w=400&q=80" },
         { nombres_completos: "José Ignacio 'El Demonio'", numero_dorsal: 7, procedencia: "Chacas", club_team: "Manka Riders Elite", tiempo_meta: "03:18.120", diferencia: "+00:03.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80" },
         { nombres_completos: "Carlos Mendoza Vega", numero_dorsal: 12, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:22.500", diferencia: "+00:08.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Luigi Travi Elite", numero_dorsal: 10, procedencia: "Lima", club_team: "Manka Riders Elite", tiempo_meta: "03:25.900", diferencia: "+00:11.450", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" }
+        { nombres_completos: "Luigi Travi Elite", numero_dorsal: 10, procedencia: "Lima", club_team: "Manka Riders Elite", tiempo_meta: "03:25.900", diferencia: "+00:11.450", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Sergio Balanza Huaraz", numero_dorsal: 101, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "03:27.150", diferencia: "+00:12.700", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Mateo Ganoza Trujillo", numero_dorsal: 102, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "03:28.800", diferencia: "+00:14.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Julio Cesar Cueva", numero_dorsal: 103, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:29.950", diferencia: "+00:15.500", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Fabricio Peralta Arequipa", numero_dorsal: 104, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: "03:31.200", diferencia: "+00:16.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Gonzalo Chavez Lima", numero_dorsal: 105, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:32.400", diferencia: "+00:17.950", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Nicolas Lopez Chacas", numero_dorsal: 106, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:33.600", diferencia: "+00:19.150", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Gabriel Ruiz Caraz", numero_dorsal: 107, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:35.100", diferencia: "+00:20.650", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Sebastian Valdivia Cusco", numero_dorsal: 108, procedencia: "Cusco", club_team: "Inka Riders Cusco", tiempo_meta: "03:36.450", diferencia: "+00:22.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Rodrigo Rivas Huaraz", numero_dorsal: 109, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "03:38.200", diferencia: "+00:23.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Adrian Fernandez Chacas", numero_dorsal: 110, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:39.500", diferencia: "+00:25.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1541614101331-1a5a3a194e92?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Daniel Torres Yungay", numero_dorsal: 111, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "03:41.120", diferencia: "+00:26.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Marcos Estrada Huaraz", numero_dorsal: 112, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:42.400", diferencia: "+00:27.950", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Franco Merino Lima", numero_dorsal: 113, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:43.700", diferencia: "+00:29.250", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Lucas Espinoza Caraz", numero_dorsal: 114, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:45.000", diferencia: "+00:30.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Joaquin Salazar Trujillo", numero_dorsal: 115, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "03:46.300", diferencia: "+00:31.850", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Bruno Caceres Chacas", numero_dorsal: 116, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:47.800", diferencia: "+00:33.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Alejandro Flores Arequipa", numero_dorsal: 117, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: "03:49.200", diferencia: "+00:34.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Santiago Ramos Chacas", numero_dorsal: 118, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:50.500", diferencia: "+00:36.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Mauricio Delgado Lima", numero_dorsal: 119, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:51.850", diferencia: "+00:37.400", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Ricardo Ortiz Huaraz", numero_dorsal: 120, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:53.200", diferencia: "+00:38.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Leonardo Vega Yungay", numero_dorsal: 121, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "03:54.600", diferencia: "+00:40.150", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Javier Mendoza Caraz", numero_dorsal: 122, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:55.900", diferencia: "+00:41.450", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Alvaro Pinedo Lima", numero_dorsal: 123, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:57.300", diferencia: "+00:42.850", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Hugo Vasquez Chacas", numero_dorsal: 124, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:58.800", diferencia: "+00:44.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Fernando Castro Huaraz", numero_dorsal: 125, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "04:00.120", diferencia: "+00:45.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Matias Gomez Yungay", numero_dorsal: 126, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "04:01.500", diferencia: "+00:47.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Cristian Rojas Caraz", numero_dorsal: 127, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "04:03.000", diferencia: "+00:48.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Felipe Herrera Trujillo", numero_dorsal: 128, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "04:04.500", diferencia: "+00:50.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Samuel Mendez Chacas", numero_dorsal: 129, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "04:06.000", diferencia: "+00:51.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Diego Alexander Ramos", numero_dorsal: 130, procedencia: "Chacas", club_team: "Ancash Riders", tiempo_meta: "04:07.500", diferencia: "+00:53.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Ignacio Valenzuela Lima", numero_dorsal: 131, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "04:09.120", diferencia: "+00:54.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Roberto Villanueva Huaraz", numero_dorsal: 132, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "04:10.500", diferencia: "+00:56.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Marcelo Cisneros Yungay", numero_dorsal: 133, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "04:12.100", diferencia: "+00:57.650", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Luis Enrique Prado", numero_dorsal: 134, procedencia: "Lima", club_team: "Manka Riders", tiempo_meta: "04:13.800", diferencia: "+00:59.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Gustavo Adolfo Becerra", numero_dorsal: 135, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNF", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
+        { nombres_completos: "Angel Daniel Castillo", numero_dorsal: 136, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNS", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" }
       ],
       Junior: [
         { nombres_completos: "Diego Torres Huamán", numero_dorsal: 56, procedencia: "Carhuaz", club_team: "Carhuaz Downhill Club", tiempo_meta: "03:32.110", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
@@ -60,24 +99,56 @@ const finalLeaderboard = computed(() => {
   <div class="results-wrapper">
     <!-- Filters panel -->
     <div class="section-toolbar">
-      <div class="horizontal-selector">
-        <button
-          v-for="cat in categoriesList"
-          :key="cat"
-          class="category-selector-btn font-podium"
-          :class="{ 'active': selectedResultsCategory === cat }"
-          @click="selectedResultsCategory = cat"
-        >
-          {{ cat }}
-        </button>
+      <div class="toolbar-left">
+        <div class="horizontal-selector">
+          <button
+            v-for="cat in categoriesList"
+            :key="cat"
+            class="category-selector-btn font-podium"
+            :class="{ 'active': selectedResultsCategory === cat }"
+            @click="selectedResultsCategory = cat"
+          >
+            {{ cat }}
+          </button>
+        </div>
       </div>
-      <div class="results-meta-tag font-accent">
-        REGISTRO CERRADO Y OFICIALIZADO
+      
+      <div class="toolbar-right">
+        <!-- View Toggle Buttons -->
+        <div class="view-mode-toggle-wrap">
+          <button 
+            class="toggle-btn font-accent"
+            :class="{ 'active': viewMode === 'chart' }"
+            @click="viewMode = 'chart'"
+          >
+            <BarChart2 :size="14" />
+            <span>GRÁFICO</span>
+          </button>
+          <button 
+            class="toggle-btn font-accent"
+            :class="{ 'active': viewMode === 'table' }"
+            @click="viewMode = 'table'"
+          >
+            <TableIcon :size="14" />
+            <span>TABLA</span>
+          </button>
+        </div>
+        
+        <div class="results-meta-tag font-accent">
+          REGISTRO CERRADO Y OFICIALIZADO
+        </div>
       </div>
     </div>
 
-    <!-- Leaderboard Table (Desktop View) -->
-    <div class="results-table-panel">
+    <!-- Interactive Leaderboard Chart -->
+    <LeaderboardChart 
+      v-if="viewMode === 'chart'"
+      :riders="finalLeaderboard"
+    />
+
+    <!-- Leaderboard Table (Desktop View fallback) -->
+    <div v-else class="table-and-cards-view-wrap">
+      <div class="results-table-panel">
       <table class="results-table">
         <thead>
           <tr>
@@ -262,6 +333,7 @@ const finalLeaderboard = computed(() => {
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -272,6 +344,53 @@ const finalLeaderboard = computed(() => {
   align-items: center;
   margin-bottom: 2.5rem;
   gap: 1.5rem;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.view-mode-toggle-wrap {
+  display: flex;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.2rem;
+  backdrop-filter: blur(10px);
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.45rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.toggle-btn.active {
+  color: #000;
+  background: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(255, 94, 0, 0.3);
 }
 
 .horizontal-selector {
@@ -499,6 +618,25 @@ const finalLeaderboard = computed(() => {
     align-items: stretch;
     gap: 1rem;
     margin-bottom: 2rem;
+  }
+
+  .toolbar-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .view-mode-toggle-wrap {
+    justify-content: center;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .results-meta-tag {
+    text-align: center;
   }
 
   .horizontal-selector {
