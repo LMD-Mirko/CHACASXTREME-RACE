@@ -27,10 +27,28 @@
         "countdown": {
             "title": "Chacas Xtreme Race | Próximamente",
             "description": "Prepárate para lo extremo. La cuenta regresiva ha comenzado para el desafío de ciclismo de montaña definitivo en los Andes."
+        },
+        "edition-4": {
+            "title": "4ta Edición en Vivo | Chacas Xtreme Race",
+            "description": "Padrón, resultados en tiempo real, horarios de partida y clasificación de la 4ta edición de Chacas Xtreme Race."
+        },
+        "photographer-auth": {
+            "title": "Acceso Camarógrafos | Chacas Xtreme Race",
+            "description": "Registro de camarógrafos oficiales para subir fotos y videos de la 4ta edición."
+        },
+        "photographer-panel": {
+            "title": "Panel Camarógrafos | Chacas Xtreme Race",
+            "description": "Sube y gestiona el material multimedia de los competidores de Chacas Xtreme Race."
+        },
+        "competitor-dossier": {
+            "title": "Mi Carrera | Chacas Xtreme Race",
+            "description": "Consulta tu dossier personal: resultados, fotos y videos de tu participación en Chacas Xtreme Race."
         }
     },
     "nav": {
         "home": "Inicio",
+        "about": "Sobre Nosotros",
+        "edition4": "4ta Edición",
         "riders": "Los Riders",
         "challenge": "El Desafío",
         "gallery": "Galería",
@@ -87,7 +105,11 @@
         ],
         "tagline": "PRESENTAMOS A MANKA RIDERS",
         "cta_primary": "Inscribirse Ahora",
-        "cta_secondary": "Versión Demo"
+        "cta_secondary": "Versión Demo",
+        "prev_slide": "Diapositiva anterior",
+        "next_slide": "Diapositiva siguiente",
+        "slides_label": "Diapositivas del hero",
+        "slide_n": "Ir a diapositiva {n}"
     },
     "language": {
         "select": "Seleccionar Idioma",
@@ -178,6 +200,9 @@
         "nav_links": {
             "home": "Inicio",
             "about": "Sobre Nosotros",
+            "edition4": "4ta Edición",
+            "my_race": "Mi carrera",
+            "photographers": "Camarógrafos",
             "competitions": "Competencias",
             "register": "Inscripciones"
         },

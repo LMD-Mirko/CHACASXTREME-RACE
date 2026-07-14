@@ -27,10 +27,28 @@
         "countdown": {
             "title": "Chacas Xtreme Race | Prossimamente",
             "description": "Preparati per l'estremo. È iniziato il conto alla rovescia per la sfida di mountain bike definitiva nelle Ande."
+        },
+        "edition-4": {
+            "title": "4ª Edizione Live | Chacas Xtreme Race",
+            "description": "Elenco rider, risultati in tempo reale, orari di partenza e classifica della 4ª edizione di Chacas Xtreme Race."
+        },
+        "photographer-auth": {
+            "title": "Accesso Fotografi | Chacas Xtreme Race",
+            "description": "Registrazione fotografi ufficiali per caricare foto e video della 4ª edizione."
+        },
+        "photographer-panel": {
+            "title": "Pannello Fotografi | Chacas Xtreme Race",
+            "description": "Carica e gestisci i media dei competitor di Chacas Xtreme Race."
+        },
+        "competitor-dossier": {
+            "title": "La Mia Gara | Chacas Xtreme Race",
+            "description": "Consulta il tuo dossier personale: risultati, foto e video della tua partecipazione."
         }
     },
     "nav": {
         "home": "Home",
+        "about": "Chi Siamo",
+        "edition4": "4ª Edizione",
         "riders": "I Riders",
         "challenge": "La Sfida",
         "gallery": "Galleria",
@@ -87,7 +105,11 @@
         ],
         "tagline": "PRESENTIAMO MANKA RIDERS",
         "cta_primary": "Iscriviti Ora",
-        "cta_secondary": "Versione Demo"
+        "cta_secondary": "Versione Demo",
+        "prev_slide": "Diapositiva precedente",
+        "next_slide": "Diapositiva successiva",
+        "slides_label": "Diapositive hero",
+        "slide_n": "Vai alla diapositiva {n}"
     },
     "language": {
         "select": "Seleziona Lingua",
@@ -178,6 +200,9 @@
         "nav_links": {
             "home": "Home",
             "about": "Chi Siamo",
+            "edition4": "4ª Edizione",
+            "my_race": "La mia gara",
+            "photographers": "Fotografi",
             "competitions": "Competizioni",
             "register": "Iscrizioni"
         },

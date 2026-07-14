@@ -427,7 +427,7 @@ onUnmounted(() => {
           Detrás de cada cumbre conquistada y cada récord batido, hay un equipo incansable. Un homenaje a nuestro staff y voluntarios locales que operan el evento de manera 100% gratuita, con pura pasión y de corazón.
         </p>
         <div class="hero-actions reveal">
-          <a href="https://chat.whatsapp.com/placeholder" target="_blank" rel="noopener noreferrer" class="whatsapp-btn-premium">
+          <a href="https://wa.me/51983426996?text=Hola%2C%20me%20interesa%20unirme%20como%20voluntario%20o%20staff%20de%20Chacas%20Xtreme%20Race" target="_blank" rel="noopener noreferrer" class="whatsapp-btn-premium">
             <span class="btn-glow"></span>
             <span class="btn-text">UNIRSE AL GRUPO DE TRABAJO</span>
             <ChevronRight :size="18" class="arrow-icon" />

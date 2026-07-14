@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import HeroSlider from '@/features/landing/components/HeroSlider.vue';
+import Edition4Gallery from '@/features/landing/components/Edition4Gallery.vue';
 import AboutSection from '@/features/landing/components/AboutSection.vue';
 import ImageCarousel from '@/features/landing/components/ImageCarousel.vue';
 import TheChallenge from '@/features/landing/components/TheChallenge.vue';
@@ -22,6 +23,10 @@ onMounted(() => {
   }
 });
 
+onUnmounted(() => {
+  window.removeEventListener('keydown', onModalKeydown);
+});
+
 const closeModal = () => {
   showRiderListModal.value = false;
   sessionStorage.setItem('extreme-modal-shown', 'true');
@@ -32,18 +37,40 @@ const goToEdition4 = () => {
   sessionStorage.setItem('extreme-modal-shown', 'true');
   router.push('/edicion-4#resultados');
 };
+
+const onModalKeydown = (e) => {
+  if (e.key === 'Escape' && showRiderListModal.value) closeModal();
+};
+
+const openModalWatcher = () => {
+  if (showRiderListModal.value) {
+    window.addEventListener('keydown', onModalKeydown);
+  } else {
+    window.removeEventListener('keydown', onModalKeydown);
+  }
+};
+
+watch(showRiderListModal, openModalWatcher);
 </script>
 
 <template>
   <main>
     <HeroSlider id="inicio" />
+    <Edition4Gallery class="reveal-stagger" />
     <AboutSection id="sobre-nosotros" class="reveal-stagger" />
     <ImageCarousel id="galeria" class="reveal-stagger" />
     <TheChallenge id="participantes" class="reveal-stagger" />
     <ContactSection id="contacto" class="reveal-stagger" />
 
     <!-- Extreme Pop-up Modal -->
-    <div v-if="showRiderListModal" class="extreme-modal-overlay" @click.self="closeModal">
+    <div
+      v-if="showRiderListModal"
+      class="extreme-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="extreme-modal-title"
+      @click.self="closeModal"
+    >
       <div class="extreme-modal-card">
         <!-- Hazard Stripe Header Decor -->
         <div class="modal-hazard-tape">
@@ -52,7 +79,7 @@ const goToEdition4 = () => {
 
         <div class="modal-body">
           <div class="modal-badge">EVENTO OFICIAL</div>
-          <h2 class="modal-title font-podium">
+          <h2 id="extreme-modal-title" class="modal-title font-podium">
             ¿QUIERES VER EL <span class="highlight">PADRÓN DE LA 4TA EDICIÓN</span>?
           </h2>
           <p class="modal-desc font-inter">
@@ -60,11 +87,11 @@ const goToEdition4 = () => {
           </p>
 
           <div class="modal-actions">
-            <button @click="goToEdition4" class="modal-btn btn-confirm">
+            <button type="button" @click="goToEdition4" class="modal-btn btn-confirm" aria-label="Ver resultados y padrón de la 4ta edición">
               <span>VER RESULTADOS Y PADRÓN</span>
-              <span class="arrow-icon">🏁</span>
+              <span class="arrow-icon" aria-hidden="true">🏁</span>
             </button>
-            <button @click="closeModal" class="modal-btn btn-cancel">
+            <button type="button" @click="closeModal" class="modal-btn btn-cancel" aria-label="Cerrar y seguir en el inicio">
               SEGUIR EN EL INICIO
             </button>
           </div>

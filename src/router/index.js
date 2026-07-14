@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '@/views/HomeView.vue';
-import HowToParticipateView from '@/views/HowToParticipateView.vue';
-import CyclistRegistrationView from '@/views/CyclistRegistrationView.vue';
 
 const routes = [
     {
@@ -43,7 +40,31 @@ const routes = [
         path: '/conoce-chacas',
         name: 'discover-chacas',
         component: () => import('../views/DiscoverChacasView.vue')
-    }
+    },
+    {
+        path: '/camarografos',
+        name: 'photographer-auth',
+        component: () => import('../features/media/views/PhotographerAuthView.vue'),
+        meta: { hideChrome: true },
+    },
+    {
+        path: '/camarografos/panel',
+        name: 'photographer-panel',
+        component: () => import('../features/media/views/PhotographerPanelView.vue'),
+        meta: { hideChrome: true },
+    },
+    {
+        path: '/mi-carrera',
+        name: 'competitor-dossier',
+        component: () => import('../features/media/views/CompetitorDossierView.vue'),
+        meta: { hideChrome: true },
+    },
+    {
+        path: '/completar-perfil',
+        name: 'rider-profile-complete',
+        component: () => import('../features/profile/views/RiderProfileCompleteView.vue'),
+        meta: { hideChrome: true },
+    },
 ];
 
 const router = createRouter({

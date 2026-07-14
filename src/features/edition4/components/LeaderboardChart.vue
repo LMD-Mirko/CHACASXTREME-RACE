@@ -1,339 +1,269 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Clock, Trophy, MapPin, Award, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const props = defineProps({
-  riders: {
-    type: Array,
-    required: true
-  }
+  riders: { type: Array, required: true },
+  isMega: { type: Boolean, default: false },
+  isFinal: { type: Boolean, default: false },
 });
 
 const hoveredRiderId = ref(null);
 const activeRiderId = ref(null);
 const scrollContainer = ref(null);
-
-// Map of DOM elements for each column card, to calculate viewport offset dynamically
 const columnRefs = {};
 const setColumnRef = (el, id) => {
-  if (el) {
-    columnRefs[id] = el;
-  } else {
-    delete columnRefs[id];
-  }
+  if (el) columnRefs[id] = el;
+  else delete columnRefs[id];
 };
-
 const tooltipStyle = ref({ left: '0px', top: '0px', opacity: 0 });
 
-// Parse "MM:SS.ms" or "HH:MM:SS.ms" to raw seconds
 const parseTimeToSeconds = (timeStr) => {
   if (!timeStr) return 0;
   try {
-    const parts = timeStr.split(':');
+    const parts = String(timeStr).split(':');
     if (parts.length === 3) {
       const hrs = parseInt(parts[0], 10) || 0;
       const mins = parseInt(parts[1], 10) || 0;
       const secsParts = parts[2].split('.');
       const secs = parseInt(secsParts[0], 10) || 0;
-      const ms = parseFloat('0.' + (secsParts[1] || '0')) || 0;
+      const ms = parseFloat(`0.${secsParts[1] || '0'}`) || 0;
       return hrs * 3600 + mins * 60 + secs + ms;
-    } else {
-      const mins = parseInt(parts[0], 10) || 0;
-      const secsParts = parts[1].split('.');
-      const secs = parseInt(secsParts[0], 10) || 0;
-      const ms = parseFloat('0.' + (secsParts[1] || '0')) || 0;
-      return mins * 60 + secs + ms;
     }
-  } catch (e) {
+    const mins = parseInt(parts[0], 10) || 0;
+    const secsParts = (parts[1] || '0').split('.');
+    const secs = parseInt(secsParts[0], 10) || 0;
+    const ms = parseFloat(`0.${secsParts[1] || '0'}`) || 0;
+    return mins * 60 + secs + ms;
+  } catch {
     return 0;
   }
 };
 
-// Process riders, sort them, and compute relative heights/widths
 const chartData = computed(() => {
-  // Sort riders: Llego first (by time), then DNF, then DNS
-  const sorted = [...props.riders].sort((a, b) => {
-    const scoreA = a.estado_carrera === 'DNF' || a.estado_carrera === 'DNS' ? 3 : (a.estado_carrera === 'llego' ? 1 : 2);
-    const scoreB = b.estado_carrera === 'DNF' || b.estado_carrera === 'DNS' ? 3 : (b.estado_carrera === 'llego' ? 1 : 2);
-    
-    if (scoreA !== scoreB) return scoreA - scoreB;
-
-    if (a.estado_carrera === 'llego' && b.estado_carrera === 'llego') {
-      return a.tiempo_meta.localeCompare(b.tiempo_meta);
-    }
-    return 0;
-  });
-
-  const arrived = sorted.filter(r => r.estado_carrera === 'llego');
-  const times = arrived.map(r => parseTimeToSeconds(r.tiempo_meta)).filter(t => t > 0);
+  const sorted = [...props.riders];
+  const arrived = sorted.filter((r) => r.estado_carrera === 'llego');
+  const times = arrived.map((r) => parseTimeToSeconds(r.tiempo_meta)).filter((t) => t > 0);
   const minTime = times.length ? Math.min(...times) : 0;
   const maxTime = times.length ? Math.max(...times) : 0;
 
+  let arrivedRank = 0;
   return sorted.map((rider, index) => {
-    let pctHeight = 12; // default for DNF/DNS/Hold
-    
+    let pctHeight = 14;
+    let position = index + 1;
     if (rider.estado_carrera === 'llego') {
-      if (maxTime === minTime || times.length === 1) {
-        pctHeight = 42;
-      } else {
+      arrivedRank += 1;
+      position = rider._megaPos ?? rider.position ?? arrivedRank;
+      if (maxTime === minTime || times.length === 1) pctHeight = 48;
+      else {
         const timeSecs = parseTimeToSeconds(rider.tiempo_meta);
-        const range = maxTime - minTime;
-        const normalized = (timeSecs - minTime) / range;
-        pctHeight = 42 - (normalized * 24); // 42% to 18%
+        const range = maxTime - minTime || 1;
+        pctHeight = 50 - ((timeSecs - minTime) / range) * 28;
       }
+    } else if (rider.estado_carrera === 'en_carrera') {
+      pctHeight = rider.paso_p1 ? 30 : 22;
     }
-
     const uniqueId = rider.id || rider.numero_dorsal || `rider-${index}`;
-
-    return {
-      ...rider,
-      id: uniqueId,
-      position: index + 1,
-      heightPct: pctHeight
-    };
+    return { ...rider, id: uniqueId, position, heightPct: pctHeight };
   });
 });
 
 const activeRider = computed(() => {
   const id = hoveredRiderId.value || activeRiderId.value;
   if (!id) return null;
-  return chartData.value.find(r => r.id === id);
+  return chartData.value.find((r) => r.id === id);
 });
 
-// Dynamic viewport calculations with boundary safety logic
 const updateTooltipPosition = (riderId) => {
   if (!riderId) return;
   const el = columnRefs[riderId];
   if (!el) return;
   const viewportEl = el.closest('.chart-viewport');
   if (!viewportEl) return;
-
   const columnRect = el.getBoundingClientRect();
   const viewportRect = viewportEl.getBoundingClientRect();
-
-  // 1. Calculate column horizontal center relative to the viewport
-  let leftOffset = (columnRect.left + columnRect.width / 2) - viewportRect.left;
-
-  // 2. Clamp position to prevent horizontal clipping at left/right edges
-  const tooltipWidth = 230;
-  const halfTooltip = tooltipWidth / 2;
-  const safetyMargin = 16; // Margin from the black viewport borders
-  const minLeft = halfTooltip + safetyMargin; // 131px
-  const maxLeft = viewportRect.width - halfTooltip - safetyMargin;
-
-  if (leftOffset < minLeft) leftOffset = minLeft;
-  if (leftOffset > maxLeft) leftOffset = maxLeft;
-
-  // 3. Position tooltip exactly 155px above the column top (so it fits within 600px viewport)
-  const topOffset = (columnRect.top - viewportRect.top) - 155;
-
-  tooltipStyle.value = {
-    left: `${leftOffset}px`,
-    top: `${topOffset}px`,
-    opacity: 1
-  };
+  let leftOffset = columnRect.left + columnRect.width / 2 - viewportRect.left;
+  const halfTooltip = 120;
+  const safety = 16;
+  leftOffset = Math.max(halfTooltip + safety, Math.min(viewportRect.width - halfTooltip - safety, leftOffset));
+  const topOffset = Math.max(12, columnRect.top - viewportRect.top - 150);
+  tooltipStyle.value = { left: `${leftOffset}px`, top: `${topOffset}px`, opacity: 1 };
 };
 
-// Carousel Scroll Navigation methods
-const slidePrev = () => {
-  if (scrollContainer.value) {
-    scrollContainer.value.scrollBy({ left: -340, behavior: 'smooth' });
-  }
-};
-
-const slideNext = () => {
-  if (scrollContainer.value) {
-    scrollContainer.value.scrollBy({ left: 340, behavior: 'smooth' });
-  }
-};
-
-// Sync position during horizontal scrolling
+const slidePrev = () => scrollContainer.value?.scrollBy({ left: -360, behavior: 'smooth' });
+const slideNext = () => scrollContainer.value?.scrollBy({ left: 360, behavior: 'smooth' });
 const handleScroll = () => {
   const id = hoveredRiderId.value || activeRiderId.value;
-  if (id) {
-    updateTooltipPosition(id);
+  if (id) updateTooltipPosition(id);
+};
+const handleMouseEnter = (id) => { hoveredRiderId.value = id; updateTooltipPosition(id); };
+const handleMouseLeave = () => { hoveredRiderId.value = null; };
+const handleRiderClick = (id) => {
+  activeRiderId.value = activeRiderId.value === id ? null : id;
+  if (activeRiderId.value) setTimeout(() => updateTooltipPosition(id), 0);
+};
+const statusText = (rider) => {
+  if (rider.estado_carrera === 'llego') return 'LLEGÓ';
+  if (rider.estado_carrera === 'en_carrera') {
+    if (rider.paso_p1) return rider.hora_p1 ? `P1 ${rider.hora_p1}` : 'P1';
+    return 'EN RUTA';
   }
-};
-
-// Hover and click triggers
-const handleMouseEnter = (riderId) => {
-  hoveredRiderId.value = riderId;
-  updateTooltipPosition(riderId);
-};
-
-const handleMouseLeave = () => {
-  hoveredRiderId.value = null;
-};
-
-const handleRiderClick = (riderId) => {
-  if (activeRiderId.value === riderId) {
-    activeRiderId.value = null;
-  } else {
-    activeRiderId.value = riderId;
-    // Set position on next tick to ensure refs are ready
-    setTimeout(() => {
-      updateTooltipPosition(riderId);
-    }, 0);
-  }
+  if (rider.estado_carrera === 'DNF') return 'DNF';
+  if (rider.estado_carrera === 'DNS') return 'DNS';
+  return 'PRE';
 };
 </script>
 
 <template>
   <div class="leaderboard-chart-wrap">
-    <!-- SVGs gradients definitions -->
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
       <defs>
         <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffe259" />
-          <stop offset="100%" stop-color="#ffa751" />
+          <stop offset="0%" stop-color="#ffe259" /><stop offset="100%" stop-color="#ffa751" />
         </linearGradient>
         <linearGradient id="silver-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff" />
-          <stop offset="100%" stop-color="#94a3b8" />
+          <stop offset="0%" stop-color="#ffffff" /><stop offset="100%" stop-color="#94a3b8" />
         </linearGradient>
         <linearGradient id="bronze-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffb88c" />
-          <stop offset="100%" stop-color="#de6262" />
+          <stop offset="0%" stop-color="#ffb88c" /><stop offset="100%" stop-color="#de6262" />
         </linearGradient>
       </defs>
     </svg>
 
-    <div class="chart-header-hint font-accent">
-      💡 Clica en las flechas laterales para deslizar. Pasa el cursor (o presiona en celular) sobre la barra exacta de un piloto para ver su información.
+    <div class="chart-chrome">
+      <div class="chart-chrome__left">
+        <span class="chart-kicker font-accent">{{ isFinal ? 'Final' : 'Clasificación' }}</span>
+        <h3 class="chart-title font-podium">Ranking visual</h3>
+      </div>
+      <p class="chart-header-hint font-accent">Desliza · toca una barra para ver ficha</p>
     </div>
 
-    <!-- Scrollable Chart container -->
     <div class="chart-viewport">
-      <!-- Gradient Fades on the edges for a premium slider look -->
+      <div class="viewport-grid" aria-hidden="true"></div>
       <div class="viewport-fade viewport-fade--left"></div>
       <div class="viewport-fade viewport-fade--right"></div>
 
-      <!-- Floating Carousel navigation buttons -->
-      <button class="carousel-nav-btn btn-prev" @click="slidePrev" aria-label="Anterior">
-        <ChevronLeft :size="24" stroke-width="3" />
+      <button type="button" class="carousel-nav-btn btn-prev" @click="slidePrev" aria-label="Anterior">
+        <ChevronLeft :size="22" stroke-width="2.5" />
       </button>
-      <button class="carousel-nav-btn btn-next" @click="slideNext" aria-label="Siguiente">
-        <ChevronRight :size="24" stroke-width="3" />
+      <button type="button" class="carousel-nav-btn btn-next" @click="slideNext" aria-label="Siguiente">
+        <ChevronRight :size="22" stroke-width="2.5" />
       </button>
 
-      <!-- Scrollable Columns Wrapper -->
       <div class="columns-container" ref="scrollContainer" @scroll="handleScroll">
-        <div 
-          v-for="rider in chartData" 
-          :key="rider.id" 
-          :ref="el => setColumnRef(el, rider.id)"
+        <div
+          v-for="rider in chartData"
+          :key="rider.id"
+          :ref="(el) => setColumnRef(el, rider.id)"
           class="chart-column"
           :class="{
             'podium-1': rider.position === 1 && rider.estado_carrera === 'llego',
             'podium-2': rider.position === 2 && rider.estado_carrera === 'llego',
             'podium-3': rider.position === 3 && rider.estado_carrera === 'llego',
             'column-inactive': rider.estado_carrera === 'DNF' || rider.estado_carrera === 'DNS',
-            'column-active-touch': activeRiderId === rider.id
+            'column-active-touch': activeRiderId === rider.id,
           }"
           :style="{ height: rider.heightPct + '%' }"
           @mouseenter="handleMouseEnter(rider.id)"
           @mouseleave="handleMouseLeave"
           @click="handleRiderClick(rider.id)"
         >
-          <!-- Top decoration layer -->
           <div class="column-decoration">
-            <!-- 1st: Golden Crown -->
             <div class="podium-item-crown" v-if="rider.position === 1 && rider.estado_carrera === 'llego'">
               <svg viewBox="0 0 100 100" class="svg-crown">
                 <path d="M15,75 L85,75 L78,35 L60,52 L50,22 L40,52 L22,35 Z" fill="url(#gold-gradient)" stroke="#ffe259" stroke-width="2" />
-                <circle cx="50" cy="22" r="5" fill="#ffffff" stroke="#ffa751" stroke-width="1" />
-                <circle cx="22" cy="35" r="4" fill="#ffffff" />
-                <circle cx="78" cy="35" r="4" fill="#ffffff" />
-                <path d="M22,75 L78,75" stroke="#ffffff" stroke-dasharray="1.5,1.5" stroke-width="2" />
+                <circle cx="50" cy="22" r="5" fill="#fff" /><circle cx="22" cy="35" r="4" fill="#fff" /><circle cx="78" cy="35" r="4" fill="#fff" />
               </svg>
             </div>
-            
-            <!-- 2nd: Silver Laurel Wreath -->
             <div class="podium-item-laurel" v-if="rider.position === 2 && rider.estado_carrera === 'llego'">
               <svg viewBox="0 0 100 100" class="svg-laurel">
-                <!-- Left leaf branch -->
-                <path d="M35,75 C22,70 18,48 26,28 C28,25 26,23 24,25 C15,44 19,70 33,78 C35,79 36,77 35,75 Z" fill="url(#silver-gradient)" stroke="#ffffff" stroke-width="0.5" />
-                <path d="M24,32 Q16,28 21,23 Q28,28 24,32 Z" fill="url(#silver-gradient)" />
-                <path d="M22,44 Q14,40 18,34 Q26,38 22,44 Z" fill="url(#silver-gradient)" />
-                <path d="M23,56 Q14,54 18,48 Q27,50 23,56 Z" fill="url(#silver-gradient)" />
-                <path d="M26,67 Q18,68 20,60 Q30,61 26,67 Z" fill="url(#silver-gradient)" />
-                <!-- Right leaf branch -->
-                <path d="M65,75 C78,70 82,48 74,28 C72,25 74,23 76,25 C85,44 81,70 67,78 C65,79 64,77 65,75 Z" fill="url(#silver-gradient)" stroke="#ffffff" stroke-width="0.5" />
-                <path d="M76,32 Q84,28 79,23 Q72,28 76,32 Z" fill="url(#silver-gradient)" />
-                <path d="M78,44 Q86,40 82,34 Q74,38 78,44 Z" fill="url(#silver-gradient)" />
-                <path d="M77,56 Q86,54 82,48 Q73,50 77,56 Z" fill="url(#silver-gradient)" />
-                <path d="M74,67 Q82,68 80,60 Q70,61 74,67 Z" fill="url(#silver-gradient)" />
+                <path d="M35,75 C22,70 18,48 26,28 C28,25 26,23 24,25 C15,44 19,70 33,78 C35,79 36,77 35,75 Z" fill="url(#silver-gradient)" />
+                <path d="M65,75 C78,70 82,48 74,28 C72,25 74,23 76,25 C85,44 81,70 67,78 C65,79 64,77 65,75 Z" fill="url(#silver-gradient)" />
               </svg>
             </div>
-
-            <!-- 3rd: Bronze Badge -->
             <div class="podium-item-bronze" v-if="rider.position === 3 && rider.estado_carrera === 'llego'">
               <svg viewBox="0 0 100 100" class="svg-bronze">
-                <path d="M50,18 L76,27 C76,55 50,82 50,82 C50,82 24,55 24,27 Z" fill="url(#bronze-gradient)" stroke="#ffffff" stroke-width="1.5" />
-                <text x="50" y="58" font-size="28" font-family="var(--font-podium)" font-weight="950" fill="#ffffff" text-anchor="middle" stroke="#b24a00" stroke-width="1">3</text>
+                <path d="M50,18 L76,27 C76,55 50,82 50,82 C50,82 24,55 24,27 Z" fill="url(#bronze-gradient)" stroke="#fff" stroke-width="1.5" />
+                <text x="50" y="58" font-size="28" font-family="Poppins,sans-serif" font-weight="900" fill="#fff" text-anchor="middle">3</text>
               </svg>
             </div>
           </div>
 
-          <!-- Avatar with glowing ring -->
           <div class="column-avatar-wrap">
             <div class="avatar-ring">
-              <img :src="rider.foto_url" :alt="rider.nombres_completos" class="avatar-img" />
+              <img :src="rider.foto_url" :alt="rider.nombres_completos" class="avatar-img" loading="lazy" />
             </div>
-            <span class="dorsal-badge font-podium">#{{ rider.numero_dorsal }}</span>
+            <span class="dorsal-badge font-symbols">#{{ rider.numero_dorsal }}</span>
           </div>
 
-          <!-- Bar column body -->
           <div class="bar-body">
             <div class="bar-glass-shine"></div>
-            <!-- Animated neon top boundary -->
             <div class="bar-top-neon"></div>
           </div>
 
-          <!-- Axis/Label underneath -->
-          <div class="bar-footer font-podium">
-            <span class="footer-pos">#{{ rider.position }}</span>
-            <span class="footer-name">{{ rider.nombres_completos.split(' ')[0] }} {{ rider.nombres_completos.split(' ')[1] || '' }}</span>
-            <span class="footer-time">{{ rider.estado_carrera === 'llego' ? rider.tiempo_meta : rider.estado_carrera }}</span>
+          <div class="bar-footer">
+            <span class="footer-pos font-symbols">
+              {{ rider.estado_carrera === 'llego' ? `P${rider._megaPos ?? rider.position ?? ''}` : '—' }}
+            </span>
+            <span class="footer-name">{{ rider.nombres_completos.split(' ')[0] }}</span>
+            <span class="footer-time font-symbols">
+              {{ rider.estado_carrera === 'llego' ? (rider.tiempo_meta || '—') : statusText(rider) }}
+            </span>
+            <span v-if="isMega && rider.categoria_elegida" class="footer-cat font-accent">{{ rider.categoria_elegida }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Single Tooltip Container - Positioned Dynamically relative to Viewport, Safe from Edge Clipping -->
       <Transition name="tooltip-futuristic">
-        <div 
-          class="rider-tooltip font-inter" 
+        <div
           v-if="activeRider"
+          class="rider-tooltip font-inter"
           :style="tooltipStyle"
           :class="{
             'podium-1': activeRider.position === 1 && activeRider.estado_carrera === 'llego',
             'podium-2': activeRider.position === 2 && activeRider.estado_carrera === 'llego',
-            'podium-3': activeRider.position === 3 && activeRider.estado_carrera === 'llego'
+            'podium-3': activeRider.position === 3 && activeRider.estado_carrera === 'llego',
           }"
         >
           <div class="tooltip-header">
-            <span class="tooltip-dorsal font-podium">#{{ activeRider.numero_dorsal }}</span>
-            <span class="tooltip-pos font-podium">PUESTO {{ activeRider.position }}</span>
+            <span class="tooltip-dorsal font-symbols">#{{ activeRider.numero_dorsal }}</span>
+            <span class="tooltip-pos font-accent">PUESTO {{ activeRider.position }}</span>
           </div>
           <div class="tooltip-body">
-            <h4 class="tooltip-name font-podium">{{ activeRider.nombres_completos }}</h4>
-            <p class="tooltip-team" v-if="activeRider.club_team">🏁 {{ activeRider.club_team }}</p>
+            <h4 class="tooltip-name">{{ activeRider.nombres_completos }}</h4>
+            <p class="tooltip-team" v-if="activeRider.club_team">{{ activeRider.club_team }}</p>
             <div class="tooltip-grid">
+              <div class="grid-item" v-if="isMega">
+                <span class="grid-label">CATEGORÍA</span>
+                <span class="grid-val">{{ activeRider.categoria_elegida }}</span>
+              </div>
               <div class="grid-item">
                 <span class="grid-label">PROCEDENCIA</span>
                 <span class="grid-val">{{ activeRider.procedencia }}</span>
               </div>
               <div class="grid-item">
-                <span class="grid-label">TIEMPO TOTAL</span>
-                <span class="grid-val val-highlight">{{ activeRider.tiempo_meta ?? 'N/A' }}</span>
+                <span class="grid-label">TIEMPO</span>
+                <span class="grid-val val-highlight font-symbols">
+                  <template v-if="activeRider.estado_carrera === 'llego'">{{ activeRider.tiempo_meta ?? '—' }}</template>
+                  <template v-else-if="activeRider.paso_p1">{{ activeRider.hora_p1 || 'P1' }}</template>
+                  <template v-else>—</template>
+                </span>
               </div>
               <div class="grid-item">
-                <span class="grid-label">DIFERENCIA</span>
-                <span class="grid-val diff-highlight" :class="{ 'gold-text': activeRider.position === 1 }">{{ activeRider.diferencia }}</span>
+                <span class="grid-label">DIFF</span>
+                <span class="grid-val font-symbols" :class="{ 'gold-text': activeRider.position === 1 }">
+                  {{ activeRider.position === 1 ? '—' : activeRider.diferencia }}
+                </span>
               </div>
               <div class="grid-item">
                 <span class="grid-label">ESTADO</span>
-                <span class="grid-val val-status" :class="activeRider.estado_carrera">{{ activeRider.estado_carrera === 'llego' ? 'LLEGÓ' : activeRider.estado_carrera }}</span>
+                <span
+                  class="grid-val val-status"
+                  :class="[
+                    activeRider.estado_carrera,
+                    activeRider.paso_p1 && activeRider.estado_carrera === 'en_carrera' ? 'p1' : '',
+                  ]"
+                >{{ statusText(activeRider) }}</span>
               </div>
             </div>
           </div>
@@ -937,4 +867,78 @@ const handleRiderClick = (riderId) => {
     height: 38px;
   }
 }
+
+.chart-chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.chart-kicker {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+.chart-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: -0.5px;
+}
+.chart-header-hint {
+  margin: 0 !important;
+  font-size: 0.62rem !important;
+  color: rgba(255,255,255,0.4) !important;
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-style: solid !important;
+  padding: 0.45rem 0.75rem !important;
+  border-radius: 999px !important;
+}
+.viewport-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,94,0,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 100% 14%, 12% 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.55;
+}
+.footer-cat {
+  margin-top: 0.15rem;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.8);
+}
+.chart-viewport {
+  border: 1px solid rgba(255, 94, 0, 0.22) !important;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,94,0,0.1) 0%, transparent 50%),
+    rgba(5, 5, 5, 0.78) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 20px 50px rgba(0,0,0,0.45) !important;
+}
+.grid-val.val-status.en_carrera {
+  background: rgba(59, 130, 246, 0.22);
+  color: #60a5fa;
+  border: 1px solid #3b82f6;
+}
+.grid-val.val-status.en_carrera.p1,
+.grid-val.val-status.p1 {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid #fbbf24;
+}
+
 </style>

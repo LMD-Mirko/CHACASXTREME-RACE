@@ -7,13 +7,18 @@ import Footer from './features/landing/components/Footer.vue';
 import CustomCursor from './components/common/CustomCursor.vue';
 import AppBottomNav from './components/common/AppBottomNav.vue';
 import SplashScreen from './components/common/SplashScreen.vue';
+import PublicRaceLiveLayer from './components/common/PublicRaceLiveLayer.vue';
 
-const showSplash = ref(true);
 const route = useRoute();
+/** Edición 4 tiene su propio splash — no duplicar al entrar directo */
+const showSplash = ref(route.name !== 'edition-4');
 const { t, te, locale } = useI18n();
 
-// Hide navigation on the teaser page and special edition page
-const showNavigation = computed(() => route.name !== 'countdown' && route.name !== 'edition-4');
+// Hide navigation on teaser / edición / media tools
+const showNavigation = computed(() => {
+  if (route.meta?.hideChrome) return false;
+  return route.name !== 'countdown' && route.name !== 'edition-4';
+});
 
 const handleSplashFinish = () => {
   showSplash.value = false;
@@ -97,7 +102,7 @@ const updateStructuredData = () => {
     schemas.push({
       "@context": "https://schema.org",
       "@type": "SportsClub",
-      "name": "Manka Rider's",
+      "name": "Manka Riders",
       "image": "https://chacasxtremerace.com/assets/images/logo.webp",
       "@id": "https://chacasxtremerace.com/#organization",
       "url": "https://chacasxtremerace.com",
@@ -129,8 +134,8 @@ const updateStructuredData = () => {
       "@type": "SportsEvent",
       "name": "Chacas Xtreme Race 2026",
       "description": "La competencia de ciclismo de montaña más extrema y alta de la Cordillera Blanca, Áncash, Perú.",
-      "startDate": "2026-08-15T08:00:00-05:00",
-      "endDate": "2026-08-16T18:00:00-05:00",
+      "startDate": "2026-07-28T08:00:00-05:00",
+      "endDate": "2026-07-28T18:00:00-05:00",
       "eventStatus": "https://schema.org/EventScheduled",
       "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
       "location": {
@@ -145,7 +150,7 @@ const updateStructuredData = () => {
       },
       "organizer": {
         "@type": "SportsOrganization",
-        "name": "Manka Rider's",
+        "name": "Manka Riders",
         "url": "https://chacasxtremerace.com"
       },
       "offers": {
@@ -231,7 +236,7 @@ const updateMetaTags = () => {
   const path = route.path === '/' ? '/' : route.path;
   const currentPathUrl = `${baseUrl}${path}`;
   const absoluteUrl = locale.value === 'es' ? currentPathUrl : `${currentPathUrl}?lang=${locale.value}`;
-  const ogImageUrl = `${baseUrl}/logo.jpg`;
+  const ogImageUrl = `${baseUrl}/logo.webp`;
 
   // Standard Meta Tags
   updateOrCreateMetaTag('description', description);
@@ -293,6 +298,7 @@ onMounted(() => {
     </router-view>
     <Footer id="ubicacion" v-if="showNavigation" />
     <AppBottomNav v-if="showNavigation" />
+    <PublicRaceLiveLayer v-if="!route.meta?.hideChrome" />
   </div>
 </template>
 

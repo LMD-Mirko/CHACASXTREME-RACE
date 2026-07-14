@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "tunnel": "bash scripts/vps-tunnel.sh",
+    "dev:vps": "VITE_VPS_DIRECT=1 vite",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -12,7 +14,9 @@
     "@vueuse/core": "^14.1.0",
     "canvas-confetti": "^1.9.4",
     "gsap": "^3.14.2",
+    "laravel-echo": "^2.4.0",
     "lucide-vue-next": "^0.562.0",
+    "pusher-js": "^8.5.0",
     "vue": "^3.5.24",
     "vue-i18n": "^11.2.8",
     "vue-router": "^4.6.4"

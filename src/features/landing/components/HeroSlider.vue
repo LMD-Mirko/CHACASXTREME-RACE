@@ -14,16 +14,10 @@ const router = useRouter();
 
 const bgImages = [hero1, hero2, hero3];
 
-const localSponsorList = [
-  'Nombre de Auspiciador',
-  'Manka Riders Partner',
-  'Auspiciador Oficial',
-  'Nombre de Auspiciador',
-  'Sponsor Destacado',
-  'Nombre de Auspiciador'
-];
-const sponsorList = ref([...localSponsorList]);
+const localSponsorList = [];
+const sponsorList = ref([]);
 const sponsorLoading = ref(true);
+const showSponsorTicker = computed(() => !sponsorLoading.value && sponsorList.value.length > 0);
 
 const slides = computed(() => [
   {
@@ -84,15 +78,12 @@ const loadSponsorNames = async () => {
   try {
     const names = await fetchSponsorsNames();
     if (Array.isArray(names) && names.length) {
-      // Use only remote names, dedupe and repeat them to reach the baseline length
-      sponsorList.value = repeatToLength(names, localSponsorList.length);
+      sponsorList.value = repeatToLength(names, TICKER_MIN);
     } else {
-      // No names returned — fallback to local defaults
-      sponsorList.value = [...localSponsorList];
+      sponsorList.value = [];
     }
-  } catch (error) {
-    console.warn('Sponsors API unavailable:', error.message);
-    sponsorList.value = [...localSponsorList];
+  } catch {
+    sponsorList.value = [];
   } finally {
     sponsorLoading.value = false;
   }
@@ -156,25 +147,29 @@ onUnmounted(() => {
 
       <!-- Controls -->
       <div class="hero__controls hero-enter hero-enter--5">
-        <button @click="prevSlide" class="control-btn" aria-label="Previous Slide">
+        <button @click="prevSlide" class="control-btn" :aria-label="t('hero.prev_slide')">
           <ChevronLeft :size="28" />
         </button>
-        <div class="hero__dots">
-          <span 
-            v-for="(_, index) in slides" 
+        <div class="hero__dots" role="tablist" :aria-label="t('hero.slides_label')">
+          <button
+            v-for="(_, index) in slides"
             :key="index"
+            type="button"
+            role="tab"
             :class="['dot', { active: currentIndex === index }]"
+            :aria-label="t('hero.slide_n', { n: index + 1 })"
+            :aria-selected="currentIndex === index"
             @click="currentIndex = index"
-          ></span>
+          ></button>
         </div>
-        <button @click="nextSlide" class="control-btn" aria-label="Next Slide">
+        <button @click="nextSlide" class="control-btn" :aria-label="t('hero.next_slide')">
           <ChevronRight :size="28" />
         </button>
       </div>
     </div>
 
     <!-- Double Caution Tape Sponsors Ticker -->
-    <div class="sponsor-tape-container hero-tape-enter">
+    <div v-if="showSponsorTicker" class="sponsor-tape-container hero-tape-enter">
       <!-- Tape 1 (Orange, moves Left) -->
       <div class="sponsor-tape sponsor-tape--1">
         <div class="tape-track move-left">
@@ -496,6 +491,8 @@ onUnmounted(() => {
 .dot {
   width: 35px;
   height: 3px;
+  padding: 0;
+  border: none;
   background: rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: var(--transition-smooth);
@@ -750,11 +747,11 @@ onUnmounted(() => {
 }
 
 .move-left {
-  animation: scroll-left-tape 14s linear infinite;
+  animation: scroll-left-tape 48s linear infinite;
 }
 
 .move-right {
-  animation: scroll-right-tape 14s linear infinite;
+  animation: scroll-right-tape 48s linear infinite;
 }
 
 .tape-segment {

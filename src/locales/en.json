@@ -27,10 +27,28 @@
         "countdown": {
             "title": "Chacas Xtreme Race | Coming Soon",
             "description": "Get ready for the extreme. The countdown has begun for the ultimate mountain biking challenge in the Andes."
+        },
+        "edition-4": {
+            "title": "4th Edition Live | Chacas Xtreme Race",
+            "description": "Rider list, live results, start times and standings for the 4th edition of Chacas Xtreme Race."
+        },
+        "photographer-auth": {
+            "title": "Photographer Access | Chacas Xtreme Race",
+            "description": "Official photographer registration to upload photos and videos from the 4th edition."
+        },
+        "photographer-panel": {
+            "title": "Photographer Panel | Chacas Xtreme Race",
+            "description": "Upload and manage competitor media for Chacas Xtreme Race."
+        },
+        "competitor-dossier": {
+            "title": "My Race | Chacas Xtreme Race",
+            "description": "View your personal dossier: results, photos and videos from your Chacas Xtreme Race participation."
         }
     },
     "nav": {
         "home": "Home",
+        "about": "About Us",
+        "edition4": "4th Edition",
         "riders": "The Riders",
         "challenge": "The Challenge",
         "gallery": "Gallery",
@@ -87,7 +105,11 @@
         ],
         "tagline": "PRESENTING MANKA RIDERS",
         "cta_primary": "Register Now",
-        "cta_secondary": "Demo Version"
+        "cta_secondary": "Demo Version",
+        "prev_slide": "Previous slide",
+        "next_slide": "Next slide",
+        "slides_label": "Hero slides",
+        "slide_n": "Go to slide {n}"
     },
     "language": {
         "select": "Select Language",
@@ -178,6 +200,9 @@
         "nav_links": {
             "home": "Home",
             "about": "About Us",
+            "edition4": "4th Edition",
+            "my_race": "My race",
+            "photographers": "Photographers",
             "competitions": "Competitions",
             "register": "Registration"
         },

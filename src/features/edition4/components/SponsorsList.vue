@@ -1,136 +1,132 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { fetchSponsors } from '@/composables/useBackendApi';
-import { Globe, Instagram, Facebook, Link2, Handshake } from 'lucide-vue-next';
+import principalLogo from '@/assets/images/logoSponsorprincipal.png';
+
+const MAIN_SPONSOR = {
+  name: 'INIZIA inmobiliaria',
+  tagline: 'Auspiciador oficial · 4ª Edición',
+  logo: principalLogo,
+};
 
 const sponsorsList = ref([]);
 const isLoading = ref(true);
+/** id → 'circle' | 'wide' | 'tall' | 'square' */
+const logoShapes = ref({});
 
-const defaultMockSponsors = [
-  {
-    id: 1,
-    company_name: "Municipalidad de Asunción Chacas",
-    description: "Patrocinador institucional y soporte logístico clave para el desarrollo seguro del evento en toda la provincia.",
-    logo_url: "https://images.unsplash.com/photo-1599305445671-ac291c95aba9?auto=format&fit=crop&w=200&q=80",
-    website_url: "https://www.gob.pe/munichacas"
-  },
-  {
-    id: 2,
-    company_name: "Cordillera Blanca DH Association",
-    description: "Asociación promotora del ciclismo de montaña extremo. Soporte técnico y de seguridad en pista.",
-    logo_url: "https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?auto=format&fit=crop&w=200&q=80",
-    instagram_url: "https://instagram.com"
-  },
-  {
-    id: 3,
-    company_name: "Ancash Riders Team",
-    description: "Club organizador local encargado de la preparación física de la pista y marcación del sendero.",
-    logo_url: "https://images.unsplash.com/photo-1541614101331-1a5a3a194e92?auto=format&fit=crop&w=200&q=80",
-    facebook_url: "https://facebook.com"
-  },
-  {
-    id: 4,
-    company_name: "BiciTienda Chacas & Soporte",
-    description: "Soporte técnico y mecánico oficial. Punto de asistencia de emergencia en partida y meta.",
-    logo_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=200&q=80",
-    website_url: "https://google.com"
-  }
-];
+const carouselSponsors = computed(() => sponsorsList.value.filter((s) => s?.logo_url));
+
+function shapeForSponsor(sponsor) {
+  const key = sponsor.id ?? sponsor.logo_url;
+  return logoShapes.value[key] || 'square';
+}
+
+/** Elige marco según proporción real del PNG/JPG */
+function onLogoLoad(sponsor, e) {
+  const img = e?.target;
+  if (!img?.naturalWidth || !img?.naturalHeight) return;
+  const ratio = img.naturalWidth / img.naturalHeight;
+  const key = sponsor.id ?? sponsor.logo_url;
+  let shape = 'square';
+  if (ratio >= 1.35) shape = 'wide';
+  else if (ratio <= 0.85) shape = 'tall';
+  else if (ratio >= 0.9 && ratio <= 1.12) shape = 'circle';
+  logoShapes.value = { ...logoShapes.value, [key]: shape };
+}
 
 const loadSponsorsData = async () => {
   try {
     const data = await fetchSponsors();
-    sponsorsList.value = data.length ? data : defaultMockSponsors;
+    sponsorsList.value = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.warn('API error fetching sponsors for Edition 4, using fallbacks:', error.message);
-    sponsorsList.value = defaultMockSponsors;
+    console.warn('[edition4] sponsors API:', error.message);
+    sponsorsList.value = [];
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(() => {
-  loadSponsorsData();
-});
+onMounted(loadSponsorsData);
 </script>
 
 <template>
   <div class="sponsors-tab-wrapper">
     <div class="sponsors-header">
       <div class="section-header-mini font-accent">
-        <span>OFFICIAL_SPONSORS // IV EDICIÓN CHACAS DH</span>
-        <span class="tech-tag">SPONSOR_GRID_CONNECTED</span>
+        <span>OFFICIAL_SPONSORS // IV EDICIÓN</span>
+        <span class="tech-tag">PARTNERS</span>
       </div>
       <h2 class="sponsors-title font-podium">
         NUESTROS <span class="highlight-text">AUSPICIADORES</span>
       </h2>
       <p class="sponsors-subtitle font-inter">
-        Las marcas y organizaciones que impulsan la adrenalina y hacen posible la carrera más extrema.
+        La alianza que hace posible la carrera más extrema de la Cordillera.
       </p>
     </div>
 
-    <div v-if="isLoading" class="sponsors-loading font-accent">
-      <div class="spinner"></div>
-      <span>CARGANDO ALIANZAS...</span>
-    </div>
+    <section class="main-sponsor" aria-label="Auspiciador oficial INIZIA inmobiliaria">
+      <p class="main-sponsor__kicker font-accent">Auspiciador oficial</p>
+      <img
+        :src="MAIN_SPONSOR.logo"
+        :alt="MAIN_SPONSOR.name"
+        class="main-sponsor__logo"
+        width="553"
+        height="451"
+        decoding="async"
+      />
+      <p class="main-sponsor__tagline font-symbols">{{ MAIN_SPONSOR.tagline }}</p>
+    </section>
 
-    <div v-else class="sponsors-grid">
-      <div 
-        v-for="sponsor in sponsorsList" 
-        :key="sponsor.id" 
-        class="sponsor-card"
-      >
-        <!-- Scope bracket decorations -->
-        <span class="decor-bracket tl"></span>
-        <span class="decor-bracket tr"></span>
-        <span class="decor-bracket bl"></span>
-        <span class="decor-bracket br"></span>
+    <section class="logo-carousel-section" aria-label="Carrusel de auspiciadores">
+      <div class="carousel-label font-accent">También nos acompañan</div>
 
-        <!-- Logo Frame -->
-        <div class="sponsor-logo-frame">
-          <img :src="sponsor.logo_url" :alt="sponsor.company_name" class="sponsor-logo" />
-        </div>
+      <div v-if="isLoading" class="sponsors-loading font-accent">
+        <div class="spinner"></div>
+        <span>CARGANDO ALIANZAS…</span>
+      </div>
 
-        <!-- Info details -->
-        <div class="sponsor-info">
-          <h3 class="sponsor-name font-podium">{{ sponsor.company_name }}</h3>
-          <p class="sponsor-desc font-inter">{{ sponsor.description || 'Patrocinador oficial de la 4ta Edición de Chacas Xtreme Race.' }}</p>
-          
-          <!-- Social Link Pills -->
-          <div class="sponsor-links font-accent">
-            <a v-if="sponsor.website_url" :href="sponsor.website_url" target="_blank" rel="noopener noreferrer" class="link-pill">
-              <Globe :size="12" />
-              <span>WEB</span>
-            </a>
-            <a v-if="sponsor.instagram_url" :href="sponsor.instagram_url" target="_blank" rel="noopener noreferrer" class="link-pill">
-              <Instagram :size="12" />
-              <span>INSTAGRAM</span>
-            </a>
-            <a v-if="sponsor.facebook_url" :href="sponsor.facebook_url" target="_blank" rel="noopener noreferrer" class="link-pill">
-              <Facebook :size="12" />
-              <span>FACEBOOK</span>
-            </a>
-            <span v-if="!sponsor.website_url && !sponsor.instagram_url && !sponsor.facebook_url" class="partner-badge">
-              <Handshake :size="12" />
-              PARTNER
-            </span>
+      <div v-else-if="!carouselSponsors.length" class="sponsors-empty font-inter">
+        Los logos de auspiciadores aparecerán aquí.
+      </div>
+
+      <div v-else class="carousel-track">
+        <div class="logo-list">
+          <div v-for="n in 2" :key="'loop-' + n" class="logo-group">
+            <div
+              v-for="(sponsor, index) in carouselSponsors"
+              :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
+              class="logo-tile"
+              :class="`logo-tile--${shapeForSponsor(sponsor)}`"
+              :style="`--f-delay: ${index * 0.12}s`"
+              :title="sponsor.company_name"
+            >
+              <img
+                :src="sponsor.logo_url"
+                :alt="sponsor.company_name"
+                class="logo-tile__img"
+                loading="lazy"
+                @load="onLogoLoad(sponsor, $event)"
+              />
+            </div>
           </div>
         </div>
+        <div class="carousel-glow-left"></div>
+        <div class="carousel-glow-right"></div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
 .sponsors-tab-wrapper {
-  margin-top: 6rem;
-  padding-top: 4rem;
-  border-top: 1px dashed rgba(255, 94, 0, 0.2);
-  margin-bottom: 5rem;
+  margin-top: 5rem;
+  padding-top: 3.5rem;
+  border-top: 1px solid rgba(255, 94, 0, 0.18);
+  margin-bottom: 4rem;
 }
 
 .sponsors-header {
-  margin-bottom: 3.5rem;
+  margin-bottom: 2.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -152,11 +148,15 @@ onMounted(() => {
   width: 100%;
 }
 
+.tech-tag {
+  color: var(--secondary-color);
+}
+
 .sponsors-title {
-  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
   font-weight: 950;
   line-height: 1;
-  margin: 0.8rem 0 1rem 0;
+  margin: 0.6rem 0 0.85rem;
   letter-spacing: -1.5px;
   text-transform: uppercase;
 }
@@ -170,181 +170,266 @@ onMounted(() => {
 }
 
 .sponsors-subtitle {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.5);
-  max-width: 650px;
-  line-height: 1.6;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.48);
+  max-width: 560px;
+  line-height: 1.55;
   margin: 0;
 }
 
-.tech-tag {
-  color: var(--secondary-color);
+.main-sponsor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto 3rem;
+  max-width: 520px;
+  width: 100%;
+}
+
+.main-sponsor__kicker {
+  margin: 0 0 1.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.main-sponsor__logo {
+  display: block;
+  width: min(100%, 380px);
+  height: auto;
+  animation: logoGlow 3.2s ease-in-out infinite;
+  will-change: filter, transform;
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(255, 94, 0, 0.18));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 42px rgba(255, 94, 0, 0.48));
+    transform: scale(1.015);
+  }
+}
+
+.main-sponsor__tagline {
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Carrusel adaptativo */
+.logo-carousel-section {
+  position: relative;
+  padding: 1.5rem 0 0.5rem;
+  overflow: hidden;
+}
+
+.carousel-label {
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 1.5rem;
+}
+
+.carousel-track {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.logo-list {
+  display: flex;
+  width: max-content;
+  animation: scrollLogos 42s linear infinite;
+  will-change: transform;
+}
+
+.logo-list:hover {
+  animation-play-state: paused;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 0.85rem 1.5rem;
+}
+
+.logo-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  animation: floatTile 6s ease-in-out infinite;
+  animation-delay: var(--f-delay, 0s);
+}
+
+/* Casi cuadrado → círculo */
+.logo-tile--circle {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  padding: 10px;
+}
+
+/* Horizontal / alargado */
+.logo-tile--wide {
+  width: 168px;
+  height: 88px;
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+/* Vertical */
+.logo-tile--tall {
+  width: 88px;
+  height: 120px;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+/* Cuadrado / default */
+.logo-tile--square {
+  width: 112px;
+  height: 112px;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.logo-tile__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  filter: brightness(0.98) contrast(1.02);
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.logo-tile:hover {
+  border-color: rgba(255, 94, 0, 0.55);
+  background: rgba(255, 94, 0, 0.06);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.12);
+  z-index: 5;
+  animation-play-state: paused;
+}
+
+.logo-tile:hover .logo-tile__img {
+  filter: brightness(1.05) contrast(1.04);
+  transform: scale(1.03);
+}
+
+.carousel-glow-left,
+.carousel-glow-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.carousel-glow-left {
+  left: 0;
+  background: linear-gradient(90deg, #020202, transparent);
+}
+
+.carousel-glow-right {
+  right: 0;
+  background: linear-gradient(270deg, #020202, transparent);
+}
+
+@keyframes scrollLogos {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes floatTile {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .sponsors-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 5rem 0;
+  gap: 0.85rem;
+  padding: 2.5rem 0;
   color: rgba(255, 255, 255, 0.4);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 2px;
 }
 
+.sponsors-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.9rem;
+}
+
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255, 94, 0, 0.1);
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 94, 0, 0.12);
   border-top-color: var(--primary-color);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* SPONSORS GRID */
-.sponsors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
-}
+@media (max-width: 768px) {
+  .main-sponsor__logo {
+    width: min(100%, 280px);
+  }
 
-.sponsor-card {
-  position: relative;
-  background: rgba(10, 10, 10, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 1.8rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1.2rem;
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.4s;
-}
+  .logo-tile--circle {
+    width: 88px;
+    height: 88px;
+  }
 
-/* Backdrop filter optimization */
-@media (min-width: 769px) {
-  .sponsor-card {
-    backdrop-filter: blur(12px);
+  .logo-tile--wide {
+    width: 140px;
+    height: 76px;
+  }
+
+  .logo-tile--tall {
+    width: 76px;
+    height: 100px;
+  }
+
+  .logo-tile--square {
+    width: 92px;
+    height: 92px;
+  }
+
+  .logo-group {
+    gap: 1.15rem;
   }
 }
 
-.sponsor-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(255, 94, 0, 0.35);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65), 0 0 25px rgba(255, 94, 0, 0.05);
-}
-
-/* Corner bracket decorations */
-.decor-bracket {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  transition: border-color 0.3s;
-}
-.sponsor-card:hover .decor-bracket {
-  border-color: var(--primary-color);
-}
-
-.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
-
-/* Logo Frame */
-.sponsor-logo-frame {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  padding: 3px;
-  border: 1.5px dashed rgba(255, 255, 255, 0.1);
-  background: rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  transition: border-color 0.4s;
-}
-
-.sponsor-card:hover .sponsor-logo-frame {
-  border-color: var(--primary-color);
-}
-
-.sponsor-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  filter: grayscale(0.3) brightness(0.9);
-  transition: filter 0.4s, transform 0.4s;
-}
-
-.sponsor-card:hover .sponsor-logo {
-  filter: grayscale(0) brightness(1.1);
-  transform: scale(1.05);
-}
-
-/* Info */
-.sponsor-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  width: 100%;
-}
-
-.sponsor-name {
-  font-size: 1.15rem;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.2;
-}
-
-.sponsor-desc {
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.sponsor-links {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.link-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 100px;
-  padding: 0.3rem 0.7rem;
-  font-size: 0.62rem;
-  color: rgba(255, 255, 255, 0.6);
-  transition: all 0.3s;
-}
-
-.link-pill:hover {
-  background: rgba(255, 94, 0, 0.1);
-  border-color: var(--primary-color);
-  color: #fff;
-}
-
-.partner-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.6rem;
-  color: var(--secondary-color);
-  font-weight: 900;
-  letter-spacing: 0.5px;
+@media (prefers-reduced-motion: reduce) {
+  .logo-list,
+  .logo-tile,
+  .main-sponsor__logo {
+    animation: none !important;
+  }
 }
 </style>

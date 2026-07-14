@@ -14,17 +14,18 @@ const isLoaded = ref(false);
 // Computed navigation links for reactivity on language change
 const navLinks = computed(() => [
   { name: t('nav.home'), to: { path: '/inicio', hash: '#inicio' } },
-  { name: 'Sobre Nosotros', to: { path: '/inicio', hash: '#sobre-nosotros' } }, // TODO: Add key for About
-  { 
-    name: t('nav.participate'), 
+  { name: t('nav.about'), to: { path: '/inicio', hash: '#sobre-nosotros' } },
+  { name: t('nav.edition4'), to: '/edicion-4' },
+  {
+    name: t('nav.participate'),
     to: '/como-participar',
     dropdown: [
-      { name: 'Auspiciadores', to: '/auspiciadores' },
-      { name: 'Riders', to: '/registro/ciclista' },
-      { name: 'Conoce Chacas', to: '/conoce-chacas' },
+      { name: t('nav.sponsors'), to: '/auspiciadores' },
+      { name: t('nav.riders'), to: '/registro/ciclista' },
+      { name: t('nav.chacas'), to: '/conoce-chacas' },
     ]
   },
-  { name: 'Eventos', to: '/eventos' },
+  { name: t('nav.events'), to: '/eventos' },
 ]);
 
 const handleScroll = () => {

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Instagram, Facebook, ArrowRight } from 'lucide-vue-next';
+import { Instagram, Facebook, ArrowRight, MessageCircle } from 'lucide-vue-next';
 import { gsap } from 'gsap';
 import { useI18n } from 'vue-i18n';
 import LanguageSelector from '@/components/common/LanguageSelector.vue';
@@ -269,11 +269,7 @@ const animateEntrance = () => {
       <div class="social-footer">
         <a href="https://www.instagram.com/manka_riders_team/" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram"><Instagram :size="22" /></a>
         <a href="https://www.facebook.com/profile.php?id=61567035784750&locale=es_LA" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook"><Facebook :size="22" /></a>
-        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="TikTok">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.6 8.6 0 0 1-1.87-1.39v9.23c.03 2.05-.62 4.13-1.95 5.7a7.6 7.6 0 0 1-5.69 2.76 7.6 7.6 0 0 1-6.19-2.9 8.3 8.3 0 0 1-1.63-5.36 8.1 8.1 0 0 1 2.39-5.74 7.64 7.64 0 0 1 5.37-2.33V12.1a3.25 3.25 0 0 0-2.6 1.86c-.51.81-.66 1.79-.47 2.72.2 1.1.84 2.1 1.76 2.73.93.63 2.1.83 3.19.55 1.1-.3 1.99-1.12 2.4-2.16.29-.82.35-1.7.35-2.56V.02z"/>
-          </svg>
-        </a>
+        <a href="https://wa.me/51983426996" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="WhatsApp"><MessageCircle :size="22" /></a>
       </div>
     </div>
   </div>

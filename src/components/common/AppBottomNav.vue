@@ -1,11 +1,10 @@
 <script setup>
 import { 
   Home, 
-  Flag, 
   Map, 
-  Users, 
   Handshake,
-  Zap
+  Zap,
+  Radio
 } from 'lucide-vue-next';
 import { RouterLink, useRoute } from 'vue-router';
 import { computed } from 'vue';
@@ -14,7 +13,7 @@ const route = useRoute();
 
 const navItems = [
   { name: 'Inicio', path: '/inicio', icon: Home },
-  { name: 'Eventos', path: '/eventos', icon: Flag },
+  { name: 'En vivo', path: '/edicion-4', icon: Radio },
   { name: 'PARTICIPAR', path: '/como-participar', icon: Zap, isAction: true },
   { name: 'Chacas', path: '/conoce-chacas', icon: Map },
   { name: 'Sponsors', path: '/auspiciadores', icon: Handshake }

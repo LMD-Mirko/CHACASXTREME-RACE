@@ -1,12 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { 
-  Handshake, 
-  Target, 
-  Users, 
-  Globe, 
-  TrendingUp, 
+import {
+  Handshake,
+  Target,
+  Users,
+  Globe,
+  TrendingUp,
   ArrowLeft,
   Instagram,
   Facebook,
@@ -21,6 +21,25 @@ const sponsors = ref([]);
 const selectedSponsor = ref(null);
 const showModal = ref(false);
 const loadingSponsors = ref(true);
+/** id → 'circle' | 'wide' | 'tall' | 'square' */
+const logoShapes = ref({});
+
+function shapeForSponsor(sponsor) {
+  const key = sponsor.id ?? sponsor.logo_url;
+  return logoShapes.value[key] || 'square';
+}
+
+function onLogoLoad(sponsor, e) {
+  const img = e?.target;
+  if (!img?.naturalWidth || !img?.naturalHeight) return;
+  const ratio = img.naturalWidth / img.naturalHeight;
+  const key = sponsor.id ?? sponsor.logo_url;
+  let shape = 'square';
+  if (ratio >= 1.35) shape = 'wide';
+  else if (ratio <= 0.85) shape = 'tall';
+  else if (ratio >= 0.9 && ratio <= 1.12) shape = 'circle';
+  logoShapes.value = { ...logoShapes.value, [key]: shape };
+}
 
 const loadSponsors = async () => {
   try {
@@ -84,7 +103,7 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- 2. AUTOMATIC CIRCULAR CAROUSEL -->
+    <!-- 2. CARRUSEL ADAPTATIVO DE LOGOS -->
     <section class="logo-carousel-section">
       <div class="carousel-track">
         <div class="logo-list">
@@ -94,16 +113,25 @@ onMounted(() => {
           <template v-else>
             <div v-if="sponsors.length" class="logo-group">
               <div v-for="n in 2" :key="n" class="logo-group-inner">
-                <div v-for="(sponsor, index) in sponsors" :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`" 
-                     class="logo-circle float-anim"
-                     :style="`--f-delay: ${index * 0.16}s`"
-                     @click="openSponsorModal(sponsor)"
+                <button
+                  v-for="(sponsor, index) in sponsors"
+                  :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
+                  type="button"
+                  class="logo-tile float-anim"
+                  :class="`logo-tile--${shapeForSponsor(sponsor)}`"
+                  :style="`--f-delay: ${index * 0.16}s`"
+                  :title="sponsor.company_name"
+                  :aria-label="`Ver detalle de ${sponsor.company_name}`"
+                  @click="openSponsorModal(sponsor)"
                 >
-                  <div class="logo-inner">
-                    <img :src="sponsor.logo_url" :alt="sponsor.company_name + ' - Auspiciador Oficial de Chacas Xtreme Race'" class="sponsor-logo-img" />
-                  </div>
-                  <div class="circle-border"></div>
-                </div>
+                  <img
+                    :src="sponsor.logo_url"
+                    :alt="sponsor.company_name + ' - Auspiciador Oficial de Chacas Xtreme Race'"
+                    class="logo-tile__img"
+                    loading="lazy"
+                    @load="onLogoLoad(sponsor, $event)"
+                  />
+                </button>
               </div>
             </div>
             <div v-else class="sponsor-placeholder">
@@ -119,7 +147,7 @@ onMounted(() => {
     <!-- 2.5 SPONSOR DETAILS MODAL -->
     <div v-if="showModal" class="sponsor-modal-backdrop" @click.self="closeSponsorModal">
       <div class="sponsor-modal reveal reveal--visible">
-        <button class="modal-close" @click="closeSponsorModal">×</button>
+        <button type="button" class="modal-close" aria-label="Cerrar" @click="closeSponsorModal">×</button>
         <div class="modal-hero">
           <div class="modal-logo-wrap">
             <img :src="selectedSponsor.logo_url" :alt="selectedSponsor.company_name" class="modal-logo" />
@@ -371,84 +399,93 @@ onMounted(() => {
   padding: 0 2rem;
 }
 
-.logo-circle {
-  width: 135px;
-  height: 135px;
-  min-width: 135px;
+.logo-group-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.logo-tile {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
   cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
   backface-visibility: hidden;
 }
 
-.logo-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+.logo-tile--circle {
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
+  padding: 12px;
 }
 
-.sponsor-logo-img {
+.logo-tile--wide {
+  width: 180px;
+  height: 96px;
+  border-radius: 16px;
+  padding: 14px 18px;
+}
+
+.logo-tile--tall {
+  width: 96px;
+  height: 132px;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.logo-tile--square {
+  width: 120px;
+  height: 120px;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.logo-tile__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  filter: grayscale(0.2) contrast(1.1) brightness(0.95);
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  filter: grayscale(0.15) contrast(1.05) brightness(0.97);
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .float-anim {
-  animation: floatCircle 6s ease-in-out infinite;
+  animation: floatTile 6s ease-in-out infinite;
   animation-delay: var(--f-delay);
   will-change: transform;
 }
 
-@keyframes floatCircle {
+@keyframes floatTile {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  50% { transform: translateY(-10px); }
 }
 
-.logo-circle:hover {
+.logo-tile:hover {
   background: rgba(255, 94, 0, 0.08);
   border-color: var(--primary-color);
-  transform: translateY(-15px) scale(1.08) !important;
+  transform: translateY(-12px) scale(1.05) !important;
   z-index: 10;
   box-shadow: 0 15px 30px rgba(255, 94, 0, 0.15);
+  animation-play-state: paused;
 }
 
-.logo-circle:hover .sponsor-logo-img {
-  filter: grayscale(0) contrast(1.05) brightness(1.1);
-  transform: scale(1.12);
-}
-
-.circle-border {
-  position: absolute;
-  inset: -6px;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.logo-circle:hover .circle-border {
-  border-color: var(--primary-color);
-  inset: -12px;
-  transform: rotate(45deg);
-}
-
-.logo-group-inner {
-  display: flex;
-  gap: 2rem;
+.logo-tile:hover .logo-tile__img {
+  filter: grayscale(0) contrast(1.05) brightness(1.08);
+  transform: scale(1.04);
 }
 
 .sponsor-placeholder {
@@ -920,8 +957,12 @@ onMounted(() => {
   }
 
   .logo-carousel-section { padding: 4rem 0; }
-  .logo-circle { width: 90px; height: 90px; min-width: 90px; }
+  .logo-tile--circle { width: 92px; height: 92px; }
+  .logo-tile--wide { width: 148px; height: 80px; }
+  .logo-tile--tall { width: 80px; height: 108px; }
+  .logo-tile--square { width: 96px; height: 96px; }
   .logo-group { gap: 2.5rem; }
+  .logo-group-inner { gap: 1.25rem; }
   
   .mission-section { 
     padding: 5rem 1.5rem; 
@@ -963,8 +1004,12 @@ onMounted(() => {
   .sponsor-hero { padding: 160px 0 80px; }
   .sponsor-title { font-size: 2.8rem; }
   
-  .logo-circle { width: 75px; height: 75px; min-width: 75px; }
+  .logo-tile--circle { width: 76px; height: 76px; }
+  .logo-tile--wide { width: 128px; height: 70px; }
+  .logo-tile--tall { width: 70px; height: 96px; }
+  .logo-tile--square { width: 80px; height: 80px; }
   .logo-group { gap: 1.5rem; }
+  .logo-group-inner { gap: 1rem; }
 
   .value-card { padding: 3rem 1.5rem; }
   

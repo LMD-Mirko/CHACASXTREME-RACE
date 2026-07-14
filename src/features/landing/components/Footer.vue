@@ -2,6 +2,7 @@
 import { Instagram, Facebook, MessageCircle, MapPin, Mail, Phone, ChevronRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useScrollReveal } from '@/composables/useScrollReveal';
+import DevCredit from '@/components/common/DevCredit.vue';
 
 const { t } = useI18n();
 useScrollReveal({ selector: '.reveal-stagger' });
@@ -33,10 +34,12 @@ useScrollReveal({ selector: '.reveal-stagger' });
       <div class="footer__links entry-anim entry-anim--up" style="--stagger: 0.1s">
         <h4 class="footer__title">{{ t('footer.titles.nav') }}</h4>
         <ul>
-          <li><a href="#inicio"><ChevronRight :size="16" /> {{ t('footer.nav_links.home') }}</a></li>
-          <li><a href="#sobre-nosotros"><ChevronRight :size="16" /> {{ t('footer.nav_links.about') }}</a></li>
-          <li><a href="#"><ChevronRight :size="16" /> {{ t('footer.nav_links.competitions') }}</a></li>
-          <li><a href="#"><ChevronRight :size="16" /> {{ t('footer.nav_links.register') }}</a></li>
+          <li><RouterLink to="/inicio#inicio"><ChevronRight :size="16" /> {{ t('footer.nav_links.home') }}</RouterLink></li>
+          <li><RouterLink to="/inicio#sobre-nosotros"><ChevronRight :size="16" /> {{ t('footer.nav_links.about') }}</RouterLink></li>
+          <li><RouterLink to="/edicion-4"><ChevronRight :size="16" /> {{ t('footer.nav_links.edition4') }}</RouterLink></li>
+          <li><RouterLink to="/mi-carrera"><ChevronRight :size="16" /> {{ t('footer.nav_links.my_race') }}</RouterLink></li>
+          <li><RouterLink to="/camarografos"><ChevronRight :size="16" /> {{ t('footer.nav_links.photographers') }}</RouterLink></li>
+          <li><RouterLink to="/registro/ciclista"><ChevronRight :size="16" /> {{ t('footer.nav_links.register') }}</RouterLink></li>
         </ul>
       </div>
 
@@ -63,13 +66,14 @@ useScrollReveal({ selector: '.reveal-stagger' });
       <div class="footer__map entry-anim entry-anim--up" style="--stagger: 0.3s">
         <h4 class="footer__title">{{ t('footer.titles.location') }}</h4>
         <div class="map-wrapper">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15754.673859344423!2d-77.3712128790076!3d-9.158784869408643!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91adb06716a47a75%3A0xe9c869480dc3b56!2sChacas%2C%20Peru!5e0!3m2!1sen!2sus!4v1703893000000!5m2!1sen!2sus" 
-            width="100%" 
-            height="150" 
-            style="border:0;" 
-            allowfullscreen="" 
-            loading="lazy" 
+          <iframe
+            title="Mapa de Chacas, Áncash, Perú"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15754.673859344423!2d-77.3712128790076!3d-9.158784869408643!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91adb06716a47a75%3A0xe9c869480dc3b56!2sChacas%2C%20Peru!5e0!3m2!1sen!2sus!4v1703893000000!5m2!1sen!2sus"
+            width="100%"
+            height="150"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
         </div>
@@ -78,10 +82,15 @@ useScrollReveal({ selector: '.reveal-stagger' });
 
     <div class="footer__bottom entry-anim entry-anim--fade" style="--stagger: 0.4s">
       <div class="container footer__bottom-content">
-        <p>&copy; 2025 Manka Rider's. {{ t('footer.rights') }}</p>
-        <div class="footer__legal">
-          <a href="#">{{ t('footer.terms') }}</a>
-          <a href="#">{{ t('footer.privacy') }}</a>
+        <div class="footer__bottom-left">
+          <DevCredit />
+        </div>
+        <div class="footer__bottom-right">
+          <p class="footer__copy">&copy; 2026 Manka Riders. {{ t('footer.rights') }}</p>
+          <div class="footer__legal">
+            <RouterLink to="/inicio#contacto">{{ t('footer.terms') }}</RouterLink>
+            <RouterLink to="/inicio#contacto">{{ t('footer.privacy') }}</RouterLink>
+          </div>
         </div>
       </div>
     </div>
@@ -231,8 +240,31 @@ useScrollReveal({ selector: '.reveal-stagger' });
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
   color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+.footer__bottom-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.footer__bottom-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.footer__copy {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .footer__legal {
@@ -242,6 +274,8 @@ useScrollReveal({ selector: '.reveal-stagger' });
 
 .footer__legal a {
   transition: var(--transition-smooth);
+  color: inherit;
+  text-decoration: none;
 }
 
 .footer__legal a:hover {
@@ -282,16 +316,23 @@ useScrollReveal({ selector: '.reveal-stagger' });
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
-  
+
   .footer__bottom-content {
     flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
-    text-align: center;
+    text-align: left;
     font-size: 0.82rem;
   }
-  
+
+  .footer__bottom-right {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .footer__legal {
-    justify-content: center;
+    justify-content: flex-end;
     gap: 1rem;
     flex-wrap: wrap;
   }

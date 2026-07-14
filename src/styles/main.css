@@ -9,8 +9,14 @@
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-    /* Exclude: U+0027 ('), U+002D (-), U+0034 (4), U+0058 (X), U+0078 (x), U+2013 (–), U+2014 (—) */
-    unicode-range: U+0000-0026, U+0028-002C, U+002E-0033, U+0035-0057, U+0059-0077, U+0079-2012, U+2015-10FFFF;
+    /*
+      Solo letras/números “seguros” de la DEMO.
+      Excluye: ' - 4 X x – — · º ° • y todo el bloque emoji
+      → esos glifos caen a Poppins / system (no se ven rotos).
+    */
+    unicode-range:
+      U+0000-0026, U+0028-002A, U+002C, U+002E-0033, U+0035-0057, U+0059-0077, U+0079-00AF,
+      U+00B1-00B6, U+00B8-00B9, U+00BB-2012, U+2015-2190, U+2192-1F2FF, U+1FA00-10FFFF;
 }
 
 :root {
@@ -27,7 +33,8 @@
     --accent-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     --font-main: 'Inter', system-ui, -apple-system, sans-serif;
     --font-accent: 'Poppins', sans-serif;
-    --font-podium: 'FSP DEMO - PODIUM Sharp 4.11', 'Poppins', sans-serif;
+    --font-podium: 'FSP DEMO - PODIUM Sharp 4.11', 'Poppins', system-ui, sans-serif;
+    --font-symbols: 'Poppins', system-ui, -apple-system, 'Segoe UI Symbol', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Responsive spacing — fluid across all viewports */
@@ -184,6 +191,14 @@ button {
 }
 .font-inter {
     font-family: var(--font-main);
+}
+/* Símbolos / puntuación / emoji: nunca la DEMO Podium */
+.sym,
+.font-symbols {
+    font-family: var(--font-symbols) !important;
+    font-weight: 700;
+    word-spacing: normal !important;
+    letter-spacing: normal !important;
 }
 
 /* Custom Keyframe Animations */

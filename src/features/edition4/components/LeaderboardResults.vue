@@ -1,338 +1,522 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Trophy, Clock, Award, MapPin, BarChart2, Table as TableIcon } from 'lucide-vue-next';
 import LeaderboardChart from './LeaderboardChart.vue';
+import { MEGA_KEY, buildCategoryOptions, isMegaFilter } from '../constants';
 
 const props = defineProps({
-  riders: {
-    type: Array,
-    required: true
-  }
+  riders: { type: Array, required: true },
+  categories: { type: Array, default: () => [] },
+  viewPhase: { type: String, default: 'practica' },
+  isFinalView: { type: Boolean, default: false },
+  manga: { type: Object, default: null },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: null },
 });
 
-const selectedResultsCategory = ref('Elite');
-const categoriesList = ['Elite', 'Junior', 'Rígidas', 'Locales'];
-const viewMode = ref('chart'); // 'chart' by default, switchable to 'table'
+const emit = defineEmits(['update:viewPhase']);
 
+const selectedResultsCategory = ref(MEGA_KEY);
+const viewMode = ref('chart');
 
-// Computed category-filtered leaderboard results
-const finalLeaderboard = computed(() => {
-  const categoryRiders = props.riders.filter(r => r.categoria_elegida.toLowerCase() === selectedResultsCategory.value.toLowerCase());
-  
-  const hasArrived = categoryRiders.some(r => r.estado_carrera === 'llego' || r.estado_carrera === 'DNF' || r.estado_carrera === 'DNS');
-  
-  if (hasArrived) {
-    // Return sorted simulated results
-    return [...categoryRiders].sort((a, b) => {
-      const scoreA = a.estado_carrera === 'DNF' || a.estado_carrera === 'DNS' ? 3 : (a.estado_carrera === 'llego' ? 1 : 2);
-      const scoreB = b.estado_carrera === 'DNF' || b.estado_carrera === 'DNS' ? 3 : (b.estado_carrera === 'llego' ? 1 : 2);
-      if (scoreA !== scoreB) return scoreA - scoreB;
-      if (a.estado_carrera === 'llego' && b.estado_carrera === 'llego') {
-        return a.tiempo_meta.localeCompare(b.tiempo_meta);
-      }
-      return 0;
-    });
-  } else {
-    // Default closed mock results for immediate professional display
-    const defaults = {
-      Elite: [
-        { nombres_completos: "Mirko Daniel Ramos Limas", numero_dorsal: 45, procedencia: "Chacas", club_team: "Ancash Riders Team", tiempo_meta: "03:14.450", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1541614101331-1a5a3a194e92?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "José Ignacio 'El Demonio'", numero_dorsal: 7, procedencia: "Chacas", club_team: "Manka Riders Elite", tiempo_meta: "03:18.120", diferencia: "+00:03.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Carlos Mendoza Vega", numero_dorsal: 12, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:22.500", diferencia: "+00:08.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Luigi Travi Elite", numero_dorsal: 10, procedencia: "Lima", club_team: "Manka Riders Elite", tiempo_meta: "03:25.900", diferencia: "+00:11.450", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Sergio Balanza Huaraz", numero_dorsal: 101, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "03:27.150", diferencia: "+00:12.700", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Mateo Ganoza Trujillo", numero_dorsal: 102, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "03:28.800", diferencia: "+00:14.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Julio Cesar Cueva", numero_dorsal: 103, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:29.950", diferencia: "+00:15.500", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Fabricio Peralta Arequipa", numero_dorsal: 104, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: "03:31.200", diferencia: "+00:16.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Gonzalo Chavez Lima", numero_dorsal: 105, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:32.400", diferencia: "+00:17.950", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Nicolas Lopez Chacas", numero_dorsal: 106, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:33.600", diferencia: "+00:19.150", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Gabriel Ruiz Caraz", numero_dorsal: 107, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:35.100", diferencia: "+00:20.650", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Sebastian Valdivia Cusco", numero_dorsal: 108, procedencia: "Cusco", club_team: "Inka Riders Cusco", tiempo_meta: "03:36.450", diferencia: "+00:22.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Rodrigo Rivas Huaraz", numero_dorsal: 109, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "03:38.200", diferencia: "+00:23.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Adrian Fernandez Chacas", numero_dorsal: 110, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:39.500", diferencia: "+00:25.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1541614101331-1a5a3a194e92?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Daniel Torres Yungay", numero_dorsal: 111, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "03:41.120", diferencia: "+00:26.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Marcos Estrada Huaraz", numero_dorsal: 112, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:42.400", diferencia: "+00:27.950", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Franco Merino Lima", numero_dorsal: 113, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:43.700", diferencia: "+00:29.250", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Lucas Espinoza Caraz", numero_dorsal: 114, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:45.000", diferencia: "+00:30.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Joaquin Salazar Trujillo", numero_dorsal: 115, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "03:46.300", diferencia: "+00:31.850", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Bruno Caceres Chacas", numero_dorsal: 116, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:47.800", diferencia: "+00:33.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Alejandro Flores Arequipa", numero_dorsal: 117, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: "03:49.200", diferencia: "+00:34.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Santiago Ramos Chacas", numero_dorsal: 118, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:50.500", diferencia: "+00:36.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Mauricio Delgado Lima", numero_dorsal: 119, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:51.850", diferencia: "+00:37.400", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Ricardo Ortiz Huaraz", numero_dorsal: 120, procedencia: "Huaraz", club_team: "Cordillera Blanca DH", tiempo_meta: "03:53.200", diferencia: "+00:38.750", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Leonardo Vega Yungay", numero_dorsal: 121, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "03:54.600", diferencia: "+00:40.150", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Javier Mendoza Caraz", numero_dorsal: 122, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "03:55.900", diferencia: "+00:41.450", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Alvaro Pinedo Lima", numero_dorsal: 123, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "03:57.300", diferencia: "+00:42.850", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Hugo Vasquez Chacas", numero_dorsal: 124, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "03:58.800", diferencia: "+00:44.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Fernando Castro Huaraz", numero_dorsal: 125, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "04:00.120", diferencia: "+00:45.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Matias Gomez Yungay", numero_dorsal: 126, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "04:01.500", diferencia: "+00:47.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Cristian Rojas Caraz", numero_dorsal: 127, procedencia: "Caraz", club_team: "Callejon de Huaylas DH", tiempo_meta: "04:03.000", diferencia: "+00:48.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Felipe Herrera Trujillo", numero_dorsal: 128, procedencia: "Trujillo", club_team: "Chimu Downhill", tiempo_meta: "04:04.500", diferencia: "+00:50.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Samuel Mendez Chacas", numero_dorsal: 129, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: "04:06.000", diferencia: "+00:51.550", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Diego Alexander Ramos", numero_dorsal: 130, procedencia: "Chacas", club_team: "Ancash Riders", tiempo_meta: "04:07.500", diferencia: "+00:53.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Ignacio Valenzuela Lima", numero_dorsal: 131, procedencia: "Lima", club_team: "Lima Downhill Club", tiempo_meta: "04:09.120", diferencia: "+00:54.670", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Roberto Villanueva Huaraz", numero_dorsal: 132, procedencia: "Huaraz", club_team: "Ancash Riders", tiempo_meta: "04:10.500", diferencia: "+00:56.050", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Marcelo Cisneros Yungay", numero_dorsal: 133, procedencia: "Yungay", club_team: "Huascaran Extreme", tiempo_meta: "04:12.100", diferencia: "+00:57.650", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Luis Enrique Prado", numero_dorsal: 134, procedencia: "Lima", club_team: "Manka Riders", tiempo_meta: "04:13.800", diferencia: "+00:59.350", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Gustavo Adolfo Becerra", numero_dorsal: 135, procedencia: "Arequipa", club_team: "Misti DH", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNF", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Angel Daniel Castillo", numero_dorsal: 136, procedencia: "Chacas", club_team: "Manka Riders", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNS", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" }
-      ],
-      Junior: [
-        { nombres_completos: "Diego Torres Huamán", numero_dorsal: 56, procedencia: "Carhuaz", club_team: "Carhuaz Downhill Club", tiempo_meta: "03:32.110", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Juan Pérez Guerrero", numero_dorsal: 88, procedencia: "Lima", club_team: "Independiente", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNF", foto_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" }
-      ],
-      Rígidas: [
-        { nombres_completos: "Luis Alberto Vega", numero_dorsal: 72, procedencia: "Chacas", club_team: "Manka Riders Club", tiempo_meta: "03:42.180", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Mateo Cerna Ortiz", numero_dorsal: 19, procedencia: "Huaraz", club_team: "Huascarán DH", tiempo_meta: "03:51.620", diferencia: "+00:09.440", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80" }
-      ],
-      Locales: [
-        { nombres_completos: "Alejandro Tafur", numero_dorsal: 9, procedencia: "Chacas", club_team: "Chacas DH", tiempo_meta: "03:28.900", diferencia: "00:00.000", estado_carrera: "llego", foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" },
-        { nombres_completos: "Sebastian Cueva", numero_dorsal: 31, procedencia: "Chacas", club_team: "Manka Riders Club", tiempo_meta: null, diferencia: "--:--", estado_carrera: "DNS", foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80" }
-      ]
-    };
-    return defaults[selectedResultsCategory.value] || [];
+const categoryOptions = computed(() => buildCategoryOptions(props.categories?.length
+  ? props.categories
+  : [...new Set(props.riders.map((r) => r.categoria_elegida).filter(Boolean))]
+));
+
+watch(categoryOptions, (opts) => {
+  if (!opts.length) return;
+  const keys = opts.map((o) => o.key);
+  if (!keys.includes(selectedResultsCategory.value)) {
+    selectedResultsCategory.value = MEGA_KEY;
   }
+}, { immediate: true });
+
+const isMega = computed(() => isMegaFilter(selectedResultsCategory.value));
+
+const parseTime = (timeStr) => {
+  if (!timeStr) return Number.POSITIVE_INFINITY;
+  try {
+    const parts = String(timeStr).split(':');
+    if (parts.length === 3) {
+      const hrs = parseInt(parts[0], 10) || 0;
+      const mins = parseInt(parts[1], 10) || 0;
+      const secsParts = parts[2].split('.');
+      const secs = parseInt(secsParts[0], 10) || 0;
+      const ms = parseFloat(`0.${secsParts[1] || '0'}`) || 0;
+      return hrs * 3600 + mins * 60 + secs + ms;
+    }
+    const mins = parseInt(parts[0], 10) || 0;
+    const secsParts = (parts[1] || '0').split('.');
+    const secs = parseInt(secsParts[0], 10) || 0;
+    const ms = parseFloat(`0.${secsParts[1] || '0'}`) || 0;
+    return mins * 60 + secs + ms;
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+};
+
+const formatDiff = (secsVal) => {
+  if (!Number.isFinite(secsVal) || secsVal <= 0) return '00:00.000';
+  const mins = Math.floor(secsVal / 60);
+  const secs = Math.floor(secsVal % 60);
+  const ms = Math.floor((secsVal % 1) * 1000);
+  return `+${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+};
+
+const finalLeaderboard = computed(() => {
+  const mega = isMega.value;
+  const cat = String(selectedResultsCategory.value || '').toLowerCase();
+
+  let rows = props.riders.filter((r) => {
+    if (mega) return true;
+    return String(r.categoria_elegida || '').toLowerCase() === cat;
+  });
+
+  rows = [...rows].sort((a, b) => {
+    const score = (s) => {
+      if (s === 'llego') return 1;
+      if (s === 'en_carrera') return 2;
+      if (s === 'DNF' || s === 'DNS') return 3;
+      return 4;
+    };
+    const sa = score(a.estado_carrera);
+    const sb = score(b.estado_carrera);
+    if (sa !== sb) return sa - sb;
+    if (a.estado_carrera === 'llego' && b.estado_carrera === 'llego') {
+      // duration_ms en ms; parseTime en segundos → unificar a segundos
+      const ta = a.duration_ms != null ? a.duration_ms / 1000 : parseTime(a.tiempo_meta);
+      const tb = b.duration_ms != null ? b.duration_ms / 1000 : parseTime(b.tiempo_meta);
+      if (ta !== tb) return ta - tb;
+      const pa = typeof a.position === 'number' ? a.position : null;
+      const pb = typeof b.position === 'number' ? b.position : null;
+      if (pa != null && pb != null) return pa - pb;
+      return 0;
+    }
+    // En ruta: quien ya pasó P1 primero; entre ellos, por hora de paso
+    if (a.estado_carrera === 'en_carrera' && b.estado_carrera === 'en_carrera') {
+      const pa = a.paso_p1 ? 0 : 1;
+      const pb = b.paso_p1 ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      if (a.paso_p1 && b.paso_p1) {
+        return String(a.hora_p1 || '').localeCompare(String(b.hora_p1 || ''));
+      }
+    }
+    return 0;
+  });
+
+  if (!mega) return rows;
+
+  const arrived = rows.filter((r) => r.estado_carrera === 'llego');
+  const leaderTime = arrived.length ? Math.min(...arrived.map((r) => parseTime(r.tiempo_meta))) : null;
+
+  let pos = 0;
+  return rows.map((r) => {
+    if (r.estado_carrera !== 'llego') {
+      return { ...r, _megaPos: null, diferencia: r.diferencia || '--:--' };
+    }
+    pos += 1;
+    const t = parseTime(r.tiempo_meta);
+    const gap = leaderTime != null && Number.isFinite(t) ? formatDiff(t - leaderTime) : (r.diferencia || '--:--');
+    return {
+      ...r,
+      _megaPos: pos,
+      diferencia: pos === 1 ? '00:00.000' : gap,
+    };
+  });
+});
+
+const statusLabel = computed(() => {
+  if (props.manga?.is_closed) {
+    return props.isFinalView ? 'FINAL CERRADA / OFICIAL' : 'CLASIFICACIÓN CERRADA';
+  }
+  if (props.manga?.still_racing > 0) {
+    return props.isFinalView ? 'FINAL EN CURSO' : 'CLASIFICACIÓN EN CURSO';
+  }
+  return props.isFinalView ? 'RESULTADOS FINAL' : 'CLASIFICACIÓN';
+});
+
+const displayPosition = (rider, idx) => {
+  if (isMega.value) {
+    if (rider.estado_carrera === 'llego' && rider._megaPos != null) return rider._megaPos;
+    return rider.estado_carrera === 'llego' ? idx + 1 : '—';
+  }
+  if (rider.estado_carrera === 'llego') {
+    if (typeof rider.position === 'number') return rider.position;
+    return idx + 1;
+  }
+  return '—';
+};
+
+const arrivedCount = computed(() => finalLeaderboard.value.filter((r) => r.estado_carrera === 'llego').length);
+const racingCount = computed(() => finalLeaderboard.value.filter((r) => r.estado_carrera === 'en_carrera').length);
+const leader = computed(() => finalLeaderboard.value.find((r) => r.estado_carrera === 'llego') || null);
+const selectedCategoryLabel = computed(() => {
+  const opt = categoryOptions.value.find((o) => o.key === selectedResultsCategory.value);
+  return opt?.label || 'Mega Avalancha';
 });
 </script>
 
 <template>
-  <div class="results-wrapper">
-    <!-- Filters panel -->
-    <div class="section-toolbar">
-      <div class="toolbar-left">
-        <div class="horizontal-selector">
+  <div class="results-wrapper results-wrapper--pro">
+    <div class="results-hero-panel">
+      <div class="results-hero-top">
+        <div class="results-hero-copy">
+          <span class="results-kicker font-accent">
+            {{ isFinalView ? 'Manga final' : 'Manga de clasificación' }}
+            <span class="sym"> · </span>{{ statusLabel }}
+          </span>
+          <h2 class="results-heading" :class="isMega ? 'font-podium' : 'font-accent cat-title'">
+            {{ isMega ? 'Mega Avalancha' : selectedCategoryLabel }}
+          </h2>
+          <p class="results-sub font-symbols">
+            Lectura oficial de puestos
+            <span class="sym"> · </span><span class="font-accent">{{ selectedCategoryLabel }}</span>
+          </p>
+        </div>
+
+        <div class="phase-tabs">
           <button
-            v-for="cat in categoriesList"
-            :key="cat"
-            class="category-selector-btn font-podium"
-            :class="{ 'active': selectedResultsCategory === cat }"
-            @click="selectedResultsCategory = cat"
+            type="button"
+            class="phase-tab font-accent"
+            :class="{ active: viewPhase === 'practica' }"
+            @click="emit('update:viewPhase', 'practica')"
           >
-            {{ cat }}
+            Clasificación
+          </button>
+          <button
+            type="button"
+            class="phase-tab font-accent"
+            :class="{ active: viewPhase === 'final' }"
+            @click="emit('update:viewPhase', 'final')"
+          >
+            Final
           </button>
         </div>
       </div>
-      
+
+      <div class="results-stat-row">
+        <div class="stat-chip">
+          <span class="stat-chip__lbl font-accent">Llegaron</span>
+          <span class="stat-chip__val font-symbols">{{ arrivedCount }}</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip__lbl font-accent">En tabla</span>
+          <span class="stat-chip__val font-symbols">{{ finalLeaderboard.length }}</span>
+        </div>
+        <div class="stat-chip" v-if="racingCount">
+          <span class="stat-chip__lbl font-accent">En ruta</span>
+          <span class="stat-chip__val font-symbols">{{ racingCount }}</span>
+        </div>
+        <div class="stat-chip" v-if="manga?.duration_formatted">
+          <span class="stat-chip__lbl font-accent">Transcurrido</span>
+          <span class="stat-chip__val font-symbols">{{ manga.duration_formatted }}</span>
+        </div>
+        <div class="stat-chip stat-chip--leader" v-if="leader">
+          <span class="stat-chip__lbl font-accent">Líder</span>
+          <span class="stat-chip__val font-symbols">
+            #{{ leader.numero_dorsal }}
+            <span class="sym"> · </span>{{ leader.tiempo_meta }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-toolbar section-toolbar--pro">
+      <div class="toolbar-left">
+        <label class="cat-select-wrap font-accent">
+          <span class="cat-select-lbl">Categoría</span>
+          <select
+            v-model="selectedResultsCategory"
+            class="cat-select"
+            aria-label="Filtrar por categoría"
+          >
+            <option
+              v-for="opt in categoryOptions"
+              :key="opt.key"
+              :value="opt.key"
+            >
+              {{ opt.label }}
+            </option>
+          </select>
+        </label>
+      </div>
+
       <div class="toolbar-right">
-        <!-- View Toggle Buttons -->
-        <div class="view-mode-toggle-wrap">
-          <button 
+        <div class="view-mode-toggle-wrap view-mode-toggle-wrap--pro">
+          <button
             class="toggle-btn font-accent"
-            :class="{ 'active': viewMode === 'chart' }"
+            :class="{ active: viewMode === 'chart' }"
             @click="viewMode = 'chart'"
           >
             <BarChart2 :size="14" />
             <span>GRÁFICO</span>
           </button>
-          <button 
+          <button
             class="toggle-btn font-accent"
-            :class="{ 'active': viewMode === 'table' }"
+            :class="{ active: viewMode === 'table' }"
             @click="viewMode = 'table'"
           >
             <TableIcon :size="14" />
             <span>TABLA</span>
           </button>
         </div>
-        
-        <div class="results-meta-tag font-accent">
-          REGISTRO CERRADO Y OFICIALIZADO
-        </div>
       </div>
     </div>
 
-    <!-- Interactive Leaderboard Chart -->
-    <LeaderboardChart 
-      v-if="viewMode === 'chart'"
+    <p v-if="error" class="results-banner error">{{ error }}</p>
+    <p v-else-if="loading" class="results-banner">Actualizando puestos…</p>
+    <p v-else-if="!finalLeaderboard.length" class="results-banner">
+      Aún no hay resultados para {{ isFinalView ? 'la Final' : 'Clasificación' }}
+      {{ isMega ? 'en Mega Avalancha' : 'en esta categoría' }}.
+    </p>
+
+    <LeaderboardChart
+      v-if="viewMode === 'chart' && finalLeaderboard.length"
       :riders="finalLeaderboard"
+      :is-mega="isMega"
+      :is-final="isFinalView"
     />
 
-    <!-- Leaderboard Table (Desktop View fallback) -->
-    <div v-else class="table-and-cards-view-wrap">
-      <div class="results-table-panel">
-      <table class="results-table">
-        <thead>
-          <tr>
-            <th>POSICIÓN</th>
-            <th>DORSAL</th>
-            <th>PILOTO</th>
-            <th>PROCEDENCIA</th>
-            <th>TIEMPO TOTAL</th>
-            <th>DIFERENCIA</th>
-            <th>ESTADO</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
-            v-for="(rider, idx) in finalLeaderboard" 
-            :key="idx"
-            :class="{ 
-              'podium-1st': idx === 0 && rider.estado_carrera === 'llego',
-              'podium-2nd': idx === 1 && rider.estado_carrera === 'llego',
-              'podium-3rd': idx === 2 && rider.estado_carrera === 'llego'
-            }"
-          >
-            <!-- Position with podium colors -->
-            <td class="col-pos font-podium">
-              <div class="podium-badge" v-if="idx < 3 && rider.estado_carrera === 'llego'">
-                <Trophy :size="14" class="trophy-icon" />
-                <span>{{ idx + 1 }}</span>
-              </div>
-              <span v-else>{{ idx + 1 }}</span>
-            </td>
+    <div v-else-if="viewMode === 'table' && finalLeaderboard.length" class="table-and-cards-view-wrap">
+      <div class="results-table-panel results-table-panel--minimal">
+        <table class="results-table results-table--minimal">
+          <thead>
+            <tr>
+              <th class="th-pos">#</th>
+              <th class="th-dorsal">No.</th>
+              <th class="th-pilot">Piloto</th>
+              <th v-if="isMega" class="th-cat">Cat.</th>
+              <th class="th-time">Tiempo</th>
+              <th class="th-gap">Diff</th>
+              <th v-if="isFinalView" class="th-clasif">Clasif.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(rider, idx) in finalLeaderboard"
+              :key="rider.id || idx"
+              :class="{
+                'is-podium': displayPosition(rider, idx) <= 3 && rider.estado_carrera === 'llego',
+                'is-leader': displayPosition(rider, idx) === 1 && rider.estado_carrera === 'llego',
+                'is-out': rider.estado_carrera === 'DNF' || rider.estado_carrera === 'DNS',
+              }"
+            >
+              <td class="col-pos">
+                <span
+                  class="rank-num font-symbols"
+                  :class="{
+                    'rank-1': displayPosition(rider, idx) === 1 && rider.estado_carrera === 'llego',
+                    'rank-2': displayPosition(rider, idx) === 2 && rider.estado_carrera === 'llego',
+                    'rank-3': displayPosition(rider, idx) === 3 && rider.estado_carrera === 'llego',
+                  }"
+                >
+                  {{ rider.estado_carrera === 'llego'
+                    ? displayPosition(rider, idx)
+                    : '—' }}
+                </span>
+              </td>
 
-            <!-- Dorsal Plate -->
-            <td class="col-dorsal font-podium">
-              <span class="dorsal-pill">{{ rider.numero_dorsal ?? '--' }}</span>
-            </td>
+              <td class="col-dorsal">
+                <span class="dorsal-num font-symbols">{{ rider.numero_dorsal ?? '—' }}</span>
+              </td>
 
-            <!-- Pilot Details -->
-            <td class="col-pilot">
-              <div class="pilot-info-wrap">
-                <div class="pilot-avatar-frame">
-                  <img :src="rider.foto_url" :alt="rider.nombres_completos" class="pilot-table-avatar" />
+              <td class="col-pilot">
+                <div class="pilot-row">
+                  <img
+                    :src="rider.foto_url"
+                    :alt="rider.nombres_completos"
+                    class="pilot-avatar"
+                    loading="lazy"
+                  />
+                  <div class="pilot-meta">
+                    <div class="pilot-name-line">
+                      <span class="pilot-name">{{ rider.nombres_completos }}</span>
+                      <span
+                        v-if="rider.estado_carrera !== 'llego'"
+                        class="status-inline font-accent"
+                        :class="rider.estado_carrera === 'en_carrera' && rider.paso_p1
+                          ? 'st-p1'
+                          : ('st-' + rider.estado_carrera)"
+                      >
+                        {{ rider.estado_carrera === 'en_carrera'
+                          ? (rider.paso_p1 ? 'P1' : 'EN RUTA')
+                          : rider.estado_carrera === 'DNF' ? 'DNF'
+                          : rider.estado_carrera === 'DNS' ? 'DNS'
+                          : 'PRE' }}
+                      </span>
+                    </div>
+                    <div class="pilot-sub font-symbols">
+                      <span v-if="rider.club_team">{{ rider.club_team }}</span>
+                      <span v-if="rider.club_team && rider.procedencia" class="sym"> · </span>
+                      <span v-if="rider.procedencia">{{ rider.procedencia }}</span>
+                      <template v-if="rider.paso_p1 && rider.hora_p1 && rider.estado_carrera === 'en_carrera'">
+                        <span class="sym"> · </span>
+                        <span class="p1-clock">P1 {{ rider.hora_p1 }}</span>
+                      </template>
+                    </div>
+                  </div>
                 </div>
-                <div class="pilot-info">
-                  <span class="pilot-name font-podium">{{ rider.nombres_completos }}</span>
-                  <span class="pilot-team" v-if="rider.club_team">{{ rider.club_team }}</span>
-                </div>
+              </td>
+
+              <td v-if="isMega" class="col-cat">
+                <span class="cat-text font-accent">{{ rider.categoria_elegida }}</span>
+              </td>
+
+              <td class="col-time font-symbols">
+                <span v-if="rider.estado_carrera === 'llego'">{{ rider.tiempo_meta }}</span>
+                <span v-else-if="rider.estado_carrera === 'en_carrera' && rider.paso_p1" class="time-p1 font-symbols">
+                  {{ rider.hora_p1 || 'P1' }}
+                </span>
+                <span v-else-if="rider.estado_carrera === 'en_carrera'" class="time-muted">…</span>
+                <span v-else class="time-muted">—</span>
+              </td>
+
+              <td class="col-diff font-symbols">
+                <span
+                  v-if="rider.estado_carrera === 'llego'"
+                  :class="{ 'is-leader-gap': displayPosition(rider, idx) === 1 }"
+                >
+                  {{ displayPosition(rider, idx) === 1 ? '—' : rider.diferencia }}
+                </span>
+                <span v-else class="time-muted">—</span>
+              </td>
+
+              <td v-if="isFinalView" class="col-clasif font-symbols">
+                <template v-if="rider.clasificacion_position">
+                  <span class="clasif-pos">{{ rider.clasificacion_position }}º</span>
+                  <span class="clasif-time">{{ rider.clasificacion_time || '—' }}</span>
+                </template>
+                <span v-else class="time-muted">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="results-mobile-view">
+        <div
+          v-for="(rider, idx) in finalLeaderboard"
+          :key="'m-' + (rider.id || idx)"
+          class="rider-card"
+          :class="{
+            'podium-card-1st': displayPosition(rider, idx) === 1 && rider.estado_carrera === 'llego',
+            'podium-card-2nd': displayPosition(rider, idx) === 2 && rider.estado_carrera === 'llego',
+            'podium-card-3rd': displayPosition(rider, idx) === 3 && rider.estado_carrera === 'llego',
+          }"
+        >
+          <div class="rider-card__bg-pattern"></div>
+          <span class="card-bracket tl"></span>
+          <span class="card-bracket tr"></span>
+          <span class="card-bracket bl"></span>
+          <span class="card-bracket br"></span>
+
+          <div class="rider-card__header">
+            <div class="rider-card__position">
+              <div
+                class="podium-badge-premium"
+                v-if="displayPosition(rider, idx) <= 3 && rider.estado_carrera === 'llego'"
+                :class="'podium-rank-' + displayPosition(rider, idx)"
+              >
+                <Trophy :size="12" class="trophy-icon" />
+                <span>{{ displayPosition(rider, idx) }}</span>
               </div>
-            </td>
-
-            <!-- Origin -->
-            <td>{{ rider.procedencia }}</td>
-
-            <!-- Total Time -->
-            <td class="col-time font-podium">
-              <span>{{ rider.tiempo_meta ?? '--:--' }}</span>
-            </td>
-
-            <!-- Difference from 1st -->
-            <td class="col-diff font-podium">
-              <span :class="{ 'first-place-color': idx === 0 }">{{ rider.diferencia }}</span>
-            </td>
-
-            <!-- Status -->
-            <td class="col-status">
-              <span v-if="rider.estado_carrera === 'llego'" class="status-pill status-pill--arrived">LLEGÓ</span>
-              <span v-else-if="rider.estado_carrera === 'DNF'" class="status-pill status-pill--dnf">DNF</span>
-              <span v-else-if="rider.estado_carrera === 'DNS'" class="status-pill status-pill--dns">DNS</span>
-              <span v-else class="status-pill status-pill--dns">DNS</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Leaderboard Cards (Mobile View) -->
-    <div class="results-mobile-view">
-      <div 
-        v-for="(rider, idx) in finalLeaderboard" 
-        :key="idx"
-        class="rider-card"
-        :class="{ 
-          'podium-card-1st': idx === 0 && rider.estado_carrera === 'llego',
-          'podium-card-2nd': idx === 1 && rider.estado_carrera === 'llego',
-          'podium-card-3rd': idx === 2 && rider.estado_carrera === 'llego'
-        }"
-      >
-        <!-- Carbon background texture / lines -->
-        <div class="rider-card__bg-pattern"></div>
-        
-        <!-- Corner brackets for high-tech look -->
-        <span class="card-bracket tl"></span>
-        <span class="card-bracket tr"></span>
-        <span class="card-bracket bl"></span>
-        <span class="card-bracket br"></span>
-
-        <!-- Card Header: Position, Avatar, Pilot, Dorsal -->
-        <div class="rider-card__header">
-          <!-- Position badge -->
-          <div class="rider-card__position">
-            <div class="podium-badge-premium" v-if="idx < 3 && rider.estado_carrera === 'llego'" :class="'podium-rank-' + (idx + 1)">
-              <Trophy :size="12" class="trophy-icon" />
-              <span>{{ idx + 1 }}</span>
-            </div>
-            <span v-else class="normal-position-badge font-podium">#{{ String(idx + 1).padStart(2, '0') }}</span>
-          </div>
-
-          <!-- Avatar Frame with glowing rings -->
-          <div class="rider-card__avatar-frame-wrap">
-            <div class="rider-card__avatar-frame">
-              <img :src="rider.foto_url" :alt="rider.nombres_completos" class="rider-card__avatar" />
-            </div>
-            <!-- Glowing status indicator dot -->
-            <span class="status-dot" :class="rider.estado_carrera"></span>
-          </div>
-
-          <!-- Pilot Name & Team -->
-          <div class="rider-card__pilot-details">
-            <h3 class="rider-card__name font-podium">{{ rider.nombres_completos }}</h3>
-            <span class="rider-card__team" v-if="rider.club_team">
-              <span class="team-icon">🏁</span> {{ rider.club_team }}
-            </span>
-            <span class="rider-card__team no-team" v-else>
-              <span class="team-icon">🏁</span> INDEPENDIENTE
-            </span>
-          </div>
-
-          <!-- Dorsal Pill styled like a race plate -->
-          <div class="rider-card__dorsal font-podium">
-            <div class="dorsal-plate">
-              <span class="dorsal-plate__title">DORSAL</span>
-              <span class="dorsal-plate__number">{{ rider.numero_dorsal ?? '--' }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card Body: Origin and Stats Grid -->
-        <div class="rider-card__body">
-          <!-- Procedencia -->
-          <div class="rider-card__info-row">
-            <div class="rider-card__origin">
-              <MapPin :size="12" class="origin-icon" />
-              <span class="rider-card__label">Procedencia:</span>
-              <span class="rider-card__value">{{ rider.procedencia }}</span>
-            </div>
-          </div>
-          
-          <!-- Grid of stats -->
-          <div class="rider-card__stats-grid">
-            <!-- Tiempo Total -->
-            <div class="rider-card__stat-item">
-              <div class="stat-hdr">
-                <Clock :size="10" class="stat-icon" />
-                <span class="rider-card__stat-label">TIEMPO TOTAL</span>
-              </div>
-              <span class="rider-card__stat-value font-podium highlight-time">
-                {{ rider.tiempo_meta ?? '--:--' }}
+              <span v-else class="normal-position-badge font-podium">
+                #{{ String(displayPosition(rider, idx)).padStart(2, '0') }}
               </span>
             </div>
 
-            <!-- Diferencia -->
-            <div class="rider-card__stat-item">
-              <div class="stat-hdr">
-                <Award :size="10" class="stat-icon" />
-                <span class="rider-card__stat-label">DIFERENCIA</span>
+            <div class="rider-card__avatar-frame-wrap">
+              <div class="rider-card__avatar-frame">
+                <img :src="rider.foto_url" :alt="rider.nombres_completos" class="rider-card__avatar" />
               </div>
-              <span class="rider-card__stat-value font-podium" :class="{ 'first-place-color': idx === 0 }">
-                {{ rider.diferencia }}
+              <span class="status-dot" :class="rider.estado_carrera"></span>
+            </div>
+
+            <div class="rider-card__pilot-details">
+              <h3 class="rider-card__name font-podium">{{ rider.nombres_completos }}</h3>
+              <span class="mobile-cat font-accent" v-if="isMega">{{ rider.categoria_elegida }}</span>
+              <span class="rider-card__team" v-if="rider.club_team">
+                {{ rider.club_team }}
+              </span>
+              <span class="rider-card__team no-team" v-else>
+                INDEPENDIENTE
               </span>
             </div>
 
-            <!-- Estado -->
-            <div class="rider-card__stat-item status-col">
-              <span class="rider-card__stat-label">ESTADO</span>
-              <div class="rider-card__stat-value flex-center">
-                <span v-if="rider.estado_carrera === 'llego'" class="status-pill status-pill--arrived">LLEGÓ</span>
-                <span v-else-if="rider.estado_carrera === 'DNF'" class="status-pill status-pill--dnf">DNF</span>
-                <span v-else-if="rider.estado_carrera === 'DNS'" class="status-pill status-pill--dns">DNS</span>
-                <span v-else class="status-pill status-pill--dns">DNS</span>
+            <div class="rider-card__dorsal font-podium">
+              <div class="dorsal-plate">
+                <span class="dorsal-plate__title">DORSAL</span>
+                <span class="dorsal-plate__number">{{ rider.numero_dorsal ?? '--' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rider-card__body">
+            <div class="rider-card__info-row">
+              <div class="rider-card__origin">
+                <MapPin :size="12" class="origin-icon" />
+                <span class="rider-card__label">Procedencia:</span>
+                <span class="rider-card__value">{{ rider.procedencia }}</span>
+              </div>
+            </div>
+
+            <div class="rider-card__stats-grid">
+              <div class="rider-card__stat-item">
+                <div class="stat-hdr">
+                  <Clock :size="10" class="stat-icon" />
+                  <span class="rider-card__stat-label">TIEMPO TOTAL</span>
+                </div>
+                <span class="rider-card__stat-value font-symbols highlight-time">
+                  <template v-if="rider.estado_carrera === 'en_carrera' && rider.paso_p1">
+                    {{ rider.hora_p1 || 'P1' }}
+                  </template>
+                  <template v-else-if="rider.estado_carrera === 'en_carrera'">EN RUTA</template>
+                  <template v-else>{{ rider.tiempo_meta ?? '--:--' }}</template>
+                </span>
+              </div>
+
+              <div class="rider-card__stat-item">
+                <div class="stat-hdr">
+                  <Award :size="10" class="stat-icon" />
+                  <span class="rider-card__stat-label">DIFERENCIA</span>
+                </div>
+                <span
+                  class="rider-card__stat-value font-symbols"
+                  :class="{ 'first-place-color': displayPosition(rider, idx) === 1 && rider.estado_carrera === 'llego' }"
+                >
+                  {{ rider.diferencia }}
+                </span>
+              </div>
+
+              <div class="rider-card__stat-item status-col">
+                <span class="rider-card__stat-label">ESTADO</span>
+                <div class="rider-card__stat-value flex-center">
+                  <span v-if="rider.estado_carrera === 'llego'" class="status-pill status-pill--arrived">LLEGÓ</span>
+                  <span v-else-if="rider.estado_carrera === 'en_carrera' && rider.paso_p1" class="status-pill status-pill--p1">P1</span>
+                  <span v-else-if="rider.estado_carrera === 'en_carrera'" class="status-pill status-pill--route">EN RUTA</span>
+                  <span v-else-if="rider.estado_carrera === 'DNF'" class="status-pill status-pill--dnf">DNF</span>
+                  <span v-else-if="rider.estado_carrera === 'DNS'" class="status-pill status-pill--dns">DNS</span>
+                  <span v-else class="status-pill status-pill--dns">PRE</span>
+                </div>
+              </div>
+
+              <div v-if="isFinalView" class="rider-card__stat-item">
+                <div class="stat-hdr">
+                  <span class="rider-card__stat-label">CLASIFICACIÓN</span>
+                </div>
+                <span class="rider-card__stat-value font-symbols">
+                  <template v-if="rider.clasificacion_position">
+                    {{ rider.clasificacion_position }}<span class="sym">º</span>
+                    <span class="sym"> · </span>{{ rider.clasificacion_time || '—' }}
+                  </template>
+                  <template v-else><span class="sym">—</span></template>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   </div>
 </template>
@@ -1056,6 +1240,689 @@ const finalLeaderboard = computed(() => {
   }
   .rider-card__stat-value {
     font-size: 0.78rem;
+  }
+}
+
+.phase-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.phase-tabs {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.phase-tab {
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  padding: 0.55rem 1.1rem;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.phase-tab.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: #020202;
+}
+.manga-chip {
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.4rem 0.75rem;
+  border-radius: 100px;
+}
+.results-banner {
+  text-align: center;
+  margin: 1rem 0 1.5rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: rgba(255,94,0,0.06);
+  border: 1px solid rgba(255,94,0,0.2);
+  color: rgba(255,255,255,0.7);
+}
+.results-banner.error {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.35);
+  color: #fca5a5;
+}
+.results-meta-tag.closed {
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+.status-pill--route {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+.status-pill--p1 {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+.col-clasif {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+}
+.status-dot.en_carrera {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+}
+
+
+.results-hero-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid rgba(255, 94, 0, 0.18);
+  flex-wrap: wrap;
+}
+.results-kicker {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--primary-color);
+  margin-bottom: 0.3rem;
+}
+.results-heading {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 950;
+  letter-spacing: -1px;
+  line-height: 0.95;
+}
+.results-sub {
+  margin: 0.4rem 0 0;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.9rem;
+}
+.phase-tabs {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.phase-tab {
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  padding: 0.55rem 1.15rem;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.phase-tab.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: #020202;
+}
+
+.cat-title {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.cat-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: min(100%, 320px);
+}
+
+.cat-select-lbl {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 94, 0, 0.85);
+}
+
+.cat-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(8, 8, 8, 0.92);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff5e00' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  border: 1px solid rgba(255, 94, 0, 0.35);
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  padding: 0.75rem 2.4rem 0.75rem 0.95rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cat-select:hover,
+.cat-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.15);
+}
+
+.cat-select option {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
+}
+
+.horizontal-selector {
+  display: flex;
+  gap: 0.3rem;
+  background: rgba(8, 8, 8, 0.75);
+  border: 1px solid rgba(255, 94, 0, 0.22);
+  border-radius: 14px;
+  padding: 0.3rem;
+  max-width: min(100%, 720px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.horizontal-selector::-webkit-scrollbar { display: none; }
+.category-selector-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,0.48);
+  padding: 0.5rem 0.95rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  cursor: pointer;
+  border-radius: 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+}
+.category-selector-btn.mega { color: rgba(251, 191, 36, 0.85); }
+.category-selector-btn:hover { color: #fff; background: rgba(255,255,255,0.04); }
+.category-selector-btn.active {
+  color: #020202;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  box-shadow: 0 6px 18px rgba(255, 94, 0, 0.35);
+}
+.category-selector-btn.active.mega {
+  background: linear-gradient(135deg, #ff3d00 0%, #ff8a00 45%, #fbbf24 100%);
+  box-shadow: 0 8px 24px rgba(255, 61, 0, 0.45);
+}
+.results-banner {
+  text-align: center;
+  margin: 1rem 0 1.5rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: rgba(255,94,0,0.06);
+  border: 1px solid rgba(255,94,0,0.2);
+  color: rgba(255,255,255,0.7);
+}
+.results-banner.error {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.35);
+  color: #fca5a5;
+}
+.results-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.results-meta-tag.closed {
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+.results-meta-tag.mega {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: var(--secondary-color);
+  background: rgba(251, 191, 36, 0.08);
+}
+.status-pill--route {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+.col-clasif {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+}
+.cat-badge {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--secondary-color);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+}
+.mobile-cat {
+  display: inline-block;
+  margin: 0.15rem 0 0.25rem;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+.status-dot.en_carrera {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+}
+@media (max-width: 900px) {
+  .section-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbar-right {
+    flex-wrap: wrap;
+  }
+  .horizontal-selector {
+    max-width: 100%;
+  }
+}
+
+/* ── Minimal results table ───────────────────────────────── */
+.results-table-panel--minimal {
+  background: rgba(6, 6, 6, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 0.35rem 0.5rem 0.75rem;
+  margin-bottom: 4rem;
+  overflow-x: auto;
+}
+
+.results-table--minimal {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.results-table--minimal th {
+  font-family: var(--font-accent);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.32);
+  padding: 0.95rem 0.85rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  white-space: nowrap;
+}
+
+.results-table--minimal td {
+  padding: 0.85rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.results-table--minimal tbody tr {
+  transition: background 0.2s ease;
+}
+
+.results-table--minimal tbody tr:hover {
+  background: rgba(255, 94, 0, 0.035);
+}
+
+.results-table--minimal tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.results-table--minimal .is-leader {
+  background: linear-gradient(90deg, rgba(255, 94, 0, 0.07), transparent 42%);
+}
+
+.results-table--minimal .is-out {
+  opacity: 0.48;
+}
+
+.results-table--minimal .th-pos,
+.results-table--minimal .col-pos {
+  width: 3rem;
+  text-align: center;
+  padding-left: 0.6rem;
+  padding-right: 0.4rem;
+}
+
+.results-table--minimal .th-dorsal,
+.results-table--minimal .col-dorsal {
+  width: 3.5rem;
+}
+
+.results-table--minimal .th-time,
+.results-table--minimal .col-time,
+.results-table--minimal .th-gap,
+.results-table--minimal .col-diff,
+.results-table--minimal .th-clasif,
+.results-table--minimal .col-clasif {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.rank-num.rank-1 { color: #fbbf24; font-weight: 800; }
+.rank-num.rank-2 { color: #cbd5e1; font-weight: 800; }
+.rank-num.rank-3 { color: #fb923c; font-weight: 800; }
+
+.dorsal-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.pilot-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.pilot-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111;
+}
+
+.is-leader .pilot-avatar {
+  border-color: rgba(255, 94, 0, 0.55);
+}
+
+.pilot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.pilot-name-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.pilot-name {
+  font-family: var(--font-accent);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pilot-sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-inline {
+  flex-shrink: 0;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status-inline.st-en_carrera {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
+}
+.status-inline.st-p1 {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.14);
+}
+.status-inline.st-DNF {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+}
+.status-inline.st-DNS,
+.status-inline.st-pre_inscrito {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.1);
+}
+
+.cat-text {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.85);
+}
+
+.results-table--minimal .col-time {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.results-table--minimal .col-diff {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
+.results-table--minimal .is-leader-gap {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.time-muted {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.time-p1,
+.p1-clock {
+  color: #fbbf24;
+  font-variant-numeric: tabular-nums;
+}
+
+.col-clasif {
+  white-space: nowrap;
+}
+
+.clasif-pos {
+  display: inline-block;
+  min-width: 1.6rem;
+  margin-right: 0.4rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 700;
+}
+
+.clasif-time {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .results-table-panel--minimal {
+    padding: 0.25rem 0.35rem 0.5rem;
+  }
+  .results-table--minimal th,
+  .results-table--minimal td {
+    padding: 0.75rem 0.55rem;
+  }
+  .pilot-avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ── Results pro shell ───────────────────────────────────── */
+.results-wrapper--pro {
+  animation: resultsIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes resultsIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.results-hero-panel {
+  margin-bottom: 1.5rem;
+  padding: 1.35rem 1.4rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 94, 0, 0.2);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(255, 94, 0, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 20%, rgba(251, 191, 36, 0.08) 0%, transparent 45%),
+    rgba(8, 8, 8, 0.72);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.results-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.15rem;
+}
+
+.results-kicker {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--primary-color);
+  margin-bottom: 0.4rem;
+}
+
+.results-heading {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 950;
+  letter-spacing: -1.2px;
+  line-height: 0.95;
+}
+
+.results-sub {
+  margin: 0.45rem 0 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.88rem;
+}
+
+.results-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 88px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stat-chip--leader {
+  border-color: rgba(255, 94, 0, 0.35);
+  background: rgba(255, 94, 0, 0.08);
+  min-width: 140px;
+}
+
+.stat-chip__lbl {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.stat-chip__val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-toolbar--pro {
+  margin-bottom: 1.5rem;
+  padding: 0.55rem;
+  border-radius: 16px;
+  background: rgba(6, 6, 6, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.view-mode-toggle-wrap--pro {
+  border-color: rgba(255, 94, 0, 0.22);
+}
+
+.view-mode-toggle-wrap--pro .toggle-btn.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: #020202;
+  box-shadow: 0 4px 14px rgba(255, 94, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .results-hero-panel {
+    padding: 1.1rem 1rem;
+  }
+  .results-hero-top {
+    flex-direction: column;
+  }
+  .phase-tabs {
+    width: 100%;
+  }
+  .phase-tab {
+    flex: 1;
   }
 }
 </style>
