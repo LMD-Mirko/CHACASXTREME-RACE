@@ -1,6 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchSponsors } from '@/composables/useBackendApi';
+import {
+  detectShapeFromImage,
+  resolveSponsorFrame,
+  resolveSponsorSize,
+} from '@/features/sponsors/sponsorLogoFrame.js';
 import principalLogo from '@/assets/images/logoSponsorprincipal.png';
 
 const MAIN_SPONSOR = {
@@ -11,27 +16,26 @@ const MAIN_SPONSOR = {
 
 const sponsorsList = ref([]);
 const isLoading = ref(true);
-/** id → 'circle' | 'wide' | 'tall' | 'square' */
+/** id → detected shape when frame_shape=auto */
 const logoShapes = ref({});
 
 const carouselSponsors = computed(() => sponsorsList.value.filter((s) => s?.logo_url));
 
 function shapeForSponsor(sponsor) {
   const key = sponsor.id ?? sponsor.logo_url;
-  return logoShapes.value[key] || 'square';
+  return resolveSponsorFrame(sponsor, logoShapes.value[key] || 'square');
 }
 
-/** Elige marco según proporción real del PNG/JPG */
+function sizeForSponsor(sponsor) {
+  return resolveSponsorSize(sponsor);
+}
+
 function onLogoLoad(sponsor, e) {
-  const img = e?.target;
-  if (!img?.naturalWidth || !img?.naturalHeight) return;
-  const ratio = img.naturalWidth / img.naturalHeight;
   const key = sponsor.id ?? sponsor.logo_url;
-  let shape = 'square';
-  if (ratio >= 1.35) shape = 'wide';
-  else if (ratio <= 0.85) shape = 'tall';
-  else if (ratio >= 0.9 && ratio <= 1.12) shape = 'circle';
-  logoShapes.value = { ...logoShapes.value, [key]: shape };
+  logoShapes.value = {
+    ...logoShapes.value,
+    [key]: detectShapeFromImage(e?.target),
+  };
 }
 
 const loadSponsorsData = async () => {
@@ -96,7 +100,10 @@ onMounted(loadSponsorsData);
               v-for="(sponsor, index) in carouselSponsors"
               :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
               class="logo-tile"
-              :class="`logo-tile--${shapeForSponsor(sponsor)}`"
+              :class="[
+                `logo-tile--${shapeForSponsor(sponsor)}`,
+                `logo-tile--size-${sizeForSponsor(sponsor)}`,
+              ]"
               :style="`--f-delay: ${index * 0.12}s`"
               :title="sponsor.company_name"
             >
@@ -309,6 +316,16 @@ onMounted(loadSponsorsData);
   border-radius: 16px;
   padding: 14px;
 }
+
+.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; padding: 8px; }
+.logo-tile--wide.logo-tile--size-sm { width: 132px; height: 70px; padding: 10px 12px; }
+.logo-tile--tall.logo-tile--size-sm { width: 70px; height: 96px; padding: 10px; }
+.logo-tile--square.logo-tile--size-sm { width: 88px; height: 88px; padding: 10px; }
+
+.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; padding: 12px; }
+.logo-tile--wide.logo-tile--size-lg { width: 200px; height: 104px; padding: 14px 18px; }
+.logo-tile--tall.logo-tile--size-lg { width: 104px; height: 140px; padding: 14px; }
+.logo-tile--square.logo-tile--size-lg { width: 132px; height: 132px; padding: 16px; }
 
 .logo-tile__img {
   width: 100%;

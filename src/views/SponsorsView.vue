@@ -14,6 +14,11 @@ import {
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { fetchSponsors } from '@/composables/useBackendApi';
+import {
+  detectShapeFromImage,
+  resolveSponsorFrame,
+  resolveSponsorSize,
+} from '@/features/sponsors/sponsorLogoFrame.js';
 import imagenaus from '@/assets/images/imagenaus.jpg';
 
 const { t } = useI18n();
@@ -21,24 +26,24 @@ const sponsors = ref([]);
 const selectedSponsor = ref(null);
 const showModal = ref(false);
 const loadingSponsors = ref(true);
-/** id → 'circle' | 'wide' | 'tall' | 'square' */
+/** id → detected shape when frame_shape=auto */
 const logoShapes = ref({});
 
 function shapeForSponsor(sponsor) {
   const key = sponsor.id ?? sponsor.logo_url;
-  return logoShapes.value[key] || 'square';
+  return resolveSponsorFrame(sponsor, logoShapes.value[key] || 'square');
+}
+
+function sizeForSponsor(sponsor) {
+  return resolveSponsorSize(sponsor);
 }
 
 function onLogoLoad(sponsor, e) {
-  const img = e?.target;
-  if (!img?.naturalWidth || !img?.naturalHeight) return;
-  const ratio = img.naturalWidth / img.naturalHeight;
   const key = sponsor.id ?? sponsor.logo_url;
-  let shape = 'square';
-  if (ratio >= 1.35) shape = 'wide';
-  else if (ratio <= 0.85) shape = 'tall';
-  else if (ratio >= 0.9 && ratio <= 1.12) shape = 'circle';
-  logoShapes.value = { ...logoShapes.value, [key]: shape };
+  logoShapes.value = {
+    ...logoShapes.value,
+    [key]: detectShapeFromImage(e?.target),
+  };
 }
 
 const loadSponsors = async () => {
@@ -118,7 +123,10 @@ onMounted(() => {
                   :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
                   type="button"
                   class="logo-tile float-anim"
-                  :class="`logo-tile--${shapeForSponsor(sponsor)}`"
+                  :class="[
+                    `logo-tile--${shapeForSponsor(sponsor)}`,
+                    `logo-tile--size-${sizeForSponsor(sponsor)}`,
+                  ]"
                   :style="`--f-delay: ${index * 0.16}s`"
                   :title="sponsor.company_name"
                   :aria-label="`Ver detalle de ${sponsor.company_name}`"
@@ -452,6 +460,16 @@ onMounted(() => {
   border-radius: 18px;
   padding: 16px;
 }
+
+.logo-tile--circle.logo-tile--size-sm { width: 92px; height: 92px; padding: 10px; }
+.logo-tile--wide.logo-tile--size-sm { width: 140px; height: 76px; padding: 10px 14px; }
+.logo-tile--tall.logo-tile--size-sm { width: 76px; height: 108px; padding: 10px; }
+.logo-tile--square.logo-tile--size-sm { width: 92px; height: 92px; padding: 12px; }
+
+.logo-tile--circle.logo-tile--size-lg { width: 148px; height: 148px; padding: 14px; }
+.logo-tile--wide.logo-tile--size-lg { width: 220px; height: 112px; padding: 16px 20px; }
+.logo-tile--tall.logo-tile--size-lg { width: 112px; height: 156px; padding: 16px; }
+.logo-tile--square.logo-tile--size-lg { width: 148px; height: 148px; padding: 18px; }
 
 .logo-tile__img {
   width: 100%;
