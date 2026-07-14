@@ -48,6 +48,12 @@ const routes = [
         meta: { hideChrome: true },
     },
     {
+        path: '/camarografos/acceso',
+        name: 'photographer-magic',
+        component: () => import('../features/media/views/PhotographerMagicAccessView.vue'),
+        meta: { hideChrome: true },
+    },
+    {
         path: '/camarografos/panel',
         name: 'photographer-panel',
         component: () => import('../features/media/views/PhotographerPanelView.vue'),

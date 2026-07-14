@@ -88,6 +88,18 @@ export async function photographerLogin({ full_name, instagram }) {
   return body;
 }
 
+export async function photographerMagicLogin(token) {
+  const body = await parseJson(
+    await fetch(buildUrl('/api/photographers/magic-login'), {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    })
+  );
+  setPhotographerSession(body.token, body.data);
+  return body;
+}
+
 export async function photographerLogout() {
   const token = getPhotographerToken();
   try {
@@ -171,6 +183,15 @@ export async function unlockCompetitorDossier({ plate_number, dni, access_token 
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+    })
+  );
+}
+
+export async function unlockCompetitorDossierByToken(token) {
+  return parseJson(
+    await fetch(buildUrl(`/api/competitor-dossier/${encodeURIComponent(token)}`), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
     })
   );
 }

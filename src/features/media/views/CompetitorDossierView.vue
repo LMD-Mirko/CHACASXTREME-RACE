@@ -13,7 +13,14 @@
           </p>
         </header>
 
-        <form class="gate-form anim" :class="{ 'is-in': gateIn }" style="--i: 3" @submit.prevent="unlock()">
+        <p v-if="magicBooting" class="gate-form anim is-in" style="--i: 3">
+          Abriendo tu enlace personal…
+        </p>
+        <p v-else-if="error && magicTried" class="gate-form anim is-in form-error" style="--i: 3">
+          {{ error }}
+        </p>
+
+        <form v-if="!magicBooting" class="gate-form anim" :class="{ 'is-in': gateIn }" style="--i: 3" @submit.prevent="unlock()">
           <p class="gate-form__label">Acceso competidor</p>
 
           <label>
@@ -302,14 +309,19 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import gsap from 'gsap';
-import { unlockCompetitorDossier } from '../api/mediaApi';
+import { unlockCompetitorDossier, unlockCompetitorDossierByToken } from '../api/mediaApi';
 
 const SESSION_KEY = 'chacas_competitor_dossier';
+
+const route = useRoute();
+const router = useRouter();
 
 const plate = ref('');
 const dni = ref('');
 const accessToken = ref('');
+const magicLinkToken = ref('');
 const loading = ref(false);
 const error = ref('');
 const dossier = ref(null);
@@ -320,6 +332,8 @@ const ceremony = ref(false);
 const ceremonyPlate = ref('00');
 const ceremonyName = ref('');
 const restoring = ref(false);
+const magicBooting = ref(false);
+const magicTried = ref(false);
 
 const wipeEl = ref(null);
 const ringEl = ref(null);
@@ -341,6 +355,7 @@ function loadSession() {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
+    if (data?.magicToken) return data;
     if (!data?.plate || !data?.dni || !data?.accessToken) return null;
     return data;
   } catch {
@@ -355,6 +370,16 @@ function saveSession(plateVal, dniVal, tokenVal) {
       plate: String(plateVal),
       dni: String(dniVal),
       accessToken: String(tokenVal),
+      at: Date.now(),
+    })
+  );
+}
+
+function saveMagicSession(tokenVal) {
+  localStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({
+      magicToken: String(tokenVal),
       at: Date.now(),
     })
   );
@@ -416,21 +441,25 @@ async function playUnlockSplash(rider) {
 }
 
 /**
- * @param {{ skipSplash?: boolean, fromSession?: boolean }} [opts]
+ * @param {{ skipSplash?: boolean, fromSession?: boolean, magicToken?: string }} [opts]
  */
 async function unlock(opts = {}) {
-  const { skipSplash = false, fromSession = false } = opts;
+  const { skipSplash = false, fromSession = false, magicToken = '' } = opts;
   error.value = '';
   loading.value = true;
   entered.value = false;
   try {
-    const res = await unlockCompetitorDossier({
-      plate_number: plate.value,
-      dni: dni.value,
-      access_token: accessToken.value,
-    });
+    const token = String(magicToken || magicLinkToken.value || '').trim();
+    const res = token
+      ? await unlockCompetitorDossierByToken(token)
+      : await unlockCompetitorDossier({
+          plate_number: plate.value,
+          dni: dni.value,
+          access_token: accessToken.value,
+        });
     dossier.value = res.data;
-    saveSession(plate.value, dni.value, accessToken.value);
+    if (token) saveMagicSession(token);
+    else saveSession(plate.value, dni.value, accessToken.value);
     window.scrollTo({ top: 0, behavior: 'auto' });
 
     if (!skipSplash && !fromSession && !prefersReducedMotion()) {
@@ -453,6 +482,7 @@ async function unlock(opts = {}) {
   } finally {
     loading.value = false;
     restoring.value = false;
+    magicBooting.value = false;
   }
 }
 
@@ -569,7 +599,35 @@ function onKey(e) {
 onMounted(async () => {
   window.addEventListener('keydown', onKey);
 
+  const queryToken = String(route.query.token || '').trim();
+  if (queryToken) {
+    magicTried.value = true;
+    magicBooting.value = true;
+    magicLinkToken.value = queryToken;
+    await unlock({ magicToken: queryToken });
+    if (dossier.value) {
+      router.replace({ path: '/mi-carrera', query: {} });
+      return;
+    }
+    requestAnimationFrame(() => {
+      gateIn.value = true;
+    });
+    return;
+  }
+
   const session = loadSession();
+  if (session?.magicToken) {
+    restoring.value = true;
+    magicLinkToken.value = session.magicToken;
+    await unlock({ skipSplash: true, fromSession: true, magicToken: session.magicToken });
+    if (!dossier.value) {
+      requestAnimationFrame(() => {
+        gateIn.value = true;
+      });
+    }
+    return;
+  }
+
   if (session) {
     restoring.value = true;
     plate.value = session.plate;
