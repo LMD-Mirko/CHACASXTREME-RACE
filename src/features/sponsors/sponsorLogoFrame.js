@@ -1,7 +1,8 @@
 /**
- * Resuelve marco CSS del logo:
- * admin puede forzar circle | rectangle | square | tall | auto
- * (rectangle → clase wide del carrusel).
+ * Resuelve marco CSS del logo.
+ * circle / rectangle / square / tall: forzados desde admin.
+ * auto: solo wide/tall/square por proporción (NUNCA circle automático:
+ * logos casi cuadrados con fondo se ven mal en círculo).
  */
 export function resolveSponsorFrame(sponsor, detectedShape = 'square') {
   const frame = String(sponsor?.frame_shape || sponsor?.frameShape || 'auto').toLowerCase();
@@ -22,7 +23,7 @@ export function detectShapeFromImage(img) {
   if (!img?.naturalWidth || !img?.naturalHeight) return 'square';
   const ratio = img.naturalWidth / img.naturalHeight;
   if (ratio >= 1.35) return 'wide';
-  if (ratio <= 0.85) return 'tall';
-  if (ratio >= 0.9 && ratio <= 1.12) return 'circle';
+  if (ratio <= 0.75) return 'tall';
+  // Casi cuadrado → square (circular solo si el admin lo elige)
   return 'square';
 }

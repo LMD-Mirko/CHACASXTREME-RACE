@@ -285,12 +285,13 @@ onMounted(loadSponsorsData);
   animation-delay: var(--f-delay, 0s);
 }
 
-/* Casi cuadrado → círculo */
+/* Casi cuadrado → círculo (solo si el admin fuerza circular) */
 .logo-tile--circle {
   width: 104px;
   height: 104px;
   border-radius: 50%;
-  padding: 10px;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* Horizontal / alargado */
@@ -317,12 +318,12 @@ onMounted(loadSponsorsData);
   padding: 14px;
 }
 
-.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; padding: 8px; }
+.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; padding: 0; }
 .logo-tile--wide.logo-tile--size-sm { width: 132px; height: 70px; padding: 10px 12px; }
 .logo-tile--tall.logo-tile--size-sm { width: 70px; height: 96px; padding: 10px; }
 .logo-tile--square.logo-tile--size-sm { width: 88px; height: 88px; padding: 10px; }
 
-.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; padding: 12px; }
+.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; padding: 0; }
 .logo-tile--wide.logo-tile--size-lg { width: 200px; height: 104px; padding: 14px 18px; }
 .logo-tile--tall.logo-tile--size-lg { width: 104px; height: 140px; padding: 14px; }
 .logo-tile--square.logo-tile--size-lg { width: 132px; height: 132px; padding: 16px; }
@@ -337,6 +338,11 @@ onMounted(loadSponsorsData);
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
+.logo-tile--circle .logo-tile__img {
+  object-fit: cover;
+  transform: scale(1.06);
+}
+
 .logo-tile:hover {
   border-color: rgba(255, 94, 0, 0.55);
   background: rgba(255, 94, 0, 0.06);
@@ -349,6 +355,10 @@ onMounted(loadSponsorsData);
 .logo-tile:hover .logo-tile__img {
   filter: brightness(1.05) contrast(1.04);
   transform: scale(1.03);
+}
+
+.logo-tile--circle:hover .logo-tile__img {
+  transform: scale(1.1);
 }
 
 .carousel-glow-left,

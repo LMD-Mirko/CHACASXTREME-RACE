@@ -437,7 +437,8 @@ onMounted(() => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  padding: 12px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .logo-tile--wide {
@@ -461,12 +462,12 @@ onMounted(() => {
   padding: 16px;
 }
 
-.logo-tile--circle.logo-tile--size-sm { width: 92px; height: 92px; padding: 10px; }
+.logo-tile--circle.logo-tile--size-sm { width: 92px; height: 92px; padding: 0; }
 .logo-tile--wide.logo-tile--size-sm { width: 140px; height: 76px; padding: 10px 14px; }
 .logo-tile--tall.logo-tile--size-sm { width: 76px; height: 108px; padding: 10px; }
 .logo-tile--square.logo-tile--size-sm { width: 92px; height: 92px; padding: 12px; }
 
-.logo-tile--circle.logo-tile--size-lg { width: 148px; height: 148px; padding: 14px; }
+.logo-tile--circle.logo-tile--size-lg { width: 148px; height: 148px; padding: 0; }
 .logo-tile--wide.logo-tile--size-lg { width: 220px; height: 112px; padding: 16px 20px; }
 .logo-tile--tall.logo-tile--size-lg { width: 112px; height: 156px; padding: 16px; }
 .logo-tile--square.logo-tile--size-lg { width: 148px; height: 148px; padding: 18px; }
@@ -479,6 +480,12 @@ onMounted(() => {
   display: block;
   filter: grayscale(0.15) contrast(1.05) brightness(0.97);
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Circular: recorta esquinas del fondo del PNG y deja el emblema limpio */
+.logo-tile--circle .logo-tile__img {
+  object-fit: cover;
+  transform: scale(1.06);
 }
 
 .float-anim {
@@ -504,6 +511,10 @@ onMounted(() => {
 .logo-tile:hover .logo-tile__img {
   filter: grayscale(0) contrast(1.05) brightness(1.08);
   transform: scale(1.04);
+}
+
+.logo-tile--circle:hover .logo-tile__img {
+  transform: scale(1.1);
 }
 
 .sponsor-placeholder {
