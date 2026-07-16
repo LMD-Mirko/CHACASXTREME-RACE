@@ -240,7 +240,7 @@
         <div v-else class="library-grid">
           <article v-for="item in library" :key="item.id" class="media-tile">
             <div class="thumb">
-              <img v-if="item.media_type === 'photo'" :src="item.preview_url" :alt="item.original_filename" />
+              <img v-if="item.media_type === 'photo'" :src="mediaPublicUrl(item.preview_url)" :alt="item.original_filename" />
               <div v-else class="video-thumb">VIDEO</div>
             </div>
             <div class="meta">
@@ -268,6 +268,7 @@ import {
   searchRidersForMedia,
   uploadPhotographerMedia,
   fetchMyMedia,
+  mediaPublicUrl,
 } from '../api/mediaApi';
 
 const router = useRouter();

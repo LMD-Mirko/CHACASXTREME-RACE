@@ -75,7 +75,7 @@
 
             <div class="pilot anim" style="--i: 2">
               <div v-if="dossier.rider.photo_url" class="pilot__photo">
-                <img :src="dossier.rider.photo_url" :alt="dossier.rider.full_name" />
+                <img :src="mediaPublicUrl(dossier.rider.photo_url)" :alt="dossier.rider.full_name" />
               </div>
               <div class="pilot__copy">
                 <h1>{{ dossier.rider.full_name }}</h1>
@@ -187,7 +187,7 @@
               @click="openLightbox(idx)"
             >
               <div class="shot__media">
-                <img :src="photo.preview_url" :alt="photo.original_filename" loading="lazy" />
+                <img :src="mediaPublicUrl(photo.preview_url)" :alt="photo.original_filename" loading="lazy" />
               </div>
               <figcaption>
                 <div>
@@ -230,7 +230,7 @@
               class="reel anim"
               :style="{ '--i': 16 + Math.min(vIdx, 4) }"
             >
-              <video :src="video.preview_url" controls playsinline preload="metadata" />
+              <video :src="mediaPublicUrl(video.preview_url)" controls playsinline preload="metadata" />
               <div class="reel__bar">
                 <div>
                   <strong>{{ shortName(video.original_filename) }}</strong>
@@ -287,7 +287,7 @@
         >‹</button>
         <figure>
           <img
-            :src="dossier.photos[lightboxIndex].preview_url"
+            :src="mediaPublicUrl(dossier.photos[lightboxIndex].preview_url)"
             :alt="dossier.photos[lightboxIndex].original_filename"
           />
           <figcaption>
@@ -311,7 +311,7 @@
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import gsap from 'gsap';
-import { unlockCompetitorDossier, unlockCompetitorDossierByToken } from '../api/mediaApi';
+import { unlockCompetitorDossier, unlockCompetitorDossierByToken, mediaPublicUrl } from '../api/mediaApi';
 
 const SESSION_KEY = 'chacas_competitor_dossier';
 

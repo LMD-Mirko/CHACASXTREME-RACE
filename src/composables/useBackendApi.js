@@ -32,9 +32,33 @@ const extractUrl = (item) => {
 
 const buildPublicAssetUrl = (value) => {
   if (!value) return null;
-  if (/^https?:\/\//i.test(value)) return value;
   const base = String(API_BASE_URL).replace(/\/$/, '');
-  const path = String(value).replace(/^\/+/, '');
+  const raw = String(value).trim();
+  if (!raw) return null;
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const u = new URL(raw);
+      const host = u.hostname.toLowerCase();
+      const isStale =
+        host.includes('trycloudflare.com') ||
+        host === '24.199.82.193' ||
+        host === '127.0.0.1' ||
+        host === 'localhost';
+      if (isStale && base) {
+        let pathname = u.pathname || '';
+        if (!pathname.startsWith('/storage/') && !pathname.startsWith('/api/')) {
+          pathname = `/storage/${pathname.replace(/^\/+/, '')}`;
+        }
+        return `${base}${pathname}${u.search || ''}`;
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+
+  const path = raw.replace(/^\/+/, '').replace(/^storage\//, '');
   return base ? `${base}/storage/${path}` : `/storage/${path}`;
 };
 

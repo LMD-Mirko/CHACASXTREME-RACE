@@ -3,6 +3,39 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 const TOKEN_KEY = 'photographer_token';
 const PROFILE_KEY = 'photographer_profile';
 
+/** Reescribe hosts viejos (trycloudflare/IP) al API actual. */
+export function mediaPublicUrl(value) {
+  if (!value) return '';
+  const base = String(API_BASE_URL).replace(/\/$/, '');
+  const raw = String(value).trim();
+  if (!raw) return '';
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const u = new URL(raw);
+      const host = u.hostname.toLowerCase();
+      const isStale =
+        host.includes('trycloudflare.com') ||
+        host === '24.199.82.193' ||
+        host === '127.0.0.1' ||
+        host === 'localhost';
+      if (isStale && base) {
+        let pathname = u.pathname || '';
+        if (!pathname.startsWith('/storage/') && !pathname.startsWith('/api/')) {
+          pathname = `/storage/${pathname.replace(/^\/+/, '')}`;
+        }
+        return `${base}${pathname}${u.search || ''}`;
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+
+  const path = raw.replace(/^\/+/, '').replace(/^storage\//, '');
+  return base ? `${base}/storage/${path}` : `/storage/${path}`;
+}
+
 export function getPhotographerToken() {
   return localStorage.getItem(TOKEN_KEY) || '';
 }
