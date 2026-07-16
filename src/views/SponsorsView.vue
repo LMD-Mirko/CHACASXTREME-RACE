@@ -15,6 +15,7 @@ import {
 import { useI18n } from 'vue-i18n';
 import { fetchSponsors } from '@/composables/useBackendApi';
 import {
+  detectLogoBackgroundFromImage,
   detectShapeFromImage,
   resolveSponsorFrame,
   resolveSponsorSize,
@@ -28,6 +29,8 @@ const showModal = ref(false);
 const loadingSponsors = ref(true);
 /** id → detected shape when frame_shape=auto */
 const logoShapes = ref({});
+/** id → sampled edge background color */
+const logoBackgrounds = ref({});
 
 function shapeForSponsor(sponsor) {
   const key = sponsor.id ?? sponsor.logo_url;
@@ -38,11 +41,21 @@ function sizeForSponsor(sponsor) {
   return resolveSponsorSize(sponsor);
 }
 
+function bgForSponsor(sponsor) {
+  const key = sponsor.id ?? sponsor.logo_url;
+  return sponsor.logo_background_color || sponsor.logoBackgroundColor || logoBackgrounds.value[key] || '#ffffff';
+}
+
 function onLogoLoad(sponsor, e) {
   const key = sponsor.id ?? sponsor.logo_url;
+  const img = e?.target;
   logoShapes.value = {
     ...logoShapes.value,
-    [key]: detectShapeFromImage(e?.target),
+    [key]: detectShapeFromImage(img),
+  };
+  logoBackgrounds.value = {
+    ...logoBackgrounds.value,
+    [key]: detectLogoBackgroundFromImage(img),
   };
 }
 
@@ -127,7 +140,7 @@ onMounted(() => {
                     `logo-tile--${shapeForSponsor(sponsor)}`,
                     `logo-tile--size-${sizeForSponsor(sponsor)}`,
                   ]"
-                  :style="`--f-delay: ${index * 0.16}s`"
+                  :style="`--f-delay: ${index * 0.16}s; --logo-bg: ${bgForSponsor(sponsor)}`"
                   :title="sponsor.company_name"
                   :aria-label="`Ver detalle de ${sponsor.company_name}`"
                   @click="openSponsorModal(sponsor)"
@@ -419,8 +432,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  /* Fondo blanco + contain: logo completo sin marco oscuro */
-  background: #ffffff;
+  /* Color tomado de los bordes del propio logo; blanco si no se puede leer. */
+  background: var(--logo-bg, #ffffff);
   border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
   cursor: pointer;

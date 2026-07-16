@@ -96,6 +96,7 @@ export const fetchSponsors = async () => {
       company_name: item.company_name || item.name || '',
       frame_shape: item.frame_shape || item.frameShape || 'auto',
       display_size: item.display_size || item.displaySize || 'md',
+      logo_background_color: item.logo_background_color || item.logoBackgroundColor || null,
       sort_order: item.sort_order ?? item.sortOrder ?? 0,
       instagram_url: item.instagram_url || item.instagramUrl || null,
       facebook_url: item.facebook_url || item.facebookUrl || null,
