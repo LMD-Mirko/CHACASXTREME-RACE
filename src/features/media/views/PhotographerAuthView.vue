@@ -53,7 +53,7 @@ import { useRouter } from 'vue-router';
 import {
   photographerLogin,
   photographerRegister,
-  getPhotographerToken,
+  photographerEnsureSession,
 } from '../api/mediaApi';
 
 const router = useRouter();
@@ -63,8 +63,9 @@ const instagram = ref('');
 const loading = ref(false);
 const error = ref('');
 
-onMounted(() => {
-  if (getPhotographerToken()) {
+onMounted(async () => {
+  const session = await photographerEnsureSession();
+  if (session) {
     router.replace({ name: 'photographer-panel' });
   }
 });

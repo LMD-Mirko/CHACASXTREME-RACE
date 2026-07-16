@@ -265,6 +265,7 @@ import {
   getPhotographerToken,
   getPhotographerProfile,
   photographerLogout,
+  photographerEnsureSession,
   searchRidersForMedia,
   uploadPhotographerMedia,
   fetchMyMedia,
@@ -309,11 +310,13 @@ const videoUploadLabel = computed(() => {
   return n === 1 ? 'Subir 1 video' : `Subir ${n} videos`;
 });
 
-onMounted(() => {
-  if (!getPhotographerToken()) {
+onMounted(async () => {
+  const session = await photographerEnsureSession();
+  if (!session) {
     router.replace({ name: 'photographer-auth' });
     return;
   }
+  profile.value = session;
   document.addEventListener('mousedown', onDocClick);
 });
 
@@ -371,7 +374,12 @@ async function fetchRiders(q) {
     riderResults.value = res.data || [];
   } catch (e) {
     riderResults.value = [];
-    showToast(e.message || 'No se pudo cargar competidores', 'err');
+    const msg = e.message || 'No se pudo cargar competidores';
+    showToast(msg, 'err');
+    if (/sesión|expirad|no válida|401|unauthorized/i.test(msg)) {
+      await photographerLogout();
+      router.replace({ name: 'photographer-auth' });
+    }
   } finally {
     ridersLoading.value = false;
   }

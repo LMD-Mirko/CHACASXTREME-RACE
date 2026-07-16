@@ -16,7 +16,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { photographerMagicLogin, getPhotographerToken } from '../api/mediaApi';
+import {
+  photographerMagicLogin,
+  clearPhotographerSession,
+} from '../api/mediaApi';
 
 const route = useRoute();
 const router = useRouter();
@@ -24,11 +27,6 @@ const status = ref('loading');
 const error = ref('');
 
 onMounted(async () => {
-  if (getPhotographerToken()) {
-    router.replace({ name: 'photographer-panel' });
-    return;
-  }
-
   const token = String(route.query.token || '').trim();
   if (!token) {
     status.value = 'error';
@@ -37,6 +35,8 @@ onMounted(async () => {
   }
 
   try {
+    // Siempre revalidar el enlace: evita quedar con un Bearer viejo en localStorage
+    clearPhotographerSession();
     await photographerMagicLogin(token);
     status.value = 'ok';
     router.replace({ name: 'photographer-panel' });

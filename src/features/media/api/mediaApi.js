@@ -147,6 +147,26 @@ export async function photographerLogout() {
   }
 }
 
+/** Valida Bearer en localStorage; si falló, limpia sesión. */
+export async function photographerEnsureSession() {
+  const token = getPhotographerToken();
+  if (!token) return null;
+  try {
+    const body = await parseJson(
+      await fetch(buildUrl('/api/photographers/me'), {
+        headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      })
+    );
+    if (body?.data) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(body.data));
+      return body.data;
+    }
+  } catch {
+    clearPhotographerSession();
+  }
+  return null;
+}
+
 export async function searchRidersForMedia(q) {
   const token = getPhotographerToken();
   const params = new URLSearchParams({ q });
