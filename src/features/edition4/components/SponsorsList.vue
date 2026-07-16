@@ -277,67 +277,65 @@ onMounted(loadSponsorsData);
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  /* Blanco: los logos con fondo blanco rellenan sin “marco” oscuro */
+  /* Fondo blanco: el logo se ve completo y no aparece “marco” oscuro */
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
-  padding: 0;
+  box-sizing: border-box;
   transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   animation: floatTile 6s ease-in-out infinite;
   animation-delay: var(--f-delay, 0s);
 }
 
-/* Casi cuadrado → círculo (solo si el admin fuerza circular) */
+/* Circular solo si admin lo fuerza */
 .logo-tile--circle {
   width: 104px;
   height: 104px;
   border-radius: 50%;
-  overflow: hidden;
+  padding: 10px;
 }
 
-/* Horizontal / alargado */
+/* Horizontal: más ancho para logos tipo TREK / LA CLETA */
 .logo-tile--wide {
-  width: 168px;
+  width: 200px;
   height: 88px;
   border-radius: 14px;
+  padding: 10px 14px;
 }
 
-/* Vertical */
 .logo-tile--tall {
-  width: 88px;
-  height: 120px;
+  width: 96px;
+  height: 128px;
   border-radius: 14px;
+  padding: 12px;
 }
 
-/* Cuadrado / default */
 .logo-tile--square {
-  width: 112px;
-  height: 112px;
+  width: 120px;
+  height: 120px;
   border-radius: 16px;
+  padding: 12px;
 }
 
-.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; }
-.logo-tile--wide.logo-tile--size-sm { width: 132px; height: 70px; }
-.logo-tile--tall.logo-tile--size-sm { width: 70px; height: 96px; }
-.logo-tile--square.logo-tile--size-sm { width: 88px; height: 88px; }
+.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; padding: 8px; }
+.logo-tile--wide.logo-tile--size-sm { width: 156px; height: 72px; padding: 8px 12px; }
+.logo-tile--tall.logo-tile--size-sm { width: 76px; height: 104px; padding: 10px; }
+.logo-tile--square.logo-tile--size-sm { width: 96px; height: 96px; padding: 10px; }
 
-.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; }
-.logo-tile--wide.logo-tile--size-lg { width: 200px; height: 104px; }
-.logo-tile--tall.logo-tile--size-lg { width: 104px; height: 140px; }
-.logo-tile--square.logo-tile--size-lg { width: 132px; height: 132px; }
+.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; padding: 12px; }
+.logo-tile--wide.logo-tile--size-lg { width: 240px; height: 104px; padding: 12px 16px; }
+.logo-tile--tall.logo-tile--size-lg { width: 112px; height: 148px; padding: 14px; }
+.logo-tile--square.logo-tile--size-lg { width: 140px; height: 140px; padding: 14px; }
 
+/* contain = logo completo, sin recortes */
 .logo-tile__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
   filter: brightness(0.98) contrast(1.02);
   transition: filter 0.3s ease, transform 0.3s ease;
-}
-
-.logo-tile--circle .logo-tile__img {
-  transform: scale(1.06);
 }
 
 .logo-tile:hover {
@@ -350,11 +348,7 @@ onMounted(loadSponsorsData);
 
 .logo-tile:hover .logo-tile__img {
   filter: brightness(1.05) contrast(1.04);
-  transform: scale(1.03);
-}
-
-.logo-tile--circle:hover .logo-tile__img {
-  transform: scale(1.1);
+  transform: scale(1.04);
 }
 
 .carousel-glow-left,
@@ -426,21 +420,25 @@ onMounted(loadSponsorsData);
   .logo-tile--circle {
     width: 88px;
     height: 88px;
+    padding: 8px;
   }
 
   .logo-tile--wide {
-    width: 140px;
+    width: 168px;
     height: 76px;
+    padding: 8px 12px;
   }
 
   .logo-tile--tall {
-    width: 76px;
-    height: 100px;
+    width: 80px;
+    height: 108px;
+    padding: 10px;
   }
 
   .logo-tile--square {
-    width: 92px;
-    height: 92px;
+    width: 100px;
+    height: 100px;
+    padding: 10px;
   }
 
   .logo-group {

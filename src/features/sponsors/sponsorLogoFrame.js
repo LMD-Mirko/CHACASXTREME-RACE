@@ -22,8 +22,8 @@ export function resolveSponsorSize(sponsor) {
 export function detectShapeFromImage(img) {
   if (!img?.naturalWidth || !img?.naturalHeight) return 'square';
   const ratio = img.naturalWidth / img.naturalHeight;
-  if (ratio >= 1.35) return 'wide';
-  if (ratio <= 0.75) return 'tall';
-  // Casi cuadrado → square (circular solo si el admin lo elige)
+  // Umbrales más sensibles: logos tipo TREK caen en wide
+  if (ratio >= 1.2) return 'wide';
+  if (ratio <= 0.82) return 'tall';
   return 'square';
 }

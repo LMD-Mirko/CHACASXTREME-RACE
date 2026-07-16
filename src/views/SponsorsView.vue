@@ -419,12 +419,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  /* Blanco: logos con fondo blanco rellenan el tile sin marco oscuro */
+  /* Fondo blanco + contain: logo completo sin marco oscuro */
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
   cursor: pointer;
-  padding: 0;
+  box-sizing: border-box;
   font: inherit;
   color: inherit;
   appearance: none;
@@ -438,49 +438,48 @@ onMounted(() => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  overflow: hidden;
+  padding: 12px;
 }
 
 .logo-tile--wide {
-  width: 180px;
+  width: 220px;
   height: 96px;
   border-radius: 16px;
+  padding: 12px 16px;
 }
 
 .logo-tile--tall {
-  width: 96px;
-  height: 132px;
+  width: 104px;
+  height: 140px;
   border-radius: 16px;
+  padding: 14px;
 }
 
 .logo-tile--square {
-  width: 120px;
-  height: 120px;
+  width: 128px;
+  height: 128px;
   border-radius: 18px;
+  padding: 14px;
 }
 
-.logo-tile--circle.logo-tile--size-sm { width: 92px; height: 92px; }
-.logo-tile--wide.logo-tile--size-sm { width: 140px; height: 76px; }
-.logo-tile--tall.logo-tile--size-sm { width: 76px; height: 108px; }
-.logo-tile--square.logo-tile--size-sm { width: 92px; height: 92px; }
+.logo-tile--circle.logo-tile--size-sm { width: 92px; height: 92px; padding: 10px; }
+.logo-tile--wide.logo-tile--size-sm { width: 168px; height: 76px; padding: 10px 12px; }
+.logo-tile--tall.logo-tile--size-sm { width: 80px; height: 112px; padding: 10px; }
+.logo-tile--square.logo-tile--size-sm { width: 100px; height: 100px; padding: 12px; }
 
-.logo-tile--circle.logo-tile--size-lg { width: 148px; height: 148px; }
-.logo-tile--wide.logo-tile--size-lg { width: 220px; height: 112px; }
-.logo-tile--tall.logo-tile--size-lg { width: 112px; height: 156px; }
-.logo-tile--square.logo-tile--size-lg { width: 148px; height: 148px; }
+.logo-tile--circle.logo-tile--size-lg { width: 148px; height: 148px; padding: 14px; }
+.logo-tile--wide.logo-tile--size-lg { width: 260px; height: 112px; padding: 14px 18px; }
+.logo-tile--tall.logo-tile--size-lg { width: 120px; height: 164px; padding: 16px; }
+.logo-tile--square.logo-tile--size-lg { width: 156px; height: 156px; padding: 16px; }
 
 .logo-tile__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
-  filter: grayscale(0.15) contrast(1.05) brightness(0.97);
+  filter: grayscale(0.1) contrast(1.05) brightness(0.98);
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.logo-tile--circle .logo-tile__img {
-  transform: scale(1.06);
 }
 
 .float-anim {
@@ -505,10 +504,6 @@ onMounted(() => {
 .logo-tile:hover .logo-tile__img {
   filter: grayscale(0) contrast(1.05) brightness(1.08);
   transform: scale(1.04);
-}
-
-.logo-tile--circle:hover .logo-tile__img {
-  transform: scale(1.1);
 }
 
 .sponsor-placeholder {
@@ -980,10 +975,10 @@ onMounted(() => {
   }
 
   .logo-carousel-section { padding: 4rem 0; }
-  .logo-tile--circle { width: 92px; height: 92px; }
-  .logo-tile--wide { width: 148px; height: 80px; }
-  .logo-tile--tall { width: 80px; height: 108px; }
-  .logo-tile--square { width: 96px; height: 96px; }
+  .logo-tile--circle { width: 92px; height: 92px; padding: 10px; }
+  .logo-tile--wide { width: 176px; height: 80px; padding: 10px 12px; }
+  .logo-tile--tall { width: 84px; height: 116px; padding: 10px; }
+  .logo-tile--square { width: 104px; height: 104px; padding: 12px; }
   .logo-group { gap: 2.5rem; }
   .logo-group-inner { gap: 1.25rem; }
   
@@ -1027,10 +1022,10 @@ onMounted(() => {
   .sponsor-hero { padding: 160px 0 80px; }
   .sponsor-title { font-size: 2.8rem; }
   
-  .logo-tile--circle { width: 76px; height: 76px; }
-  .logo-tile--wide { width: 128px; height: 70px; }
-  .logo-tile--tall { width: 70px; height: 96px; }
-  .logo-tile--square { width: 80px; height: 80px; }
+  .logo-tile--circle { width: 76px; height: 76px; padding: 8px; }
+  .logo-tile--wide { width: 148px; height: 70px; padding: 8px 10px; }
+  .logo-tile--tall { width: 72px; height: 100px; padding: 8px; }
+  .logo-tile--square { width: 88px; height: 88px; padding: 10px; }
   .logo-group { gap: 1.5rem; }
   .logo-group-inner { gap: 1rem; }
 
