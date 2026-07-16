@@ -63,6 +63,15 @@ export async function fetchRiderProfile(token) {
   return body;
 }
 
+export async function fetchAvailablePlates(token) {
+  const t = token || getProfileToken();
+  return parseJson(
+    await fetch(buildUrl(`/api/rider-profile/${encodeURIComponent(t)}/plates`), {
+      headers: { Accept: 'application/json' },
+    })
+  );
+}
+
 export async function updateRiderProfile(token, formData) {
   const t = token || getProfileToken();
   const body = await parseJson(

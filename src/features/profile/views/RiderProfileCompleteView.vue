@@ -6,9 +6,11 @@
       <!-- HEADER -->
       <header class="rp-hero" :class="{ 'is-in': gateIn }">
         <p class="rp-brand">Chacas Xtreme Race</p>
-        <h1>Bienvenido <span>rider</span></h1>
+        <h1>¡Bienvenido <span>rider</span>!</h1>
         <p class="rp-lede">
-          Nos alegra tenerte en la carrera. De paso, súbenos tu foto en acción y completa lo que falte en tu ficha — se publica en la web oficial.
+          Estamos felices de tenerte en la familia Chacas Xtreme Race. Esta es tu ficha personal:
+          súbenos esa foto en acción que te representa y completa lo que falte — sale en la web oficial
+          y todo el pelotón te va a reconocer en la montaña.
         </p>
       </header>
 
@@ -22,7 +24,11 @@
       <section v-else-if="done" class="rp-panel rp-panel--success is-in">
         <div class="rp-success-icon" aria-hidden="true">✓</div>
         <h2>¡Listo!</h2>
-        <p>Tu foto rider y datos ya están guardados. Gracias por completar tu ficha.</p>
+        <p>
+          Tu foto rider y datos ya están guardados
+          <template v-if="rider?.plate_number"> · placa <strong>#{{ rider.plate_number }}</strong></template>.
+          Gracias por completar tu ficha.
+        </p>
         <div v-if="previewUrl" class="rp-success-photo">
           <img :src="previewUrl" alt="Tu foto rider" />
         </div>
@@ -144,6 +150,49 @@
           <p class="rp-photo-help">
             Ideal en acción: salto, bajada o con la bici. JPG / PNG / WEBP · máx. 10MB.
           </p>
+        </section>
+
+        <!-- PLATE -->
+        <section class="rp-plate">
+          <div class="rp-photo-head">
+            <p class="rp-photo-label">
+              Número de placa
+              <em v-if="needs.plate">*</em>
+            </p>
+            <p v-if="needs.plate" class="rp-photo-badge">Elige uno</p>
+            <p v-else class="rp-photo-badge rp-photo-badge--ok">Asignada</p>
+          </div>
+
+          <div v-if="!needs.plate && rider.plate_number" class="rp-plate-locked">
+            <span class="rp-plate-big">#{{ rider.plate_number }}</span>
+            <p>Esta es tu placa. Ya no se puede cambiar desde aquí.</p>
+          </div>
+
+          <div v-else class="rp-plate-pick">
+            <p class="rp-plate-hint">
+              Escoge tu número favorito entre los libres ({{ plateMin }}–{{ plateMax }}).
+              Una vez enviado, queda tuyo.
+            </p>
+            <p v-if="platesLoading" class="rp-plate-loading">Cargando placas libres…</p>
+            <p v-else-if="!availablePlates.length" class="rp-error">
+              No hay placas libres en este momento. Avisa al staff.
+            </p>
+            <div v-else class="rp-plate-grid">
+              <button
+                v-for="n in availablePlates"
+                :key="n"
+                type="button"
+                class="rp-plate-num"
+                :class="{ 'is-selected': selectedPlate === n }"
+                @click="selectedPlate = n"
+              >
+                {{ n }}
+              </button>
+            </div>
+            <p v-if="selectedPlate" class="rp-plate-choice">
+              Elegiste la <strong>#{{ selectedPlate }}</strong>
+            </p>
+          </div>
         </section>
 
         <!-- MISSING FIELDS -->
@@ -270,7 +319,7 @@
           <button
             class="rp-btn"
             type="submit"
-            :disabled="loading || !photoFile"
+            :disabled="loading || !photoFile || (needs.plate && !selectedPlate)"
           >
             {{ loading ? 'Enviando…' : 'Enviar foto y datos' }}
           </button>
@@ -287,6 +336,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   clearProfileToken,
+  fetchAvailablePlates,
   fetchRiderProfile,
   setProfileToken,
   unlockRiderProfile,
@@ -309,6 +359,11 @@ const enteredViaLink = ref(false);
 const fullName = ref('');
 const emergencyPhone = ref('');
 const askGuardian = ref(false);
+const selectedPlate = ref(null);
+const availablePlates = ref([]);
+const platesLoading = ref(false);
+const plateMin = ref(1);
+const plateMax = ref(150);
 
 const form = reactive({
   origin: '',
@@ -329,6 +384,7 @@ const needs = computed(() => rider.value?.needs || {
   club_team: false,
   instagram: false,
   guardian: false,
+  plate: true,
 });
 
 const previewUrl = computed(() => localPreview.value || '');
@@ -376,6 +432,33 @@ function fillFromRider(data) {
   photoFile.value = null;
   if (!done.value) localPreview.value = '';
   error.value = '';
+  selectedPlate.value = null;
+  plateMin.value = data.plate?.min || 1;
+  plateMax.value = data.plate?.max || 150;
+  if (data.needs?.plate) {
+    loadPlates();
+  } else {
+    availablePlates.value = [];
+  }
+}
+
+async function loadPlates() {
+  if (!profileToken.value) return;
+  platesLoading.value = true;
+  try {
+    const body = await fetchAvailablePlates(profileToken.value);
+    availablePlates.value = body.data?.available || [];
+    plateMin.value = body.data?.min || plateMin.value;
+    plateMax.value = body.data?.max || plateMax.value;
+    if (body.data?.has_plate && body.data?.plate_number) {
+      selectedPlate.value = null;
+    }
+  } catch (e) {
+    availablePlates.value = [];
+    error.value = e.message || 'No se pudieron cargar las placas libres.';
+  } finally {
+    platesLoading.value = false;
+  }
 }
 
 async function unlock() {
@@ -429,11 +512,18 @@ async function save() {
     error.value = 'La foto rider es obligatoria.';
     return;
   }
+  if (needs.value.plate && !selectedPlate.value) {
+    error.value = 'Elige tu número de placa.';
+    return;
+  }
 
   loading.value = true;
   try {
     const fd = new FormData();
     fd.append('photo_file', photoFile.value);
+    if (needs.value.plate && selectedPlate.value) {
+      fd.append('plate_number', String(selectedPlate.value));
+    }
 
     if (needs.value.origin) fd.append('origin', form.origin);
     if (needs.value.dni) fd.append('dni', form.dni);
@@ -450,11 +540,14 @@ async function save() {
     }
 
     const body = await updateRiderProfile(profileToken.value, fd);
+    if (body.data) rider.value = body.data;
     if (body.data?.photo_url) localPreview.value = body.data.photo_url;
     done.value = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
     error.value = e.message || 'No se pudo enviar.';
+    // Si chocaron por placa, refrescar libres
+    if (needs.value.plate) loadPlates();
   } finally {
     loading.value = false;
   }
@@ -469,6 +562,8 @@ function reset() {
   error.value = '';
   photoFile.value = null;
   localPreview.value = '';
+  selectedPlate.value = null;
+  availablePlates.value = [];
 }
 </script>
 
@@ -735,6 +830,10 @@ function reset() {
   padding: 5px 9px;
 }
 
+.rp-photo-badge--ok {
+  background: #1b8a45;
+}
+
 .rp-photo-box {
   position: relative;
   width: 100%;
@@ -822,6 +921,77 @@ function reset() {
   font-size: 12.5px;
   line-height: 1.4;
   color: var(--rp-muted);
+}
+
+.rp-plate {
+  margin: 0 0 1.25rem;
+}
+
+.rp-plate-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(34, 160, 90, 0.35);
+  background: rgba(34, 160, 90, 0.1);
+}
+
+.rp-plate-big {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #3dd68c;
+  letter-spacing: 0.02em;
+}
+
+.rp-plate-locked p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--rp-muted);
+}
+
+.rp-plate-hint,
+.rp-plate-loading,
+.rp-plate-choice {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--rp-muted);
+}
+
+.rp-plate-choice {
+  color: var(--rp-text);
+}
+
+.rp-plate-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.15rem;
+  margin-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rp-plate-num {
+  appearance: none;
+  border: 1px solid var(--rp-line);
+  background: var(--rp-input);
+  color: var(--rp-text);
+  border-radius: 10px;
+  min-height: 42px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rp-plate-num.is-selected {
+  border-color: var(--rp-orange);
+  background: rgba(255, 94, 0, 0.18);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 94, 0, 0.55);
 }
 
 .rp-fields-title {
