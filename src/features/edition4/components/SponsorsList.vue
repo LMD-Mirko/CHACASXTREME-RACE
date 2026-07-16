@@ -277,10 +277,12 @@ onMounted(loadSponsorsData);
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Blanco: los logos con fondo blanco rellenan sin “marco” oscuro */
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
-  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  padding: 0;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   animation: floatTile 6s ease-in-out infinite;
   animation-delay: var(--f-delay, 0s);
 }
@@ -290,7 +292,6 @@ onMounted(loadSponsorsData);
   width: 104px;
   height: 104px;
   border-radius: 50%;
-  padding: 0;
   overflow: hidden;
 }
 
@@ -299,7 +300,6 @@ onMounted(loadSponsorsData);
   width: 168px;
   height: 88px;
   border-radius: 14px;
-  padding: 12px 16px;
 }
 
 /* Vertical */
@@ -307,7 +307,6 @@ onMounted(loadSponsorsData);
   width: 88px;
   height: 120px;
   border-radius: 14px;
-  padding: 12px;
 }
 
 /* Cuadrado / default */
@@ -315,23 +314,22 @@ onMounted(loadSponsorsData);
   width: 112px;
   height: 112px;
   border-radius: 16px;
-  padding: 14px;
 }
 
-.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; padding: 0; }
-.logo-tile--wide.logo-tile--size-sm { width: 132px; height: 70px; padding: 10px 12px; }
-.logo-tile--tall.logo-tile--size-sm { width: 70px; height: 96px; padding: 10px; }
-.logo-tile--square.logo-tile--size-sm { width: 88px; height: 88px; padding: 10px; }
+.logo-tile--circle.logo-tile--size-sm { width: 84px; height: 84px; }
+.logo-tile--wide.logo-tile--size-sm { width: 132px; height: 70px; }
+.logo-tile--tall.logo-tile--size-sm { width: 70px; height: 96px; }
+.logo-tile--square.logo-tile--size-sm { width: 88px; height: 88px; }
 
-.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; padding: 0; }
-.logo-tile--wide.logo-tile--size-lg { width: 200px; height: 104px; padding: 14px 18px; }
-.logo-tile--tall.logo-tile--size-lg { width: 104px; height: 140px; padding: 14px; }
-.logo-tile--square.logo-tile--size-lg { width: 132px; height: 132px; padding: 16px; }
+.logo-tile--circle.logo-tile--size-lg { width: 128px; height: 128px; }
+.logo-tile--wide.logo-tile--size-lg { width: 200px; height: 104px; }
+.logo-tile--tall.logo-tile--size-lg { width: 104px; height: 140px; }
+.logo-tile--square.logo-tile--size-lg { width: 132px; height: 132px; }
 
 .logo-tile__img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   display: block;
   filter: brightness(0.98) contrast(1.02);
@@ -339,15 +337,13 @@ onMounted(loadSponsorsData);
 }
 
 .logo-tile--circle .logo-tile__img {
-  object-fit: cover;
   transform: scale(1.06);
 }
 
 .logo-tile:hover {
-  border-color: rgba(255, 94, 0, 0.55);
-  background: rgba(255, 94, 0, 0.06);
+  border-color: rgba(255, 94, 0, 0.75);
   transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.12);
+  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.18);
   z-index: 5;
   animation-play-state: paused;
 }
