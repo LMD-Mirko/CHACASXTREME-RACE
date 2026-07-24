@@ -31,23 +31,31 @@ const defaultImages = computed(() =>
 );
 
 const remoteGalleryImages = ref([]);
+/** URLs que fallaron al cargar (se ocultan para no dejar huecos negros) */
+const brokenUrls = ref(new Set());
+
 const sourceImages = computed(() => {
-  const merged = [...(remoteGalleryImages.value || []), ...defaultImages.value];
-  const seen = new Set();
-  return merged.filter((u) => {
-    if (!u) return false;
-    if (seen.has(u)) return false;
+  // Locales primero (siempre visibles); remotas después como extras
+  const locals = defaultImages.value;
+  const seen = new Set(locals);
+  const extras = (remoteGalleryImages.value || []).filter((u) => {
+    if (!u || seen.has(u) || brokenUrls.value.has(u)) return false;
     seen.add(u);
     return true;
   });
+  return [...locals, ...extras].filter((u) => !brokenUrls.value.has(u));
 });
 
-const imagesRow1 = computed(() =>
-  sourceImages.value.slice(0, Math.ceil(sourceImages.value.length / 2))
-);
-const imagesRow2 = computed(() =>
-  sourceImages.value.slice(Math.ceil(sourceImages.value.length / 2))
-);
+/** Alternar entre filas: las dos siempre llevan fotos locales */
+const imagesRow1 = computed(() => sourceImages.value.filter((_, i) => i % 2 === 0));
+const imagesRow2 = computed(() => sourceImages.value.filter((_, i) => i % 2 === 1));
+
+function onImgError(url) {
+  if (!url) return;
+  const next = new Set(brokenUrls.value);
+  next.add(url);
+  brokenUrls.value = next;
+}
 
 const selectedImage = ref(null);
 const allImages = computed(() => sourceImages.value);
@@ -209,10 +217,10 @@ onBeforeUnmount(() => {
       <h3 class="gallery__headline font-podium entry-anim entry-anim--up" style="--stagger: 0.12s">EXPEDICIÓN EN CHACAS</h3>
     </div>
 
-    <!-- Row 1 -->
+    <!-- Row 1: always visible (no entry-anim on tracks — evita fila invisible) -->
     <div
-      class="gallery__row entry-anim entry-anim--fade"
-      :style="{ '--stagger': '0.24s', '--drag-x': `${dragOffsets.row1}px` }"
+      class="gallery__row"
+      :style="{ '--drag-x': `${dragOffsets.row1}px` }"
       @pointerdown="onPointerDown('row1', $event)"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -237,7 +245,7 @@ onBeforeUnmount(() => {
                 :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'"
                 loading="eager"
                 decoding="async"
-                fetchpriority="low"
+                @error="onImgError(img)"
               />
               <div class="gallery__overlay">
                 <span class="gallery__label font-inter">AMPLIAR</span>
@@ -251,8 +259,8 @@ onBeforeUnmount(() => {
     <!-- Row 2 -->
     <div
       v-if="imagesRow2.length"
-      class="gallery__row gallery__row--second entry-anim entry-anim--fade"
-      :style="{ '--stagger': '0.36s', '--drag-x': `${dragOffsets.row2}px` }"
+      class="gallery__row gallery__row--second"
+      :style="{ '--drag-x': `${dragOffsets.row2}px` }"
       @pointerdown="onPointerDown('row2', $event)"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -277,7 +285,7 @@ onBeforeUnmount(() => {
                 :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'"
                 loading="eager"
                 decoding="async"
-                fetchpriority="low"
+                @error="onImgError(img)"
               />
               <div class="gallery__overlay">
                 <span class="gallery__label font-inter">AMPLIAR</span>
@@ -622,7 +630,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 992px) {
   .gallery__header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     padding: 0 var(--container-px);
   }
 }
@@ -633,13 +641,22 @@ onBeforeUnmount(() => {
     font-size: 0.72rem;
   }
 
+  .gallery {
+    padding-top: clamp(2.5rem, 8vw, 4rem);
+    padding-bottom: clamp(2.5rem, 8vw, 4rem);
+  }
+
+  .gallery__header {
+    margin-bottom: 1.25rem;
+  }
+
   .gallery__row--second {
-    margin-top: 0.85rem;
+    margin-top: 0.75rem;
   }
 
   .gallery__item {
-    flex: 0 0 min(72vw, 260px);
-    height: min(48vw, 170px);
+    flex: 0 0 min(68vw, 240px);
+    height: min(44vw, 155px);
   }
 
   .gallery__set {
@@ -666,10 +683,14 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 480px) {
+  .gallery__header {
+    margin-bottom: 1rem;
+  }
+
   .gallery__item {
-    flex: 0 0 68vw;
-    height: 44vw;
-    max-height: 168px;
+    flex: 0 0 64vw;
+    height: 42vw;
+    max-height: 155px;
   }
 
   .lightbox__nav,
