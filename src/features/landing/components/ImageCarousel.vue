@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { fetchGalleryAll } from '@/composables/useBackendApi';
 
@@ -26,7 +26,10 @@ const sortedFolder3 = Object.entries(folder3ImgsEager)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, url]) => url);
 
-const defaultImages = computed(() => [...sortedMain, chacasUrl, ...sortedFolder3.slice(0, 6), ...sortedFolder3.slice(6)]);
+const defaultImages = computed(() =>
+  [...sortedMain, chacasUrl, ...sortedFolder3].filter(Boolean)
+);
+
 const remoteGalleryImages = ref([]);
 const sourceImages = computed(() => {
   const merged = [...(remoteGalleryImages.value || []), ...defaultImages.value];
@@ -39,8 +42,12 @@ const sourceImages = computed(() => {
   });
 });
 
-const imagesRow1 = computed(() => sourceImages.value.slice(0, Math.ceil(sourceImages.value.length / 2)));
-const imagesRow2 = computed(() => sourceImages.value.slice(Math.ceil(sourceImages.value.length / 2)));
+const imagesRow1 = computed(() =>
+  sourceImages.value.slice(0, Math.ceil(sourceImages.value.length / 2))
+);
+const imagesRow2 = computed(() =>
+  sourceImages.value.slice(Math.ceil(sourceImages.value.length / 2))
+);
 
 const selectedImage = ref(null);
 const allImages = computed(() => sourceImages.value);
@@ -54,7 +61,9 @@ const openLightbox = (img) => {
   if (suppressClick.value) return;
   selectedImage.value = img;
 };
-const closeLightbox = () => { selectedImage.value = null; };
+const closeLightbox = () => {
+  selectedImage.value = null;
+};
 
 const prevImage = () => {
   if (activeIndex.value === -1) return;
@@ -79,8 +88,30 @@ const loadGalleryImages = async () => {
   }
 };
 
-/* ─── Touch / drag control ─────────────────────────────────────────────── */
-const DRAG_THRESHOLD = 8;
+/* ─── Velocidad estable (~px/s) según ancho real del track ─────────────── */
+const SCROLL_PX_PER_SEC = 32; // calma en móvil; no “vuela”
+const trackRow1Ref = ref(null);
+const trackRow2Ref = ref(null);
+const durationRow1 = ref('40s');
+const durationRow2 = ref('40s');
+
+function syncTrackDuration(trackEl, durationRef) {
+  if (!trackEl) return;
+  const distance = trackEl.scrollWidth / 2;
+  if (!distance) return;
+  const seconds = Math.max(28, Math.min(90, distance / SCROLL_PX_PER_SEC));
+  durationRef.value = `${seconds.toFixed(1)}s`;
+}
+
+function syncAllDurations() {
+  syncTrackDuration(trackRow1Ref.value, durationRow1);
+  syncTrackDuration(trackRow2Ref.value, durationRow2);
+}
+
+let resizeObserver = null;
+
+/* ─── Touch / drag ─────────────────────────────────────────────────────── */
+const DRAG_THRESHOLD = 10;
 const dragOffsets = ref({ row1: 0, row2: 0 });
 const pausedRows = ref({ row1: false, row2: false });
 const suppressClick = ref(false);
@@ -93,7 +124,8 @@ let moved = false;
 let resumeTimer = null;
 
 function onPointerDown(rowKey, e) {
-  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  // Solo touch/pen: el mouse deja el hover-pause de siempre
+  if (e.pointerType === 'mouse') return;
   activeRow = rowKey;
   pointerId = e.pointerId;
   startX = e.clientX;
@@ -127,14 +159,15 @@ function endDrag(e) {
     suppressClick.value = true;
     setTimeout(() => {
       suppressClick.value = false;
-    }, 60);
+    }, 80);
   }
 
-  // Reanuda el auto-scroll tras soltar (mantiene el offset de arrastre)
+  // Vuelve el offset a 0 y reanuda el auto-scroll (evita que una fila quede “fuera”)
   resumeTimer = setTimeout(() => {
+    dragOffsets.value = { ...dragOffsets.value, [rowKey]: 0 };
     pausedRows.value = { ...pausedRows.value, [rowKey]: false };
     resumeTimer = null;
-  }, 220);
+  }, 180);
 }
 
 function onPointerUp(e) {
@@ -145,12 +178,26 @@ function onPointerCancel(e) {
   endDrag(e);
 }
 
-onMounted(() => {
-  loadGalleryImages();
+watch(sourceImages, async () => {
+  await nextTick();
+  syncAllDurations();
+});
+
+onMounted(async () => {
+  await loadGalleryImages();
+  await nextTick();
+  syncAllDurations();
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => syncAllDurations());
+    if (trackRow1Ref.value) resizeObserver.observe(trackRow1Ref.value);
+    if (trackRow2Ref.value) resizeObserver.observe(trackRow2Ref.value);
+  }
 });
 
 onBeforeUnmount(() => {
   if (resumeTimer) clearTimeout(resumeTimer);
+  resizeObserver?.disconnect();
 });
 </script>
 
@@ -162,43 +209,36 @@ onBeforeUnmount(() => {
       <h3 class="gallery__headline font-podium entry-anim entry-anim--up" style="--stagger: 0.12s">EXPEDICIÓN EN CHACAS</h3>
     </div>
 
-    <!-- Row 1: Left to Right -->
+    <!-- Row 1 -->
     <div
-      class="gallery__row entry-anim entry-anim--scale"
+      class="gallery__row entry-anim entry-anim--fade"
       :style="{ '--stagger': '0.24s', '--drag-x': `${dragOffsets.row1}px` }"
       @pointerdown="onPointerDown('row1', $event)"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerCancel"
     >
-      <div
-        class="gallery__drag"
-      >
+      <div class="gallery__drag">
         <div
+          ref="trackRow1Ref"
           class="gallery__track move-right"
           :class="{ 'is-paused': pausedRows.row1 }"
+          :style="{ animationDuration: durationRow1 }"
         >
-          <div class="gallery__set">
+          <div v-for="setIdx in 2" :key="'r1-set-'+setIdx" class="gallery__set">
             <div
               v-for="(img, index) in imagesRow1"
-              :key="'r1-s1-'+index"
+              :key="'r1-s'+setIdx+'-'+index"
               class="gallery__item"
               @click="openLightbox(img)"
             >
-              <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-              <div class="gallery__overlay">
-                <span class="gallery__label font-inter">AMPLIAR</span>
-              </div>
-            </div>
-          </div>
-          <div class="gallery__set">
-            <div
-              v-for="(img, index) in imagesRow1"
-              :key="'r1-s2-'+index"
-              class="gallery__item"
-              @click="openLightbox(img)"
-            >
-              <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <img
+                :src="img"
+                :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'"
+                loading="eager"
+                decoding="async"
+                fetchpriority="low"
+              />
               <div class="gallery__overlay">
                 <span class="gallery__label font-inter">AMPLIAR</span>
               </div>
@@ -208,9 +248,10 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Row 2: Right to Left -->
+    <!-- Row 2 -->
     <div
-      class="gallery__row mt-4 entry-anim entry-anim--scale"
+      v-if="imagesRow2.length"
+      class="gallery__row gallery__row--second entry-anim entry-anim--fade"
       :style="{ '--stagger': '0.36s', '--drag-x': `${dragOffsets.row2}px` }"
       @pointerdown="onPointerDown('row2', $event)"
       @pointermove="onPointerMove"
@@ -219,30 +260,25 @@ onBeforeUnmount(() => {
     >
       <div class="gallery__drag">
         <div
+          ref="trackRow2Ref"
           class="gallery__track move-left"
           :class="{ 'is-paused': pausedRows.row2 }"
+          :style="{ animationDuration: durationRow2 }"
         >
-          <div class="gallery__set">
+          <div v-for="setIdx in 2" :key="'r2-set-'+setIdx" class="gallery__set">
             <div
               v-for="(img, index) in imagesRow2"
-              :key="'r2-s1-'+index"
+              :key="'r2-s'+setIdx+'-'+index"
               class="gallery__item"
               @click="openLightbox(img)"
             >
-              <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-              <div class="gallery__overlay">
-                <span class="gallery__label font-inter">AMPLIAR</span>
-              </div>
-            </div>
-          </div>
-          <div class="gallery__set">
-            <div
-              v-for="(img, index) in imagesRow2"
-              :key="'r2-s2-'+index"
-              class="gallery__item"
-              @click="openLightbox(img)"
-            >
-              <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <img
+                :src="img"
+                :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'"
+                loading="eager"
+                decoding="async"
+                fetchpriority="low"
+              />
               <div class="gallery__overlay">
                 <span class="gallery__label font-inter">AMPLIAR</span>
               </div>
@@ -326,35 +362,49 @@ onBeforeUnmount(() => {
   -webkit-user-select: none;
 }
 
+.gallery__row--second {
+  margin-top: 1.25rem;
+}
+
 .gallery__row:active {
   cursor: grabbing;
 }
 
 .gallery__drag {
   transform: translate3d(var(--drag-x, 0px), 0, 0);
+  transition: transform 0.28s ease-out;
   will-change: transform;
 }
 
-.mt-4 { margin-top: 2rem; }
+.gallery__row:active .gallery__drag {
+  transition: none;
+}
 
 .gallery__track {
   display: flex;
   width: max-content;
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .gallery__set {
   display: flex;
-  gap: clamp(1rem, 3vw, 2rem);
-  padding-right: clamp(1rem, 3vw, 2rem);
+  gap: clamp(0.75rem, 2.5vw, 2rem);
+  padding-right: clamp(0.75rem, 2.5vw, 2rem);
 }
 
 .move-right {
-  animation: scroll-right 45s linear infinite;
+  animation-name: scroll-right;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 40s;
 }
 
 .move-left {
-  animation: scroll-left 45s linear infinite;
+  animation-name: scroll-left;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 40s;
 }
 
 .gallery__track.is-paused {
@@ -369,8 +419,8 @@ onBeforeUnmount(() => {
 
 .gallery__item {
   position: relative;
-  flex: 0 0 clamp(220px, 42vw, 450px);
-  height: clamp(150px, 28vw, 300px);
+  flex: 0 0 clamp(200px, 38vw, 420px);
+  height: clamp(140px, 26vw, 280px);
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
@@ -494,13 +544,8 @@ onBeforeUnmount(() => {
   border-color: white;
 }
 
-.lightbox__nav.prev {
-  left: 3rem;
-}
-
-.lightbox__nav.next {
-  right: 3rem;
-}
+.lightbox__nav.prev { left: 3rem; }
+.lightbox__nav.next { right: 3rem; }
 
 .lightbox__content {
   position: relative;
@@ -580,11 +625,6 @@ onBeforeUnmount(() => {
     margin-bottom: 2rem;
     padding: 0 var(--container-px);
   }
-
-  .move-right,
-  .move-left {
-    animation-duration: 28s;
-  }
 }
 
 @media (max-width: 768px) {
@@ -593,23 +633,18 @@ onBeforeUnmount(() => {
     font-size: 0.72rem;
   }
 
-  .move-right,
-  .move-left {
-    animation-duration: 22s;
+  .gallery__row--second {
+    margin-top: 0.85rem;
   }
 
   .gallery__item {
-    flex: 0 0 clamp(160px, 58vw, 280px);
-    height: clamp(120px, 38vw, 200px);
+    flex: 0 0 min(72vw, 260px);
+    height: min(48vw, 170px);
   }
 
   .gallery__set {
-    gap: 0.75rem;
-    padding-right: 0.75rem;
-  }
-
-  .mt-4 {
-    margin-top: 0.75rem;
+    gap: 0.65rem;
+    padding-right: 0.65rem;
   }
 
   .gallery__label {
@@ -631,22 +666,13 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 480px) {
-  .move-right,
-  .move-left {
-    animation-duration: 18s;
-  }
-
   .gallery__item {
-    flex: 0 0 70vw;
-    height: 46vw;
-    max-height: 180px;
+    flex: 0 0 68vw;
+    height: 44vw;
+    max-height: 168px;
   }
 
-  .lightbox__nav {
-    width: 40px;
-    height: 40px;
-  }
-
+  .lightbox__nav,
   .lightbox__close {
     width: 40px;
     height: 40px;
@@ -656,6 +682,10 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .gallery__track {
     animation: none !important;
+  }
+
+  .gallery__drag {
+    transition: none;
   }
 }
 </style>
