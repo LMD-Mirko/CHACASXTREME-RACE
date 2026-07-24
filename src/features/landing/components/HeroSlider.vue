@@ -747,11 +747,11 @@ onUnmounted(() => {
 }
 
 .move-left {
-  animation: scroll-left-tape 48s linear infinite;
+  animation: scroll-left-tape 72s linear infinite;
 }
 
 .move-right {
-  animation: scroll-right-tape 48s linear infinite;
+  animation: scroll-right-tape 72s linear infinite;
 }
 
 .tape-segment {

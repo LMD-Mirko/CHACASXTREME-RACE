@@ -1,55 +1,21 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { fetchGalleryAll } from '@/composables/useBackendApi';
 
-// ─── Carga dinámica: las imágenes NO entran al bundle JS ───────────────────
-// import.meta.glob con eager:false = carga solo cuando se necesitan
-const mainModules = import.meta.glob(
-  '@/assets/images/chacas /*[0-9]*.webp',
-  { eager: false }
-);
-const chacasModule = import.meta.glob(
-  '@/assets/images/chacas /chacas.webp',
-  { eager: false }
-);
-const folder3Modules = import.meta.glob(
-  '@/assets/images/chacas /3/*.webp',
-  { eager: false }
-);
-
-// Función que resuelve todos los módulos a sus URLs reales
-const resolveGlob = (modules) =>
-  Object.values(modules).map((m) => {
-    // eager:false devuelve funciones () => Promise<module>
-    // Para la URL necesitamos resolverlas como string (vite da la URL en .default tras build)
-    // Usamos el path relativo como src directa — Vite la transforma en URL de asset
-    return null; // placeholder, se reemplaza abajo
-  });
-
-// Extraemos las URLs reales de los módulos (Vite los resuelve a paths de asset en runtime)
-const getUrls = (modules) => Object.keys(modules).map((k) => {
-  // La clave del glob es el path absoluto del módulo en el build
-  // En dev mode y en build, podemos usar la función para obtener la URL
-  return k;
-});
-
-// En Vite, las URLs de imágenes en import.meta.glob se obtienen llamando al módulo
-// Usamos la variante eager:true solo para las URLs (no los datos en memoria)
 const mainImgsEager = import.meta.glob(
-  '@/assets/images/chacas /*[0-9]*.webp',
+  '@/assets/images/chacas/*[0-9]*.webp',
   { eager: true, query: '?url', import: 'default' }
 );
 const chacasImgEager = import.meta.glob(
-  '@/assets/images/chacas /chacas.webp',
+  '@/assets/images/chacas/chacas.webp',
   { eager: true, query: '?url', import: 'default' }
 );
 const folder3ImgsEager = import.meta.glob(
-  '@/assets/images/chacas /3/*.webp',
+  '@/assets/images/chacas/3/*.webp',
   { eager: true, query: '?url', import: 'default' }
 );
 
-// Ordenar y construir los arrays de imágenes
 const sortedMain = Object.entries(mainImgsEager)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, url]) => url);
@@ -60,7 +26,6 @@ const sortedFolder3 = Object.entries(folder3ImgsEager)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, url]) => url);
 
-// Fila 1: imágenes principales + chacas + primeras de la subcarpeta
 const defaultImages = computed(() => [...sortedMain, chacasUrl, ...sortedFolder3.slice(0, 6), ...sortedFolder3.slice(6)]);
 const remoteGalleryImages = ref([]);
 const sourceImages = computed(() => {
@@ -85,7 +50,10 @@ const activeIndex = computed(() => {
   return allImages.value.indexOf(selectedImage.value);
 });
 
-const openLightbox = (img) => { selectedImage.value = img; };
+const openLightbox = (img) => {
+  if (suppressClick.value) return;
+  selectedImage.value = img;
+};
 const closeLightbox = () => { selectedImage.value = null; };
 
 const prevImage = () => {
@@ -111,8 +79,78 @@ const loadGalleryImages = async () => {
   }
 };
 
+/* ─── Touch / drag control ─────────────────────────────────────────────── */
+const DRAG_THRESHOLD = 8;
+const dragOffsets = ref({ row1: 0, row2: 0 });
+const pausedRows = ref({ row1: false, row2: false });
+const suppressClick = ref(false);
+
+let activeRow = null;
+let pointerId = null;
+let startX = 0;
+let startOffset = 0;
+let moved = false;
+let resumeTimer = null;
+
+function onPointerDown(rowKey, e) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  activeRow = rowKey;
+  pointerId = e.pointerId;
+  startX = e.clientX;
+  startOffset = dragOffsets.value[rowKey] || 0;
+  moved = false;
+  pausedRows.value = { ...pausedRows.value, [rowKey]: true };
+  if (resumeTimer) {
+    clearTimeout(resumeTimer);
+    resumeTimer = null;
+  }
+  e.currentTarget.setPointerCapture?.(e.pointerId);
+}
+
+function onPointerMove(e) {
+  if (activeRow == null || e.pointerId !== pointerId) return;
+  const dx = e.clientX - startX;
+  if (Math.abs(dx) > DRAG_THRESHOLD) moved = true;
+  dragOffsets.value = {
+    ...dragOffsets.value,
+    [activeRow]: startOffset + dx,
+  };
+}
+
+function endDrag(e) {
+  if (activeRow == null || (e && e.pointerId !== pointerId)) return;
+  const rowKey = activeRow;
+  activeRow = null;
+  pointerId = null;
+
+  if (moved) {
+    suppressClick.value = true;
+    setTimeout(() => {
+      suppressClick.value = false;
+    }, 60);
+  }
+
+  // Reanuda el auto-scroll tras soltar (mantiene el offset de arrastre)
+  resumeTimer = setTimeout(() => {
+    pausedRows.value = { ...pausedRows.value, [rowKey]: false };
+    resumeTimer = null;
+  }, 220);
+}
+
+function onPointerUp(e) {
+  endDrag(e);
+}
+
+function onPointerCancel(e) {
+  endDrag(e);
+}
+
 onMounted(() => {
   loadGalleryImages();
+});
+
+onBeforeUnmount(() => {
+  if (resumeTimer) clearTimeout(resumeTimer);
 });
 </script>
 
@@ -124,99 +162,121 @@ onMounted(() => {
       <h3 class="gallery__headline font-podium entry-anim entry-anim--up" style="--stagger: 0.12s">EXPEDICIÓN EN CHACAS</h3>
     </div>
 
-    <!-- Row 1: Left to Right (loops smoothly using two identical sets) -->
-    <div class="gallery__row entry-anim entry-anim--scale" style="--stagger: 0.24s">
-      <div class="gallery__track move-right">
-        <!-- Set 1 -->
-        <div class="gallery__set">
-          <div v-for="(img, index) in imagesRow1" 
-               :key="'r1-s1-'+index" 
-               class="gallery__item"
-               @click="openLightbox(img)">
-            <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-            <div class="gallery__overlay">
-              <span class="gallery__label font-inter">AMPLIAR</span>
+    <!-- Row 1: Left to Right -->
+    <div
+      class="gallery__row entry-anim entry-anim--scale"
+      :style="{ '--stagger': '0.24s', '--drag-x': `${dragOffsets.row1}px` }"
+      @pointerdown="onPointerDown('row1', $event)"
+      @pointermove="onPointerMove"
+      @pointerup="onPointerUp"
+      @pointercancel="onPointerCancel"
+    >
+      <div
+        class="gallery__drag"
+      >
+        <div
+          class="gallery__track move-right"
+          :class="{ 'is-paused': pausedRows.row1 }"
+        >
+          <div class="gallery__set">
+            <div
+              v-for="(img, index) in imagesRow1"
+              :key="'r1-s1-'+index"
+              class="gallery__item"
+              @click="openLightbox(img)"
+            >
+              <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <div class="gallery__overlay">
+                <span class="gallery__label font-inter">AMPLIAR</span>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Set 2 (Identical duplicate for seamless looping) -->
-        <div class="gallery__set">
-          <div v-for="(img, index) in imagesRow1" 
-               :key="'r1-s2-'+index" 
-               class="gallery__item"
-               @click="openLightbox(img)">
-            <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-            <div class="gallery__overlay">
-              <span class="gallery__label font-inter">AMPLIAR</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Row 2: Right to Left (loops smoothly using two identical sets) -->
-    <div class="gallery__row mt-4 entry-anim entry-anim--scale" style="--stagger: 0.36s">
-      <div class="gallery__track move-left">
-        <!-- Set 1 -->
-        <div class="gallery__set">
-          <div v-for="(img, index) in imagesRow2" 
-               :key="'r2-s1-'+index" 
-               class="gallery__item"
-               @click="openLightbox(img)">
-            <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-            <div class="gallery__overlay">
-              <span class="gallery__label font-inter">AMPLIAR</span>
-            </div>
-          </div>
-        </div>
-        <!-- Set 2 (Identical duplicate for seamless looping) -->
-        <div class="gallery__set">
-          <div v-for="(img, index) in imagesRow2" 
-               :key="'r2-s2-'+index" 
-               class="gallery__item"
-               @click="openLightbox(img)">
-            <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
-            <div class="gallery__overlay">
-              <span class="gallery__label font-inter">AMPLIAR</span>
+          <div class="gallery__set">
+            <div
+              v-for="(img, index) in imagesRow1"
+              :key="'r1-s2-'+index"
+              class="gallery__item"
+              @click="openLightbox(img)"
+            >
+              <img :src="img" :alt="'Ciclismo de montaña extrema en Chacas Ancash - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <div class="gallery__overlay">
+                <span class="gallery__label font-inter">AMPLIAR</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MINIMALIST PREMIUM LIGHTBOX -->
+    <!-- Row 2: Right to Left -->
+    <div
+      class="gallery__row mt-4 entry-anim entry-anim--scale"
+      :style="{ '--stagger': '0.36s', '--drag-x': `${dragOffsets.row2}px` }"
+      @pointerdown="onPointerDown('row2', $event)"
+      @pointermove="onPointerMove"
+      @pointerup="onPointerUp"
+      @pointercancel="onPointerCancel"
+    >
+      <div class="gallery__drag">
+        <div
+          class="gallery__track move-left"
+          :class="{ 'is-paused': pausedRows.row2 }"
+        >
+          <div class="gallery__set">
+            <div
+              v-for="(img, index) in imagesRow2"
+              :key="'r2-s1-'+index"
+              class="gallery__item"
+              @click="openLightbox(img)"
+            >
+              <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <div class="gallery__overlay">
+                <span class="gallery__label font-inter">AMPLIAR</span>
+              </div>
+            </div>
+          </div>
+          <div class="gallery__set">
+            <div
+              v-for="(img, index) in imagesRow2"
+              :key="'r2-s2-'+index"
+              class="gallery__item"
+              @click="openLightbox(img)"
+            >
+              <img :src="img" :alt="'Competencia de MTB en los Andes de Perú - Galería ' + (index + 1) + ' - Chacas Xtreme Race'" loading="lazy" decoding="async" />
+              <div class="gallery__overlay">
+                <span class="gallery__label font-inter">AMPLIAR</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <Teleport to="body">
       <Transition name="lightbox-fade">
         <div v-if="selectedImage" class="lightbox" @click="closeLightbox">
-          <!-- Close button -->
           <button class="lightbox__close" @click="closeLightbox" aria-label="Cerrar galería">
             <X :size="24" />
           </button>
-          
-          <!-- Navigation: Prev -->
+
           <button class="lightbox__nav prev" @click.stop="prevImage" aria-label="Imagen anterior">
             <ChevronLeft :size="28" />
           </button>
-          
-          <!-- Image and frame -->
+
           <div class="lightbox__content" @click.stop>
             <div class="lightbox__frame">
               <img :src="selectedImage" alt="Zoomed image" class="lightbox__img" />
-              <!-- Technical corner marks on the lightbox frame -->
               <div class="corner-mark top-left"></div>
               <div class="corner-mark top-right"></div>
               <div class="corner-mark bottom-left"></div>
               <div class="corner-mark bottom-right"></div>
             </div>
-            
-            <!-- Metadata label below the frame -->
             <div class="lightbox__meta font-inter">
               <span class="meta-location">CHACAS // PUEBLO CON ENCANTOS</span>
               <span class="meta-counter">CAPTURA {{ activeIndex + 1 }} DE {{ allImages.length }}</span>
             </div>
           </div>
-          
-          <!-- Navigation: Next -->
+
           <button class="lightbox__nav next" @click.stop="nextImage" aria-label="Siguiente imagen">
             <ChevronRight :size="28" />
           </button>
@@ -260,6 +320,19 @@ onMounted(() => {
   display: flex;
   width: 100%;
   overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.gallery__row:active {
+  cursor: grabbing;
+}
+
+.gallery__drag {
+  transform: translate3d(var(--drag-x, 0px), 0, 0);
+  will-change: transform;
 }
 
 .mt-4 { margin-top: 2rem; }
@@ -276,7 +349,6 @@ onMounted(() => {
   padding-right: clamp(1rem, 3vw, 2rem);
 }
 
-/* Percentage-based animations ensure 100% responsiveness without glitches */
 .move-right {
   animation: scroll-right 45s linear infinite;
 }
@@ -285,8 +357,14 @@ onMounted(() => {
   animation: scroll-left 45s linear infinite;
 }
 
-.gallery__track:hover {
+.gallery__track.is-paused {
   animation-play-state: paused;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gallery__track:hover {
+    animation-play-state: paused;
+  }
 }
 
 .gallery__item {
@@ -298,6 +376,7 @@ onMounted(() => {
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: #0d0d0d;
+  -webkit-user-drag: none;
 }
 
 .gallery__item img {
@@ -306,6 +385,8 @@ onMounted(() => {
   object-fit: cover;
   filter: grayscale(0.2) brightness(0.95);
   transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 
 .gallery__overlay {
@@ -317,6 +398,7 @@ onMounted(() => {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 .gallery__label {
@@ -328,20 +410,21 @@ onMounted(() => {
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.gallery__item:hover img {
-  transform: scale(1.06);
-  filter: grayscale(0) brightness(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .gallery__item:hover img {
+    transform: scale(1.06);
+    filter: grayscale(0) brightness(1.05);
+  }
+
+  .gallery__item:hover .gallery__overlay {
+    opacity: 1;
+  }
+
+  .gallery__item:hover .gallery__label {
+    transform: translateY(0);
+  }
 }
 
-.gallery__item:hover .gallery__overlay {
-  opacity: 1;
-}
-
-.gallery__item:hover .gallery__label {
-  transform: translateY(0);
-}
-
-/* Clean loop keyframes by translating exactly one set width (-50%) */
 @keyframes scroll-right {
   0% { transform: translate3d(-50%, 0, 0); }
   100% { transform: translate3d(0, 0, 0); }
@@ -352,7 +435,6 @@ onMounted(() => {
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* PREMIUM MINIMALIST LIGHTBOX */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -447,7 +529,6 @@ onMounted(() => {
   border-radius: 2px;
 }
 
-/* Lightbox frame corner marks */
 .corner-mark {
   position: absolute;
   width: 12px;
@@ -476,7 +557,6 @@ onMounted(() => {
   color: var(--primary-color);
 }
 
-/* LIGHTBOX TRANSITIONS */
 .lightbox-fade-enter-active, .lightbox-fade-leave-active {
   transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -503,7 +583,7 @@ onMounted(() => {
 
   .move-right,
   .move-left {
-    animation-duration: 35s;
+    animation-duration: 28s;
   }
 }
 
@@ -511,6 +591,25 @@ onMounted(() => {
   .section-title {
     letter-spacing: 2.5px;
     font-size: 0.72rem;
+  }
+
+  .move-right,
+  .move-left {
+    animation-duration: 22s;
+  }
+
+  .gallery__item {
+    flex: 0 0 clamp(160px, 58vw, 280px);
+    height: clamp(120px, 38vw, 200px);
+  }
+
+  .gallery__set {
+    gap: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .mt-4 {
+    margin-top: 0.75rem;
   }
 
   .gallery__label {
@@ -532,6 +631,17 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
+  .move-right,
+  .move-left {
+    animation-duration: 18s;
+  }
+
+  .gallery__item {
+    flex: 0 0 70vw;
+    height: 46vw;
+    max-height: 180px;
+  }
+
   .lightbox__nav {
     width: 40px;
     height: 40px;
@@ -540,6 +650,12 @@ onMounted(() => {
   .lightbox__close {
     width: 40px;
     height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery__track {
+    animation: none !important;
   }
 }
 </style>

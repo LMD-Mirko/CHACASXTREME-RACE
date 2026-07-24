@@ -7,9 +7,9 @@ import {
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import routeMapImg from '@/assets/images/mapa.webp';
-import chacas1 from '@/assets/images/chacas /1.webp';
-import chacas2 from '@/assets/images/chacas /2.webp';
-import chacas3 from '@/assets/images/chacas /3.webp';
+import chacas1 from '@/assets/images/chacas/1.webp';
+import chacas2 from '@/assets/images/chacas/2.webp';
+import chacas3 from '@/assets/images/chacas/3.webp';
 
 const { t } = useI18n();
 
@@ -66,7 +66,7 @@ onMounted(() => {
     <section class="events-hero">
       <div class="hero-bg">
         <div class="overlay"></div>
-        <img src="@/assets/images/chacas /4.webp" alt="Ediciones anteriores de la competencia de ciclismo de montaña Chacas Xtreme Race" class="parallax-img" />
+        <img src="@/assets/images/chacas/4.webp" alt="Ediciones anteriores de la competencia de ciclismo de montaña Chacas Xtreme Race" class="parallax-img" />
       </div>
       
       <!-- Large Watermark Text -->

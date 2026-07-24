@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
   Handshake,
@@ -22,15 +22,26 @@ import {
 } from '@/features/sponsors/sponsorLogoFrame.js';
 import imagenaus from '@/assets/images/imagenaus.jpg';
 
+const SCROLL_PX_PER_SEC = 36;
+
 const { t } = useI18n();
 const sponsors = ref([]);
 const selectedSponsor = ref(null);
 const showModal = ref(false);
 const loadingSponsors = ref(true);
+const logoListRef = ref(null);
 /** id → detected shape when frame_shape=auto */
 const logoShapes = ref({});
 /** id → sampled edge background color */
 const logoBackgrounds = ref({});
+
+const carouselSponsors = computed(() => sponsors.value.filter((s) => s?.logo_url));
+const loopCopies = computed(() => {
+  const n = carouselSponsors.value.length;
+  if (n <= 2) return 4;
+  if (n <= 4) return 3;
+  return 2;
+});
 
 function shapeForSponsor(sponsor) {
   const key = sponsor.id ?? sponsor.logo_url;
@@ -57,7 +68,19 @@ function onLogoLoad(sponsor, e) {
     ...logoBackgrounds.value,
     [key]: detectLogoBackgroundFromImage(img),
   };
+  syncScrollSpeed();
 }
+
+function syncScrollSpeed() {
+  const list = logoListRef.value;
+  if (!list) return;
+  const distance = list.scrollWidth / loopCopies.value;
+  if (!distance) return;
+  const seconds = Math.max(16, Math.min(70, distance / SCROLL_PX_PER_SEC));
+  list.style.setProperty('--scroll-duration', `${seconds.toFixed(1)}s`);
+}
+
+let resizeObserver = null;
 
 const loadSponsors = async () => {
   try {
@@ -81,7 +104,20 @@ const closeSponsorModal = () => {
   showModal.value = false;
 };
 
-onMounted(() => {
+watch([carouselSponsors, loopCopies], async () => {
+  await nextTick();
+  syncScrollSpeed();
+  attachResizeObserver();
+});
+
+function attachResizeObserver() {
+  if (typeof ResizeObserver === 'undefined' || !logoListRef.value) return;
+  if (resizeObserver) return;
+  resizeObserver = new ResizeObserver(() => syncScrollSpeed());
+  resizeObserver.observe(logoListRef.value);
+}
+
+onMounted(async () => {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -90,7 +126,14 @@ onMounted(() => {
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  loadSponsors();
+  await loadSponsors();
+  await nextTick();
+  syncScrollSpeed();
+  attachResizeObserver();
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
 });
 </script>
 
@@ -124,41 +167,40 @@ onMounted(() => {
     <!-- 2. CARRUSEL ADAPTATIVO DE LOGOS -->
     <section class="logo-carousel-section">
       <div class="carousel-track">
-        <div class="logo-list">
-          <template v-if="loadingSponsors">
-            <div class="sponsor-placeholder">Cargando auspiciadores...</div>
-          </template>
-          <template v-else>
-            <div v-if="sponsors.length" class="logo-group">
-              <div v-for="n in 2" :key="n" class="logo-group-inner">
-                <button
-                  v-for="(sponsor, index) in sponsors"
-                  :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
-                  type="button"
-                  class="logo-tile float-anim"
-                  :class="[
-                    `logo-tile--${shapeForSponsor(sponsor)}`,
-                    `logo-tile--size-${sizeForSponsor(sponsor)}`,
-                  ]"
-                  :style="`--f-delay: ${index * 0.16}s; --logo-bg: ${bgForSponsor(sponsor)}`"
-                  :title="sponsor.company_name"
-                  :aria-label="`Ver detalle de ${sponsor.company_name}`"
-                  @click="openSponsorModal(sponsor)"
-                >
-                  <img
-                    :src="sponsor.logo_url"
-                    :alt="sponsor.company_name + ' - Auspiciador Oficial de Chacas Xtreme Race'"
-                    class="logo-tile__img"
-                    loading="lazy"
-                    @load="onLogoLoad(sponsor, $event)"
-                  />
-                </button>
-              </div>
-            </div>
-            <div v-else class="sponsor-placeholder">
-              No hay auspiciadores disponibles en este momento.
-            </div>
-          </template>
+        <div v-if="loadingSponsors" class="sponsor-placeholder">Cargando auspiciadores...</div>
+        <div
+          v-else-if="carouselSponsors.length"
+          ref="logoListRef"
+          class="logo-list"
+          :style="{ '--loop-copies': loopCopies }"
+        >
+          <div v-for="n in loopCopies" :key="'loop-' + n" class="logo-group">
+            <button
+              v-for="(sponsor, index) in carouselSponsors"
+              :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
+              type="button"
+              class="logo-tile float-anim"
+              :class="[
+                `logo-tile--${shapeForSponsor(sponsor)}`,
+                `logo-tile--size-${sizeForSponsor(sponsor)}`,
+              ]"
+              :style="`--f-delay: ${index * 0.16}s; --logo-bg: ${bgForSponsor(sponsor)}`"
+              :title="sponsor.company_name"
+              :aria-label="`Ver detalle de ${sponsor.company_name}`"
+              @click="openSponsorModal(sponsor)"
+            >
+              <img
+                :src="sponsor.logo_url"
+                :alt="sponsor.company_name + ' - Auspiciador Oficial de Chacas Xtreme Race'"
+                class="logo-tile__img"
+                loading="lazy"
+                @load="onLogoLoad(sponsor, $event)"
+              />
+            </button>
+          </div>
+        </div>
+        <div v-else class="sponsor-placeholder">
+          No hay auspiciadores disponibles en este momento.
         </div>
       </div>
       <div class="carousel-glow-left"></div>
@@ -405,25 +447,29 @@ onMounted(() => {
 
 .carousel-track {
   width: 100%;
-  display: flex;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 }
 
 .logo-list {
   display: flex;
-  animation: scrollLogos 40s linear infinite;
+  width: max-content;
+  animation: scrollLogos var(--scroll-duration, 28s) linear infinite;
   will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .logo-list:hover {
+    animation-play-state: paused;
+  }
 }
 
 .logo-group {
   display: flex;
-  gap: 4rem;
-  padding: 0 2rem;
-}
-
-.logo-group-inner {
-  display: flex;
   align-items: center;
   gap: 1.75rem;
+  padding: 0.85rem 2rem;
 }
 
 .logo-tile {
@@ -442,7 +488,9 @@ onMounted(() => {
   color: inherit;
   appearance: none;
   -webkit-appearance: none;
-  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: border-color 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.45s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
   backface-visibility: hidden;
 }
@@ -495,28 +543,29 @@ onMounted(() => {
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.float-anim {
-  animation: floatTile 6s ease-in-out infinite;
-  animation-delay: var(--f-delay);
-  will-change: transform;
+@media (hover: hover) and (pointer: fine) {
+  .float-anim {
+    animation: floatTile 6s ease-in-out infinite;
+    animation-delay: var(--f-delay);
+  }
+
+  .logo-tile:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-12px) scale(1.05);
+    z-index: 10;
+    box-shadow: 0 15px 30px rgba(255, 94, 0, 0.2);
+    animation-play-state: paused;
+  }
+
+  .logo-tile:hover .logo-tile__img {
+    filter: grayscale(0) contrast(1.05) brightness(1.08);
+    transform: scale(1.04);
+  }
 }
 
 @keyframes floatTile {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
-}
-
-.logo-tile:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-12px) scale(1.05) !important;
-  z-index: 10;
-  box-shadow: 0 15px 30px rgba(255, 94, 0, 0.2);
-  animation-play-state: paused;
-}
-
-.logo-tile:hover .logo-tile__img {
-  filter: grayscale(0) contrast(1.05) brightness(1.08);
-  transform: scale(1.04);
 }
 
 .sponsor-placeholder {
@@ -650,8 +699,8 @@ onMounted(() => {
 }
 
 @keyframes scrollLogos {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(calc(-100% / var(--loop-copies, 2)), 0, 0); }
 }
 
 .carousel-glow-left {
@@ -945,6 +994,45 @@ onMounted(() => {
   .values-grid { grid-template-columns: 1fr; }
   .sponsor-hero { height: auto; min-width: 100%; padding: 180px 0 100px; }
   .visual-card-premium { aspect-ratio: 16/10; }
+
+  .logo-group { gap: 1.25rem; padding: 0.75rem 1.25rem; }
+
+  .logo-tile--circle,
+  .logo-tile--circle.logo-tile--size-sm,
+  .logo-tile--circle.logo-tile--size-lg {
+    width: 88px;
+    height: 88px;
+    padding: 8px;
+  }
+  .logo-tile--wide,
+  .logo-tile--wide.logo-tile--size-sm,
+  .logo-tile--wide.logo-tile--size-lg {
+    width: 150px;
+    height: 70px;
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+  .logo-tile--tall,
+  .logo-tile--tall.logo-tile--size-sm,
+  .logo-tile--tall.logo-tile--size-lg {
+    width: 76px;
+    height: 104px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .logo-tile--square,
+  .logo-tile--square.logo-tile--size-sm,
+  .logo-tile--square.logo-tile--size-lg {
+    width: 96px;
+    height: 96px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .carousel-glow-left,
+  .carousel-glow-right {
+    width: 100px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -988,12 +1076,44 @@ onMounted(() => {
   }
 
   .logo-carousel-section { padding: 4rem 0; }
-  .logo-tile--circle { width: 92px; height: 92px; padding: 10px; }
-  .logo-tile--wide { width: 176px; height: 80px; padding: 10px 12px; }
-  .logo-tile--tall { width: 84px; height: 116px; padding: 10px; }
-  .logo-tile--square { width: 104px; height: 104px; padding: 12px; }
-  .logo-group { gap: 2.5rem; }
-  .logo-group-inner { gap: 1.25rem; }
+  .logo-group { gap: 1.1rem; padding: 0.7rem 1.1rem; }
+
+  .logo-tile--circle,
+  .logo-tile--circle.logo-tile--size-sm,
+  .logo-tile--circle.logo-tile--size-lg {
+    width: 78px;
+    height: 78px;
+    padding: 7px;
+  }
+  .logo-tile--wide,
+  .logo-tile--wide.logo-tile--size-sm,
+  .logo-tile--wide.logo-tile--size-lg {
+    width: 132px;
+    height: 62px;
+    padding: 7px 10px;
+    border-radius: 12px;
+  }
+  .logo-tile--tall,
+  .logo-tile--tall.logo-tile--size-sm,
+  .logo-tile--tall.logo-tile--size-lg {
+    width: 68px;
+    height: 92px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+  .logo-tile--square,
+  .logo-tile--square.logo-tile--size-sm,
+  .logo-tile--square.logo-tile--size-lg {
+    width: 84px;
+    height: 84px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .carousel-glow-left,
+  .carousel-glow-right {
+    width: 72px;
+  }
   
   .mission-section { 
     padding: 5rem 1.5rem; 
@@ -1034,13 +1154,45 @@ onMounted(() => {
 @media (max-width: 480px) {
   .sponsor-hero { padding: 160px 0 80px; }
   .sponsor-title { font-size: 2.8rem; }
-  
-  .logo-tile--circle { width: 76px; height: 76px; padding: 8px; }
-  .logo-tile--wide { width: 148px; height: 70px; padding: 8px 10px; }
-  .logo-tile--tall { width: 72px; height: 100px; padding: 8px; }
-  .logo-tile--square { width: 88px; height: 88px; padding: 10px; }
-  .logo-group { gap: 1.5rem; }
-  .logo-group-inner { gap: 1rem; }
+
+  .logo-group { gap: 0.75rem; padding: 0.55rem 0.75rem; }
+
+  .logo-tile--circle,
+  .logo-tile--circle.logo-tile--size-sm,
+  .logo-tile--circle.logo-tile--size-lg {
+    width: 64px;
+    height: 64px;
+    padding: 6px;
+  }
+  .logo-tile--wide,
+  .logo-tile--wide.logo-tile--size-sm,
+  .logo-tile--wide.logo-tile--size-lg {
+    width: 108px;
+    height: 52px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+  .logo-tile--tall,
+  .logo-tile--tall.logo-tile--size-sm,
+  .logo-tile--tall.logo-tile--size-lg {
+    width: 56px;
+    height: 76px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+  .logo-tile--square,
+  .logo-tile--square.logo-tile--size-sm,
+  .logo-tile--square.logo-tile--size-lg {
+    width: 68px;
+    height: 68px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .carousel-glow-left,
+  .carousel-glow-right {
+    width: 40px;
+  }
 
   .value-card { padding: 3rem 1.5rem; }
   
@@ -1058,6 +1210,13 @@ onMounted(() => {
   }
   .visual-card-premium .stat-number {
     font-size: 2.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-list,
+  .float-anim {
+    animation: none !important;
   }
 }
 </style>

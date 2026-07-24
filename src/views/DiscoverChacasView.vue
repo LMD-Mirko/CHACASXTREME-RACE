@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 
-import chacasHero from '@/assets/images/chacas /chacas.webp';
-import slide1 from '@/assets/images/chacas /1.webp';
-import slide2 from '@/assets/images/chacas /2.webp';
-import slide3 from '@/assets/images/chacas /3.webp';
+import chacasHero from '@/assets/images/chacas/chacas.webp';
+import slide1 from '@/assets/images/chacas/1.webp';
+import slide2 from '@/assets/images/chacas/2.webp';
+import slide3 from '@/assets/images/chacas/3.webp';
 import { useI18n } from 'vue-i18n';
 
 const images = [slide1, slide2, slide3];

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { fetchSponsors } from '@/composables/useBackendApi';
 import {
   detectLogoBackgroundFromImage,
@@ -15,14 +15,25 @@ const MAIN_SPONSOR = {
   logo: principalLogo,
 };
 
+/** ~px/s — calma en móvil, legible en desktop */
+const SCROLL_PX_PER_SEC = 36;
+
 const sponsorsList = ref([]);
 const isLoading = ref(true);
+const logoListRef = ref(null);
 /** id → detected shape when frame_shape=auto */
 const logoShapes = ref({});
 /** id → sampled edge background color */
 const logoBackgrounds = ref({});
 
 const carouselSponsors = computed(() => sponsorsList.value.filter((s) => s?.logo_url));
+/** Con pocos logos, más copias evitan que el loop se vea estático */
+const loopCopies = computed(() => {
+  const n = carouselSponsors.value.length;
+  if (n <= 2) return 4;
+  if (n <= 4) return 3;
+  return 2;
+});
 
 function shapeForSponsor(sponsor) {
   const key = sponsor.id ?? sponsor.logo_url;
@@ -49,7 +60,19 @@ function onLogoLoad(sponsor, e) {
     ...logoBackgrounds.value,
     [key]: detectLogoBackgroundFromImage(img),
   };
+  syncScrollSpeed();
 }
+
+function syncScrollSpeed() {
+  const list = logoListRef.value;
+  if (!list) return;
+  const distance = list.scrollWidth / loopCopies.value;
+  if (!distance) return;
+  const seconds = Math.max(16, Math.min(70, distance / SCROLL_PX_PER_SEC));
+  list.style.setProperty('--scroll-duration', `${seconds.toFixed(1)}s`);
+}
+
+let resizeObserver = null;
 
 const loadSponsorsData = async () => {
   try {
@@ -63,7 +86,29 @@ const loadSponsorsData = async () => {
   }
 };
 
-onMounted(loadSponsorsData);
+watch([carouselSponsors, loopCopies], async () => {
+  await nextTick();
+  syncScrollSpeed();
+  attachResizeObserver();
+});
+
+function attachResizeObserver() {
+  if (typeof ResizeObserver === 'undefined' || !logoListRef.value) return;
+  if (resizeObserver) return;
+  resizeObserver = new ResizeObserver(() => syncScrollSpeed());
+  resizeObserver.observe(logoListRef.value);
+}
+
+onMounted(async () => {
+  await loadSponsorsData();
+  await nextTick();
+  syncScrollSpeed();
+  attachResizeObserver();
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+});
 </script>
 
 <template>
@@ -107,8 +152,12 @@ onMounted(loadSponsorsData);
       </div>
 
       <div v-else class="carousel-track">
-        <div class="logo-list">
-          <div v-for="n in 2" :key="'loop-' + n" class="logo-group">
+        <div
+          ref="logoListRef"
+          class="logo-list"
+          :style="{ '--loop-copies': loopCopies }"
+        >
+          <div v-for="n in loopCopies" :key="'loop-' + n" class="logo-group">
             <div
               v-for="(sponsor, index) in carouselSponsors"
               :key="`${n}-${sponsor.id || sponsor.company_name}-${index}`"
@@ -269,12 +318,14 @@ onMounted(loadSponsorsData);
 .logo-list {
   display: flex;
   width: max-content;
-  animation: scrollLogos 42s linear infinite;
+  animation: scrollLogos var(--scroll-duration, 28s) linear infinite;
   will-change: transform;
 }
 
-.logo-list:hover {
-  animation-play-state: paused;
+@media (hover: hover) and (pointer: fine) {
+  .logo-list:hover {
+    animation-play-state: paused;
+  }
 }
 
 .logo-group {
@@ -296,8 +347,13 @@ onMounted(loadSponsorsData);
   overflow: hidden;
   box-sizing: border-box;
   transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  animation: floatTile 6s ease-in-out infinite;
-  animation-delay: var(--f-delay, 0s);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .logo-tile {
+    animation: floatTile 6s ease-in-out infinite;
+    animation-delay: var(--f-delay, 0s);
+  }
 }
 
 /* Circular solo si admin lo fuerza */
@@ -351,17 +407,19 @@ onMounted(loadSponsorsData);
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
-.logo-tile:hover {
-  border-color: rgba(255, 94, 0, 0.75);
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.18);
-  z-index: 5;
-  animation-play-state: paused;
-}
+@media (hover: hover) and (pointer: fine) {
+  .logo-tile:hover {
+    border-color: rgba(255, 94, 0, 0.75);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(255, 94, 0, 0.18);
+    z-index: 5;
+    animation-play-state: paused;
+  }
 
-.logo-tile:hover .logo-tile__img {
-  filter: brightness(1.05) contrast(1.04);
-  transform: scale(1.04);
+  .logo-tile:hover .logo-tile__img {
+    filter: brightness(1.05) contrast(1.04);
+    transform: scale(1.04);
+  }
 }
 
 .carousel-glow-left,
@@ -386,7 +444,7 @@ onMounted(loadSponsorsData);
 
 @keyframes scrollLogos {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(calc(-100% / var(--loop-copies, 2)), 0, 0); }
 }
 
 @keyframes floatTile {
@@ -425,37 +483,107 @@ onMounted(loadSponsorsData);
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 768px) {
+/* Tablet */
+@media (max-width: 1024px) {
   .main-sponsor__logo {
-    width: min(100%, 280px);
-  }
-
-  .logo-tile--circle {
-    width: 88px;
-    height: 88px;
-    padding: 8px;
-  }
-
-  .logo-tile--wide {
-    width: 168px;
-    height: 76px;
-    padding: 8px 12px;
-  }
-
-  .logo-tile--tall {
-    width: 80px;
-    height: 108px;
-    padding: 10px;
-  }
-
-  .logo-tile--square {
-    width: 100px;
-    height: 100px;
-    padding: 10px;
+    width: min(100%, 320px);
   }
 
   .logo-group {
-    gap: 1.15rem;
+    gap: 1.1rem;
+    padding: 0.7rem 1.1rem;
+  }
+
+  .logo-tile--circle,
+  .logo-tile--circle.logo-tile--size-sm,
+  .logo-tile--circle.logo-tile--size-lg {
+    width: 78px;
+    height: 78px;
+    padding: 7px;
+  }
+
+  .logo-tile--wide,
+  .logo-tile--wide.logo-tile--size-sm,
+  .logo-tile--wide.logo-tile--size-lg {
+    width: 132px;
+    height: 62px;
+    padding: 7px 10px;
+    border-radius: 12px;
+  }
+
+  .logo-tile--tall,
+  .logo-tile--tall.logo-tile--size-sm,
+  .logo-tile--tall.logo-tile--size-lg {
+    width: 68px;
+    height: 92px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .logo-tile--square,
+  .logo-tile--square.logo-tile--size-sm,
+  .logo-tile--square.logo-tile--size-lg {
+    width: 84px;
+    height: 84px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .carousel-glow-left,
+  .carousel-glow-right {
+    width: 48px;
+  }
+}
+
+/* Teléfono */
+@media (max-width: 480px) {
+  .main-sponsor__logo {
+    width: min(100%, 240px);
+  }
+
+  .logo-group {
+    gap: 0.75rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .logo-tile--circle,
+  .logo-tile--circle.logo-tile--size-sm,
+  .logo-tile--circle.logo-tile--size-lg {
+    width: 64px;
+    height: 64px;
+    padding: 6px;
+  }
+
+  .logo-tile--wide,
+  .logo-tile--wide.logo-tile--size-sm,
+  .logo-tile--wide.logo-tile--size-lg {
+    width: 108px;
+    height: 52px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+
+  .logo-tile--tall,
+  .logo-tile--tall.logo-tile--size-sm,
+  .logo-tile--tall.logo-tile--size-lg {
+    width: 56px;
+    height: 76px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .logo-tile--square,
+  .logo-tile--square.logo-tile--size-sm,
+  .logo-tile--square.logo-tile--size-lg {
+    width: 68px;
+    height: 68px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .carousel-glow-left,
+  .carousel-glow-right {
+    width: 36px;
   }
 }
 
