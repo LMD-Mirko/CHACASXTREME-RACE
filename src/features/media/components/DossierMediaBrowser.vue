@@ -96,8 +96,6 @@
             :alt="item.original_filename || 'media'"
             loading="lazy"
             decoding="async"
-            :class="{ 'is-sideways': sidewaysTiles[item.id] }"
-            @load="onTileLoad($event, item)"
           />
           <div v-else class="tile__fallback" />
           <div class="tile__shade" aria-hidden="true" />
@@ -200,8 +198,6 @@
                 :key="'bv-' + active.id"
                 :src="active.view_url"
                 :poster="active.thumb_url || undefined"
-                class="sheet__media"
-                :class="viewerRotateClass"
                 controls
                 playsinline
                 preload="metadata"
@@ -211,7 +207,6 @@
                 v-else
                 :src="active.view_url"
                 :alt="active.original_filename || 'foto'"
-                class="sheet__media"
                 @load="onViewerImg"
               />
             </div>
@@ -267,20 +262,6 @@ const items = ref([]);
 const meta = ref({ current_page: 1, last_page: 1, total: 0, per_page: PAGE_SIZE });
 const active = ref(null);
 const viewerOrient = ref('landscape');
-const pixelOrient = ref(null);
-const sidewaysTiles = ref({});
-
-function onTileLoad(e, item) {
-  const el = e?.target;
-  const w = Number(el?.naturalWidth) || 0;
-  const h = Number(el?.naturalHeight) || 0;
-  if (!item?.id || !w || !h) return;
-  const rot = Math.abs(Number(item.rotation) || 0) % 360;
-  const intendedPortrait = rot === 90 || rot === 270 || item.orientation === 'portrait';
-  const sideways = intendedPortrait && w > h;
-  if (sidewaysTiles.value[item.id] === sideways) return;
-  sidewaysTiles.value = { ...sidewaysTiles.value, [item.id]: sideways };
-}
 
 let searchTimer = null;
 
@@ -359,17 +340,12 @@ function goPage(p) {
 
 function openItem(item) {
   active.value = item;
-  pixelOrient.value = null;
-  viewerOrient.value = item.orientation === 'portrait' ? 'portrait' : (item.orientation === 'landscape' ? 'landscape' : 'landscape');
-  if (Math.abs(Number(item.rotation) || 0) % 360 === 90 || Math.abs(Number(item.rotation) || 0) % 360 === 270) {
-    viewerOrient.value = 'portrait';
-  }
+  viewerOrient.value = item.orientation === 'portrait' ? 'portrait' : 'landscape';
   document.body.style.overflow = 'hidden';
 }
 
 function closeItem() {
   active.value = null;
-  pixelOrient.value = null;
   document.body.style.overflow = '';
 }
 
@@ -377,14 +353,10 @@ function onViewerMeta(e) {
   const el = e?.target;
   const w = Number(el?.videoWidth) || 0;
   const h = Number(el?.videoHeight) || 0;
-  pixelOrient.value = h > w ? 'portrait' : 'landscape';
-  const rot = Math.abs(Number(active.value?.rotation) || 0) % 360;
-  if (rot === 90 || rot === 270 || active.value?.orientation === 'portrait') {
-    viewerOrient.value = 'portrait';
-  } else if (active.value?.orientation === 'landscape') {
-    viewerOrient.value = 'landscape';
-  } else {
-    viewerOrient.value = pixelOrient.value;
+  if (active.value?.has_web_preview || (w && h)) {
+    viewerOrient.value = h > w ? 'portrait' : 'landscape';
+  } else if (active.value?.orientation) {
+    viewerOrient.value = active.value.orientation;
   }
 }
 
@@ -392,25 +364,8 @@ function onViewerImg(e) {
   const el = e?.target;
   const w = Number(el?.naturalWidth) || 0;
   const h = Number(el?.naturalHeight) || 0;
-  pixelOrient.value = h > w ? 'portrait' : 'landscape';
-  const rot = Math.abs(Number(active.value?.rotation) || 0) % 360;
-  if (rot === 90 || rot === 270 || active.value?.orientation === 'portrait') {
-    viewerOrient.value = 'portrait';
-  } else {
-    viewerOrient.value = pixelOrient.value;
-  }
+  viewerOrient.value = h > w ? 'portrait' : 'landscape';
 }
-
-const viewerRotateClass = computed(() => {
-  const item = active.value;
-  if (!item || item.media_type !== 'video') return '';
-  const rot = Math.abs(Number(item.rotation) || 0) % 360;
-  const intendedPortrait = rot === 90 || rot === 270 || item.orientation === 'portrait';
-  if (intendedPortrait && pixelOrient.value === 'landscape') {
-    return rot === 90 ? 'needs-rotate-90' : 'needs-rotate-270';
-  }
-  return '';
-});
 
 async function load() {
   loading.value = true;
@@ -701,14 +656,8 @@ onUnmounted(() => {
   transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.tile__frame img.is-sideways {
-  object-fit: contain;
-  transform: rotate(-90deg) scale(1.35);
-  background: #0a0a0a;
-}
-
-.tile:active .tile__frame img:not(.is-sideways),
-.tile:hover .tile__frame img:not(.is-sideways) {
+.tile:active .tile__frame img,
+.tile:hover .tile__frame img {
   transform: scale(1.05);
 }
 
@@ -966,8 +915,7 @@ onUnmounted(() => {
 }
 
 .sheet__stage video,
-.sheet__stage img,
-.sheet__media {
+.sheet__stage img {
   width: 100%;
   height: 100%;
   max-height: min(58vh, 560px);
@@ -979,17 +927,6 @@ onUnmounted(() => {
 .sheet__stage.is-portrait img {
   max-width: min(380px, 100%);
   margin: 0 auto;
-}
-
-.sheet__media.needs-rotate-90 {
-  transform: rotate(90deg);
-  max-width: min(58vh, 560px);
-  width: auto;
-}
-.sheet__media.needs-rotate-270 {
-  transform: rotate(-90deg);
-  max-width: min(58vh, 560px);
-  width: auto;
 }
 
 .sheet__warn {

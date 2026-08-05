@@ -311,7 +311,6 @@
                   <video
                     :src="mediaPublicUrl(video.preview_url)"
                     :poster="video.thumb_url ? mediaPublicUrl(video.thumb_url) : undefined"
-                    :class="reelRotateClass(video)"
                     controls
                     playsinline
                     preload="metadata"
@@ -440,35 +439,22 @@ const magicBooting = ref(false);
 const magicTried = ref(false);
 /** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
 const videoOrient = ref({});
-/** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
-const videoPixels = ref({});
 
 function onReelMeta(e, video) {
   const el = e?.target;
   const w = Number(el?.videoWidth) || 0;
   const h = Number(el?.videoHeight) || 0;
   const videoId = video?.id;
-  const fromPixels = h > w ? 'portrait' : 'landscape';
-  const rot = Math.abs(Number(video?.rotation) || 0) % 360;
-  const intended =
-    rot === 90 || rot === 270 || video?.orientation === 'portrait'
-      ? 'portrait'
-      : video?.orientation === 'landscape'
-        ? 'landscape'
-        : fromPixels;
-
-  videoPixels.value = { ...videoPixels.value, [videoId]: fromPixels };
-  videoOrient.value = { ...videoOrient.value, [videoId]: intended };
-}
-
-function reelRotateClass(video) {
-  const rot = Math.abs(Number(video?.rotation) || 0) % 360;
-  const intendedPortrait = rot === 90 || rot === 270 || video?.orientation === 'portrait';
-  const pixels = videoPixels.value[video.id];
-  if (intendedPortrait && pixels === 'landscape') {
-    return rot === 90 ? 'needs-rotate-90' : 'needs-rotate-270';
+  let orient = h > w ? 'portrait' : 'landscape';
+  if (video?.has_web_preview) {
+    // preview web ya upright
+  } else if (video?.orientation === 'portrait' || video?.orientation === 'landscape') {
+    orient = video.orientation;
   }
-  return '';
+  videoOrient.value = {
+    ...videoOrient.value,
+    [videoId]: orient,
+  };
 }
 
 const wipeEl = ref(null);
@@ -1806,19 +1792,6 @@ input:focus {
   object-fit: contain;
   background: #000;
   margin: 0 auto;
-}
-
-.reel__stage video.needs-rotate-90 {
-  transform: rotate(90deg);
-  max-width: min(68vh, 540px);
-  width: auto;
-  height: auto;
-}
-.reel__stage video.needs-rotate-270 {
-  transform: rotate(-90deg);
-  max-width: min(68vh, 540px);
-  width: auto;
-  height: auto;
 }
 
 .reel__bar {
