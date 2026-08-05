@@ -1,59 +1,95 @@
 <template>
   <section class="browse">
-    <div class="browse__head">
-      <div>
-        <h2>Busca tu media</h2>
-        <p>Todos los videos y fotos de la edición — generales y asignados. Preview web; descarga = original.</p>
-      </div>
-    </div>
+    <header class="browse__intro">
+      <p class="browse__kicker">Galería de la edición</p>
+      <h2 class="browse__title">Busca tu <span>media</span></h2>
+      <p class="browse__lede">
+        Videos y fotos — generales o con placa. Mira el preview web y descarga el original.
+      </p>
+    </header>
 
-    <div class="browse__toolbar">
-      <div class="browse__tabs" role="tablist">
+    <div class="browse__controls">
+      <div class="seg" role="tablist" aria-label="Tipo de media">
         <button
           type="button"
           role="tab"
           :aria-selected="tab === 'video'"
+          class="seg__btn"
           :class="{ on: tab === 'video' }"
           @click="setTab('video')"
         >
-          Videos
+          <span class="seg__label">Videos</span>
+          <span v-if="tab === 'video' && meta.total" class="seg__count">{{ meta.total }}</span>
         </button>
         <button
           type="button"
           role="tab"
           :aria-selected="tab === 'photo'"
+          class="seg__btn"
           :class="{ on: tab === 'photo' }"
           @click="setTab('photo')"
         >
-          Fotos
+          <span class="seg__label">Fotos</span>
+          <span v-if="tab === 'photo' && meta.total" class="seg__count">{{ meta.total }}</span>
         </button>
       </div>
 
-      <label class="browse__search">
-        <span class="sr-only">Buscar</span>
+      <div class="search">
+        <span class="search__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </span>
         <input
-          v-model.trim="searchInput"
+          v-model="searchInput"
           type="search"
-          placeholder="Placa, nombre o camarógrafo…"
+          enterkeyhint="search"
+          autocomplete="off"
+          autocorrect="off"
+          placeholder="Placa, piloto o camarógrafo"
+          aria-label="Buscar media"
+          @input="onSearchInput"
           @keydown.enter.prevent="applySearch"
         />
-        <button type="button" class="browse__go" @click="applySearch">Buscar</button>
-      </label>
+        <button
+          v-if="searchInput"
+          type="button"
+          class="search__clear"
+          aria-label="Limpiar búsqueda"
+          @click="clearSearch"
+        >
+          ×
+        </button>
+      </div>
     </div>
 
-    <p v-if="loading && !items.length" class="browse__status">Cargando…</p>
-    <p v-else-if="error" class="browse__status browse__status--err">{{ error }}</p>
-    <p v-else-if="!items.length" class="browse__status">No hay resultados en esta página.</p>
+    <div class="browse__hint" aria-live="polite">
+      <template v-if="loading && !items.length">Buscando…</template>
+      <template v-else-if="error">{{ error }}</template>
+      <template v-else-if="!items.length">
+        Sin resultados{{ query ? ` para “${query}”` : '' }}.
+      </template>
+      <template v-else>
+        {{ rangeLabel }}
+        <span v-if="query"> · “{{ query }}”</span>
+      </template>
+    </div>
 
-    <div v-else class="browse__grid">
+    <div v-if="loading && !items.length" class="skel-grid" aria-hidden="true">
+      <div v-for="n in 6" :key="n" class="skel" />
+    </div>
+
+    <div v-else-if="items.length" class="grid">
       <button
         v-for="item in items"
         :key="item.id"
         type="button"
         class="tile"
+        :class="{ 'tile--video': item.media_type === 'video' }"
         @click="openItem(item)"
       >
-        <div class="tile__media">
+        <div class="tile__frame">
           <img
             v-if="tileSrc(item)"
             :src="tileSrc(item)"
@@ -61,98 +97,147 @@
             loading="lazy"
             decoding="async"
           />
-          <div v-else class="tile__fallback">
-            <span>{{ item.media_type === 'video' ? '▶' : '◻' }}</span>
+          <div v-else class="tile__fallback" />
+          <div class="tile__shade" aria-hidden="true" />
+
+          <span v-if="item.media_type === 'video'" class="tile__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M8 5.5v13l11-6.5L8 5.5z" />
+            </svg>
+          </span>
+
+          <div class="tile__top">
+            <span class="chip" :class="item.rider?.plate_number ? 'chip--plate' : 'chip--gen'">
+              <template v-if="item.rider?.plate_number">#{{ item.rider.plate_number }}</template>
+              <template v-else>General</template>
+            </span>
+            <span
+              v-if="item.media_type === 'video' && !item.has_web_preview"
+              class="chip chip--warn"
+            >Procesando</span>
           </div>
-          <span class="tile__type">{{ item.media_type === 'video' ? 'Video' : 'Foto' }}</span>
-          <span v-if="item.media_type === 'video' && !item.has_web_preview" class="tile__badge">Procesando</span>
-        </div>
-        <div class="tile__meta">
-          <strong>
-            <template v-if="item.rider?.plate_number">#{{ item.rider.plate_number }}</template>
-            <template v-else>General</template>
-          </strong>
-          <span>{{ item.rider?.full_name || item.photographer?.full_name || '—' }}</span>
+
+          <div class="tile__bottom">
+            <strong class="tile__name">
+              {{ item.rider?.full_name || item.photographer?.full_name || 'Sin nombre' }}
+            </strong>
+            <span class="tile__sub">
+              <template v-if="item.rider?.full_name && item.photographer?.full_name">
+                {{ item.photographer.full_name }}
+              </template>
+              <template v-else-if="item.photographer?.instagram">
+                @{{ item.photographer.instagram }}
+              </template>
+              <template v-else>
+                {{ item.media_type === 'video' ? 'Video' : 'Foto' }}
+              </template>
+            </span>
+          </div>
         </div>
       </button>
     </div>
 
-    <div v-if="meta.total > 0" class="browse__pager">
-      <button type="button" class="browse__nav" :disabled="page <= 1 || loading" @click="goPage(page - 1)">
-        Anterior
-      </button>
-      <span>{{ page }} / {{ meta.last_page || 1 }} · {{ meta.total }}</span>
+    <nav v-if="meta.last_page > 1" class="pager" aria-label="Paginación">
       <button
         type="button"
-        class="browse__nav"
-        :disabled="page >= (meta.last_page || 1) || loading"
+        class="pager__btn"
+        :disabled="page <= 1 || loading"
+        @click="goPage(page - 1)"
+      >
+        ← Ant.
+      </button>
+      <div class="pager__mid">
+        <span class="pager__page">{{ page }}</span>
+        <span class="pager__of">/ {{ meta.last_page }}</span>
+      </div>
+      <button
+        type="button"
+        class="pager__btn"
+        :disabled="page >= meta.last_page || loading"
         @click="goPage(page + 1)"
       >
-        Siguiente
+        Sig. →
       </button>
-    </div>
+    </nav>
 
     <Teleport to="body">
-      <div
-        v-if="active"
-        class="viewer"
-        role="dialog"
-        aria-modal="true"
-        @click.self="closeItem"
-      >
-        <button type="button" class="viewer__x" aria-label="Cerrar" @click="closeItem">×</button>
-        <div class="viewer__stage" :class="stageClass">
-          <video
-            v-if="active.media_type === 'video'"
-            :key="'bv-' + active.id"
-            :src="active.view_url"
-            :poster="active.thumb_url || undefined"
-            controls
-            playsinline
-            preload="metadata"
-            @loadedmetadata="onViewerMeta"
-          />
-          <img
-            v-else
-            :src="active.view_url"
-            :alt="active.original_filename || 'foto'"
-            @load="onViewerImg"
-          />
-        </div>
-        <div class="viewer__bar">
-          <div>
-            <strong>
-              <template v-if="active.rider?.plate_number">#{{ active.rider.plate_number }} · </template>
-              {{ active.rider?.full_name || active.original_filename || 'Media' }}
-            </strong>
-            <span>
-              <template v-if="active.is_general && !active.rider">General · </template>
-              {{ active.photographer?.full_name || 'Camarógrafo' }}
-              <template v-if="active.photographer?.instagram">
-                · @{{ active.photographer.instagram }}
-              </template>
-              · {{ formatBytes(active.size_bytes) }}
-            </span>
-            <span v-if="active.media_type === 'video' && !active.has_web_preview" class="viewer__warn">
-              Sin versión web aún — la reproducción puede fallar; la descarga sí es el original.
-            </span>
+      <Transition name="sheet">
+        <div
+          v-if="active"
+          class="sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista previa"
+          @click.self="closeItem"
+        >
+          <div class="sheet__panel">
+            <div class="sheet__grab" aria-hidden="true" />
+            <header class="sheet__head">
+              <div class="sheet__who">
+                <p class="sheet__plate">
+                  <template v-if="active.rider?.plate_number">#{{ active.rider.plate_number }}</template>
+                  <template v-else>General</template>
+                </p>
+                <h3>{{ active.rider?.full_name || active.original_filename || 'Media' }}</h3>
+                <p class="sheet__meta">
+                  {{ active.photographer?.full_name || 'Camarógrafo' }}
+                  <template v-if="active.photographer?.instagram">
+                    · @{{ active.photographer.instagram }}
+                  </template>
+                  · {{ formatBytes(active.size_bytes) }}
+                </p>
+              </div>
+              <button type="button" class="sheet__close" aria-label="Cerrar" @click="closeItem">
+                ×
+              </button>
+            </header>
+
+            <div class="sheet__stage" :class="stageClass">
+              <video
+                v-if="active.media_type === 'video'"
+                :key="'bv-' + active.id"
+                :src="active.view_url"
+                :poster="active.thumb_url || undefined"
+                controls
+                playsinline
+                preload="metadata"
+                @loadedmetadata="onViewerMeta"
+              />
+              <img
+                v-else
+                :src="active.view_url"
+                :alt="active.original_filename || 'foto'"
+                @load="onViewerImg"
+              />
+            </div>
+
+            <p
+              v-if="active.media_type === 'video' && !active.has_web_preview"
+              class="sheet__warn"
+            >
+              Aún sin versión web — puede no reproducir. La descarga sí es el original.
+            </p>
+
+            <div class="sheet__actions">
+              <a
+                v-if="downloadHref"
+                class="sheet__dl"
+                :href="downloadHref"
+                download
+              >
+                Descargar original
+              </a>
+              <button type="button" class="sheet__sec" @click="closeItem">Cerrar</button>
+            </div>
           </div>
-          <a
-            v-if="downloadHref"
-            class="viewer__dl"
-            :href="downloadHref"
-            download
-          >
-            Descargar original
-          </a>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import {
   fetchRaceMediaGallery,
   raceMediaDownloadUrl,
@@ -178,6 +263,8 @@ const meta = ref({ current_page: 1, last_page: 1, total: 0, per_page: PAGE_SIZE 
 const active = ref(null);
 const viewerOrient = ref('landscape');
 
+let searchTimer = null;
+
 const downloadHref = computed(() => {
   if (!active.value?.id || !props.dossierToken) return '';
   return raceMediaDownloadUrl(active.value.id, props.dossierToken);
@@ -186,6 +273,16 @@ const downloadHref = computed(() => {
 const stageClass = computed(() => (
   viewerOrient.value === 'portrait' ? 'is-portrait' : 'is-landscape'
 ));
+
+const rangeLabel = computed(() => {
+  const total = Number(meta.value.total) || 0;
+  if (!total) return '0 resultados';
+  const per = Number(meta.value.per_page) || PAGE_SIZE;
+  const cur = Number(meta.value.current_page) || page.value;
+  const from = (cur - 1) * per + 1;
+  const to = Math.min(cur * per, total);
+  return `${from}–${to} de ${total}`;
+});
 
 function tileSrc(item) {
   if (item.media_type === 'photo') return item.thumb_url || item.view_url;
@@ -206,24 +303,50 @@ function setTab(next) {
   load();
 }
 
+function onSearchInput() {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    applySearch();
+  }, 380);
+}
+
 function applySearch() {
-  query.value = searchInput.value;
+  if (searchTimer) clearTimeout(searchTimer);
+  const next = String(searchInput.value || '').trim();
+  if (next === query.value) return;
+  query.value = next;
   page.value = 1;
   load();
+}
+
+function clearSearch() {
+  searchInput.value = '';
+  if (query.value) {
+    query.value = '';
+    page.value = 1;
+    load();
+  }
 }
 
 function goPage(p) {
   page.value = Math.max(1, p);
   load();
+  try {
+    document.querySelector('.browse')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch {
+    /* ignore */
+  }
 }
 
 function openItem(item) {
   active.value = item;
   viewerOrient.value = item.orientation === 'portrait' ? 'portrait' : 'landscape';
+  document.body.style.overflow = 'hidden';
 }
 
 function closeItem() {
   active.value = null;
+  document.body.style.overflow = '';
 }
 
 function onViewerMeta(e) {
@@ -265,6 +388,10 @@ async function load() {
   }
 }
 
+function onKey(e) {
+  if (e.key === 'Escape' && active.value) closeItem();
+}
+
 watch(
   () => props.dossierToken,
   (tok) => {
@@ -274,318 +401,628 @@ watch(
 
 onMounted(() => {
   load();
+  window.addEventListener('keydown', onKey);
+});
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer);
+  window.removeEventListener('keydown', onKey);
+  document.body.style.overflow = '';
 });
 </script>
 
 <style scoped>
 .browse {
+  --browse-orange: var(--primary-color, #ff5e00);
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-top: 0.5rem;
+  padding: 0.25rem 0 0.5rem;
 }
 
-.browse__head h2 {
-  margin: 0 0 0.35rem;
-  font-family: var(--font-accent);
-  font-size: clamp(1.35rem, 3vw, 1.85rem);
-  letter-spacing: 0.02em;
+.browse__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.browse__head p {
+.browse__kicker {
   margin: 0;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--browse-orange);
+}
+
+.browse__title {
+  margin: 0;
+  font-family: var(--font-podium);
+  font-size: clamp(1.85rem, 7.5vw, 2.6rem);
+  letter-spacing: 0.03em;
+  line-height: 0.95;
+  color: #fff;
+}
+
+.browse__title span {
+  color: var(--browse-orange);
+}
+
+.browse__lede {
+  margin: 0.15rem 0 0;
+  max-width: 34rem;
   color: rgba(255, 255, 255, 0.55);
-  font-size: 0.92rem;
-  max-width: 42rem;
+  font-size: 0.95rem;
   line-height: 1.45;
 }
 
-.browse__toolbar {
+.browse__controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.7rem;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 0.55rem 0 0.35rem;
+  background: linear-gradient(180deg, #050505 70%, rgba(5, 5, 5, 0));
 }
 
-.browse__tabs {
-  display: inline-flex;
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 4px;
-  overflow: hidden;
+  padding: 3px;
+  border-radius: 10px;
+  background: #101010;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.browse__tabs button {
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.65);
-  font-family: var(--font-accent);
-  font-weight: 800;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.65rem 1rem;
-  cursor: pointer;
-}
-
-.browse__tabs button.on {
-  background: rgba(255, 94, 0, 0.18);
-  color: #fff;
-}
-
-.browse__search {
-  display: flex;
+.seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  flex: 1 1 220px;
-  max-width: 420px;
-}
-
-.browse__search input {
-  flex: 1;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #080808;
-  color: #fff;
-  border-radius: 4px;
-  padding: 0.65rem 0.8rem;
-  font-family: var(--font-accent);
-  font-size: 0.92rem;
-}
-
-.browse__go,
-.browse__nav {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  min-height: 44px;
+  border: none;
+  border-radius: 8px;
   background: transparent;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.55);
   font-family: var(--font-accent);
   font-weight: 800;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.65rem 0.85rem;
   cursor: pointer;
-  border-radius: 4px;
+  transition: background 160ms ease, color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.browse__go:hover,
-.browse__nav:hover:not(:disabled) {
-  border-color: var(--primary-color, #ff5e00);
-  color: var(--primary-color, #ff5e00);
+.seg__btn.on {
+  background: linear-gradient(135deg, rgba(255, 94, 0, 0.95), rgba(255, 140, 0, 0.85));
+  color: #111;
 }
 
-.browse__nav:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.seg__count {
+  min-width: 1.4rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.68rem;
 }
 
-.browse__status {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.55);
+.seg__btn.on .seg__count {
+  background: rgba(0, 0, 0, 0.18);
+  color: #111;
 }
 
-.browse__status--err {
-  color: #fca5a5;
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.browse__grid {
+.search__icon {
+  position: absolute;
+  left: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  place-items: center;
+  pointer-events: none;
 }
 
-@media (min-width: 720px) {
-  .browse__grid {
-    grid-template-columns: repeat(4, 1fr);
+.search input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: #0a0a0a;
+  color: #fff;
+  padding: 0.75rem 2.6rem 0.75rem 2.55rem;
+  font-family: var(--font-accent);
+  font-size: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.search input:focus {
+  outline: none;
+  border-color: rgba(255, 94, 0, 0.65);
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.15);
+}
+
+.search__clear {
+  position: absolute;
+  right: 0.45rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.browse__hint {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.skel-grid,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .skel-grid,
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
   }
 }
 
-.tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  border: none;
-  background: transparent;
-  padding: 0;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
+@media (min-width: 900px) {
+  .browse__controls {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .seg {
+    flex: 0 0 280px;
+  }
+
+  .search {
+    flex: 1;
+  }
+
+  .skel-grid,
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-.tile__media {
+.skel {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #141414 25%, #1d1d1d 40%, #141414 55%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+.tile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tile__frame {
   position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  border-radius: 6px;
-  background: #111;
+  border-radius: 12px;
+  background: #121212;
+  isolation: isolate;
 }
 
-.tile__media img {
+.tile__frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transform: scale(1.01);
+  transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tile:active .tile__frame img,
+.tile:hover .tile__frame img {
+  transform: scale(1.05);
 }
 
 .tile__fallback {
   width: 100%;
   height: 100%;
-  display: grid;
-  place-items: center;
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 94, 0, 0.35), transparent 45%),
+    radial-gradient(circle at 30% 20%, rgba(255, 94, 0, 0.28), transparent 50%),
     #151515;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.6rem;
 }
 
-.tile__type,
-.tile__badge {
+.tile__shade {
   position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 28%, transparent 48%, rgba(0, 0, 0, 0.82) 100%);
+  pointer-events: none;
+}
+
+.tile__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   z-index: 1;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.tile__top {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  right: 0.55rem;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.45rem;
+  border-radius: 6px;
+  font-family: var(--font-accent);
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.2rem 0.4rem;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(8px);
 }
 
-.tile__type {
-  top: 6px;
-  left: 6px;
+.chip--plate {
+  background: rgba(255, 94, 0, 0.9);
+  color: #111;
 }
 
-.tile__badge {
-  bottom: 6px;
-  left: 6px;
-  color: #fde68a;
+.chip--gen {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.tile__meta {
+.chip--warn {
+  margin-left: auto;
+  background: rgba(250, 204, 21, 0.9);
+  color: #111;
+}
+
+.tile__bottom {
+  position: absolute;
+  left: 0.65rem;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
   min-width: 0;
 }
 
-.tile__meta strong,
-.tile__meta span {
+.tile__name,
+.tile__sub {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.78rem;
 }
 
-.tile__meta span {
-  color: rgba(255, 255, 255, 0.5);
+.tile__name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
-.browse__pager {
-  display: flex;
+.tile__sub {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-.viewer {
+.pager__btn {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: #0c0c0c;
+  color: #fff;
+  font-family: var(--font-accent);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pager__btn:first-child {
+  justify-self: start;
+  padding-inline: 0.9rem;
+}
+
+.pager__btn:last-child {
+  justify-self: end;
+  padding-inline: 0.9rem;
+}
+
+.pager__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pager__mid {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-family: var(--font-podium);
+  color: #fff;
+}
+
+.pager__page {
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+}
+
+.pager__of {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* —— Viewer sheet —— */
+.sheet {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  padding: 0;
+}
+
+.sheet__panel {
+  width: min(100%, 640px);
+  max-height: min(94vh, 920px);
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.92);
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 0.45rem 1rem calc(1rem + env(safe-area-inset-bottom, 0));
+  border-radius: 18px 18px 0 0;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.sheet__grab {
+  width: 42px;
+  height: 4px;
+  margin: 0.2rem auto 0.15rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.sheet__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.75rem;
 }
 
-.viewer__x {
-  align-self: flex-end;
-  border: none;
-  background: transparent;
+.sheet__plate {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--browse-orange);
+}
+
+.sheet__who h3 {
+  margin: 0;
+  font-family: var(--font-podium);
+  font-size: clamp(1.15rem, 4.5vw, 1.45rem);
+  letter-spacing: 0.03em;
+  line-height: 1.1;
   color: #fff;
-  font-size: 2rem;
+}
+
+.sheet__meta {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.35;
+}
+
+.sheet__close {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  background: #141414;
+  color: #fff;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
 }
 
-.viewer__stage {
-  flex: 1;
+.sheet__stage {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 0;
+  min-height: 220px;
+  max-height: min(58vh, 560px);
   overflow: hidden;
-}
-
-.viewer__stage video,
-.viewer__stage img {
-  max-width: 100%;
-  max-height: min(72vh, 820px);
-  object-fit: contain;
-  border-radius: 8px;
+  border-radius: 12px;
   background: #000;
 }
 
-.viewer__stage.is-portrait video,
-.viewer__stage.is-portrait img {
-  max-width: min(420px, 92vw);
+.sheet__stage video,
+.sheet__stage img {
+  width: 100%;
+  height: 100%;
+  max-height: min(58vh, 560px);
+  object-fit: contain;
+  background: #000;
 }
 
-.viewer__bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  align-items: flex-end;
-  justify-content: space-between;
-  color: rgba(255, 255, 255, 0.85);
+.sheet__stage.is-portrait video,
+.sheet__stage.is-portrait img {
+  max-width: min(380px, 100%);
+  margin: 0 auto;
 }
 
-.viewer__bar strong {
-  display: block;
-  font-size: 1rem;
+.sheet__warn {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(250, 204, 21, 0.1);
+  color: #fde68a;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
-.viewer__bar span {
-  display: block;
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.55);
-  margin-top: 0.2rem;
+.sheet__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
 }
 
-.viewer__warn {
-  color: #fde68a !important;
-}
-
-.viewer__dl {
+.sheet__dl,
+.sheet__sec {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(255, 94, 0, 0.55);
-  color: #ffb48a;
-  text-decoration: none;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 12px;
   font-family: var(--font-accent);
-  font-weight: 800;
-  font-size: 0.7rem;
+  font-weight: 900;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.7rem 1rem;
-  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.viewer__dl:hover {
-  background: rgba(255, 94, 0, 0.12);
+.sheet__dl {
+  border: none;
+  background: linear-gradient(135deg, #ff5e00, #ff8c00);
+  color: #111;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+.sheet__sec {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (min-width: 720px) {
+  .sheet {
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+  .sheet__panel {
+    border-radius: 16px;
+    max-height: min(90vh, 860px);
+    padding: 1rem 1.15rem 1.15rem;
+  }
+
+  .sheet__grab {
+    display: none;
+  }
+
+  .sheet__actions {
+    grid-template-columns: 1.4fr 0.8fr;
+  }
+}
+
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.sheet-enter-active .sheet__panel,
+.sheet-leave-active .sheet__panel {
+  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+
+.sheet-enter-from .sheet__panel,
+.sheet-leave-to .sheet__panel {
+  transform: translateY(18%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile__frame img,
+  .skel,
+  .sheet-enter-active,
+  .sheet-leave-active,
+  .sheet-enter-active .sheet__panel,
+  .sheet-leave-active .sheet__panel {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 </style>

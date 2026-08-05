@@ -1,31 +1,43 @@
 <template>
   <div class="dossier-page">
+    <div class="dossier-page__glow" aria-hidden="true" />
+    <div class="dossier-page__grain" aria-hidden="true" />
+
     <div class="dossier-shell">
       <!-- GATE -->
       <template v-if="!dossier">
         <header class="gate" :class="{ 'is-in': gateIn }">
-          <p class="kicker anim" style="--i: 0">Chacas Xtreme Race</p>
+          <p class="kicker anim" style="--i: 0">Chacas Xtreme Race · 4ª ed.</p>
           <h1 class="anim" style="--i: 1">
             Mi <span class="accent">carrera</span>
           </h1>
           <p class="lede anim" style="--i: 2">
-            Tus tiempos oficiales, fotos y videos. Preview en web; descarga el original.
+            Tiempos oficiales, tus fotos y videos. Preview rápido en web; descarga el original en máxima calidad.
           </p>
         </header>
 
-        <p v-if="magicBooting" class="gate-form anim is-in" style="--i: 3">
+        <p v-if="magicBooting" class="gate-form anim is-in gate-form--status" style="--i: 3">
           Abriendo tu enlace personal…
         </p>
         <p v-else-if="error && magicTried" class="gate-form anim is-in form-error" style="--i: 3">
           {{ error }}
         </p>
 
-        <form v-if="!magicBooting" class="gate-form anim" :class="{ 'is-in': gateIn }" style="--i: 3" @submit.prevent="unlock()">
-          <p class="gate-form__label">Acceso competidor</p>
+        <form
+          v-if="!magicBooting"
+          class="gate-form anim"
+          :class="{ 'is-in': gateIn }"
+          style="--i: 3"
+          @submit.prevent="unlock()"
+        >
+          <div class="gate-form__top">
+            <p class="gate-form__label">Acceso competidor</p>
+            <p class="gate-form__hint">Usa los datos del padrón y el token del evento.</p>
+          </div>
 
           <label>
             <span>Número de placa</span>
-            <input v-model="plate" type="number" min="1" required placeholder="Ej. 101" autocomplete="username" />
+            <input v-model="plate" type="number" min="1" required placeholder="Ej. 101" inputmode="numeric" autocomplete="username" />
           </label>
           <label>
             <span>DNI / Pasaporte</span>
@@ -61,26 +73,27 @@
       <!-- DOSSIER -->
       <template v-else>
         <div class="dossier-body" :class="{ 'is-in': entered }">
-        <header class="identity">
-          <div class="identity__bar anim" style="--i: 0">
-            <p class="kicker">{{ dossier.competition?.name || 'Chacas Xtreme Race' }}</p>
-            <button type="button" class="ghost" @click="reset">Salir</button>
-          </div>
-
-          <div class="identity__row">
-            <div class="plate anim anim--plate" style="--i: 1" aria-label="Número de placa">
-              <span class="plate__lbl">Placa</span>
-              <span class="plate__num">{{ padPlate(dossier.rider.plate_number) }}</span>
+          <header class="topbar anim" style="--i: 0">
+            <div class="topbar__copy">
+              <p class="kicker">{{ dossier.competition?.name || 'Chacas Xtreme Race' }}</p>
+              <p class="topbar__sub">Dossier del competidor</p>
             </div>
+            <button type="button" class="ghost" @click="reset">Salir</button>
+          </header>
 
-            <div class="pilot anim" style="--i: 2">
-              <div v-if="dossier.rider.photo_url" class="pilot__photo">
+          <section class="hero anim" style="--i: 1">
+            <div class="hero__plate" aria-label="Número de placa">
+              <span class="hero__plate-lbl">Placa</span>
+              <span class="hero__plate-num">{{ padPlate(dossier.rider.plate_number) }}</span>
+            </div>
+            <div class="hero__pilot">
+              <div v-if="dossier.rider.photo_url" class="hero__photo">
                 <img :src="mediaPublicUrl(dossier.rider.photo_url)" :alt="dossier.rider.full_name" />
               </div>
-              <div class="pilot__copy">
+              <div class="hero__text">
                 <h1>{{ dossier.rider.full_name }}</h1>
                 <p v-if="dossier.rider.nickname" class="nick">“{{ dossier.rider.nickname }}”</p>
-                <p class="meta">
+                <p class="hero__meta">
                   <template v-if="dossier.rider.category">{{ dossier.rider.category }}</template>
                   <template v-if="dossier.rider.club_team">
                     <span class="dot">·</span>{{ dossier.rider.club_team }}
@@ -91,194 +104,230 @@
                 </p>
               </div>
             </div>
-          </div>
-        </header>
+          </section>
 
-        <section class="thanks anim" style="--i: 3">
-          <h2>{{ dossier.thanks?.title || 'Gracias por competir' }}</h2>
-          <p>{{ dossier.thanks?.body }}</p>
-        </section>
+          <nav class="jump anim" style="--i: 2" aria-label="Secciones">
+            <a href="#dossier-tiempos" @click.prevent="scrollTo('dossier-tiempos')">Tiempos</a>
+            <a href="#dossier-fotos" @click.prevent="scrollTo('dossier-fotos')">
+              Fotos
+              <em>{{ dossier.photos?.length || 0 }}</em>
+            </a>
+            <a href="#dossier-videos" @click.prevent="scrollTo('dossier-videos')">
+              Videos
+              <em>{{ dossier.videos?.length || 0 }}</em>
+            </a>
+            <a href="#dossier-busca" @click.prevent="scrollTo('dossier-busca')">Buscar</a>
+          </nav>
 
-        <!-- TIMES: Salida → Meta only -->
-        <section class="section">
-          <div class="section__head anim" style="--i: 4">
-            <h2>Tus tiempos</h2>
-            <p>Clasificación y Final</p>
-          </div>
+          <section class="thanks anim" style="--i: 3">
+            <p class="thanks__kicker">Mensaje</p>
+            <h2>{{ dossier.thanks?.title || 'Gracias por competir' }}</h2>
+            <p>{{ dossier.thanks?.body }}</p>
+          </section>
 
-          <div class="timing">
-            <article
-              v-for="(phase, pIdx) in phases"
-              :key="phase.key"
-              class="timing__card anim"
-              :class="{ 'timing__card--final': phase.key === 'final' }"
-              :style="{ '--i': 5 + pIdx }"
-            >
-              <header class="timing__head">
-                <div>
-                  <h3>{{ phase.label }}</h3>
-                  <p>{{ phase.sub }}</p>
-                </div>
-                <span class="pill" :class="statusClass(dossier.results?.[phase.key]?.status)">
-                  {{ statusLabel(dossier.results?.[phase.key]?.status) }}
-                </span>
-              </header>
-
-              <template v-if="dossier.results?.[phase.key]">
-                <div class="timing__hero">
-                  <div>
-                    <span class="micro">Puesto</span>
-                    <strong class="pos">{{ formatPositionNum(dossier.results[phase.key]) }}</strong>
-                  </div>
-                  <div>
-                    <span class="micro">Tiempo neto</span>
-                    <strong class="chrono">{{ formatResult(dossier.results[phase.key]) }}</strong>
-                  </div>
-                </div>
-
-                <div class="splits">
-                  <div class="splits__item" :class="{ on: !!dossier.results[phase.key].start_time }">
-                    <span class="splits__lbl">Salida</span>
-                    <strong>{{ displayClock(dossier.results[phase.key].start_time) }}</strong>
-                  </div>
-                  <div class="splits__rail" aria-hidden="true" />
-                  <div class="splits__item" :class="{ on: !!dossier.results[phase.key].meta_time }">
-                    <span class="splits__lbl">Meta</span>
-                    <strong>{{ displayClock(dossier.results[phase.key].meta_time) }}</strong>
-                  </div>
-                </div>
-
-                <dl class="facts">
-                  <div>
-                    <dt>Categoría</dt>
-                    <dd>{{ dossier.results[phase.key].category_name || dossier.rider.category || '—' }}</dd>
-                  </div>
-                  <div v-if="dossier.results[phase.key].gap && dossier.results[phase.key].gap !== '—'">
-                    <dt>Diferencia</dt>
-                    <dd>{{ dossier.results[phase.key].gap }}</dd>
-                  </div>
-                  <div v-if="dossier.results[phase.key].duration_ms != null">
-                    <dt>Duración</dt>
-                    <dd>{{ formatMs(dossier.results[phase.key].duration_ms) }}</dd>
-                  </div>
-                </dl>
-              </template>
-
-              <p v-else class="empty-inline">Aún sin registro en esta fase.</p>
-            </article>
-          </div>
-        </section>
-
-        <!-- PHOTOS -->
-        <section class="section">
-          <div class="section__head anim" style="--i: 7">
-            <h2>Tus fotos</h2>
-            <p class="ok">{{ dossier.photos?.length || 0 }} · preview web · descarga original</p>
-          </div>
-
-          <div v-if="!dossier.photos?.length" class="empty anim" style="--i: 8">Aún no hay fotos asociadas a tu placa.</div>
-
-          <div v-else class="gallery">
-            <figure
-              v-for="(photo, idx) in dossier.photos"
-              :key="photo.id"
-              class="shot anim"
-              :style="{ '--i': 8 + Math.min(idx, 6) }"
-              @click="openLightbox(idx)"
-            >
-              <div class="shot__media">
-                <img :src="mediaPublicUrl(photo.preview_url)" :alt="photo.original_filename" loading="lazy" />
+          <!-- TIMES -->
+          <section id="dossier-tiempos" class="section">
+            <div class="section__head anim" style="--i: 4">
+              <div>
+                <p class="section__kicker">Resultados</p>
+                <h2>Tus tiempos</h2>
               </div>
-              <figcaption>
-                <div>
-                  <strong>{{ shortName(photo.original_filename) }}</strong>
-                  <span v-if="photo.photographer">
-                    {{ photo.photographer.full_name }}
-                    <template v-if="photo.photographer.instagram">
-                      · @{{ photo.photographer.instagram }}
-                    </template>
-                  </span>
-                  <span>{{ formatBytes(photo.size_bytes) }}</span>
-                </div>
-                <a :href="photo.download_url" download class="icon-dl" @click.stop title="Descargar">
-                  ↓
-                </a>
-              </figcaption>
-            </figure>
-          </div>
-        </section>
+              <p>Clasificación y Final</p>
+            </div>
 
-        <!-- VIDEOS -->
-        <section class="section">
-          <div class="section__head anim" style="--i: 15">
-            <h2>Tus videos</h2>
-            <p>{{ dossier.videos?.length || 0 }} clip(s) · preview web · descarga original</p>
-          </div>
-
-          <div
-            v-if="!dossier.videos?.length"
-            class="empty anim"
-            style="--i: 16"
-          >
-            Aún no hay videos asociados a tu placa.
-          </div>
-
-          <div v-else class="reels">
-            <article
-              v-for="(video, vIdx) in dossier.videos"
-              :key="video.id"
-              class="reel anim"
-              :style="{ '--i': 16 + Math.min(vIdx, 4) }"
-            >
-              <div
-                class="reel__stage"
-                :class="videoOrient[video.id] === 'portrait' ? 'reel__stage--portrait' : 'reel__stage--landscape'"
+            <div class="timing">
+              <article
+                v-for="(phase, pIdx) in phases"
+                :key="phase.key"
+                class="timing__card anim"
+                :class="{ 'timing__card--final': phase.key === 'final' }"
+                :style="{ '--i': 5 + pIdx }"
               >
-                <video
-                  :src="mediaPublicUrl(video.preview_url)"
-                  :poster="video.thumb_url ? mediaPublicUrl(video.thumb_url) : undefined"
-                  controls
-                  playsinline
-                  preload="metadata"
-                  @loadedmetadata="onReelMeta($event, video)"
-                />
-              </div>
-              <div class="reel__bar">
-                <div>
-                  <strong>{{ shortName(video.original_filename) }}</strong>
-                  <span class="orient-tag">
-                    {{
-                      videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
-                        ? 'Vertical'
-                        : 'Horizontal'
-                    }}
+                <header class="timing__head">
+                  <div>
+                    <h3>{{ phase.label }}</h3>
+                    <p>{{ phase.sub }}</p>
+                  </div>
+                  <span class="pill" :class="statusClass(dossier.results?.[phase.key]?.status)">
+                    {{ statusLabel(dossier.results?.[phase.key]?.status) }}
                   </span>
-                  <span v-if="!video.has_web_preview" class="orient-tag orient-tag--warn">Sin versión web</span>
-                  <span v-if="video.photographer">
-                    {{ video.photographer.full_name }}
-                    <template v-if="video.photographer.instagram">
-                      · @{{ video.photographer.instagram }}
-                    </template>
-                  </span>
-                  <span>{{ formatBytes(video.size_bytes) }}</span>
-                </div>
-                <a :href="video.download_url" download class="dl-text">Descargar original</a>
-              </div>
-            </article>
-          </div>
-        </section>
+                </header>
 
-        <!-- BUSCA TU MEDIA (todos) -->
-        <section class="section">
-          <DossierMediaBrowser :dossier-token="dossierToken" />
-        </section>
+                <template v-if="dossier.results?.[phase.key]">
+                  <div class="timing__hero">
+                    <div>
+                      <span class="micro">Puesto</span>
+                      <strong class="pos">{{ formatPositionNum(dossier.results[phase.key]) }}</strong>
+                    </div>
+                    <div>
+                      <span class="micro">Tiempo neto</span>
+                      <strong class="chrono">{{ formatResult(dossier.results[phase.key]) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="splits">
+                    <div class="splits__item" :class="{ on: !!dossier.results[phase.key].start_time }">
+                      <span class="splits__lbl">Salida</span>
+                      <strong>{{ displayClock(dossier.results[phase.key].start_time) }}</strong>
+                    </div>
+                    <div class="splits__rail" aria-hidden="true" />
+                    <div class="splits__item" :class="{ on: !!dossier.results[phase.key].meta_time }">
+                      <span class="splits__lbl">Meta</span>
+                      <strong>{{ displayClock(dossier.results[phase.key].meta_time) }}</strong>
+                    </div>
+                  </div>
+
+                  <dl class="facts">
+                    <div>
+                      <dt>Categoría</dt>
+                      <dd>{{ dossier.results[phase.key].category_name || dossier.rider.category || '—' }}</dd>
+                    </div>
+                    <div v-if="dossier.results[phase.key].gap && dossier.results[phase.key].gap !== '—'">
+                      <dt>Diferencia</dt>
+                      <dd>{{ dossier.results[phase.key].gap }}</dd>
+                    </div>
+                    <div v-if="dossier.results[phase.key].duration_ms != null">
+                      <dt>Duración</dt>
+                      <dd>{{ formatMs(dossier.results[phase.key].duration_ms) }}</dd>
+                    </div>
+                  </dl>
+                </template>
+
+                <p v-else class="empty-inline">Aún sin registro en esta fase.</p>
+              </article>
+            </div>
+          </section>
+
+          <!-- PHOTOS -->
+          <section id="dossier-fotos" class="section">
+            <div class="section__head anim" style="--i: 7">
+              <div>
+                <p class="section__kicker">Tu media</p>
+                <h2>Tus fotos</h2>
+              </div>
+              <p class="ok">{{ dossier.photos?.length || 0 }} · preview · original</p>
+            </div>
+
+            <div v-if="!dossier.photos?.length" class="empty anim" style="--i: 8">
+              <span class="empty__mark">∅</span>
+              <p>Aún no hay fotos asociadas a tu placa.</p>
+              <button type="button" class="empty__link" @click="scrollTo('dossier-busca')">
+                Buscar en toda la galería →
+              </button>
+            </div>
+
+            <div v-else class="gallery">
+              <figure
+                v-for="(photo, idx) in dossier.photos"
+                :key="photo.id"
+                class="shot anim"
+                :style="{ '--i': 8 + Math.min(idx, 6) }"
+                @click="openLightbox(idx)"
+              >
+                <div class="shot__media">
+                  <img :src="mediaPublicUrl(photo.preview_url)" :alt="photo.original_filename" loading="lazy" />
+                  <div class="shot__shade" aria-hidden="true" />
+                  <div class="shot__overlay">
+                    <strong>{{ shortName(photo.original_filename) }}</strong>
+                    <span v-if="photo.photographer">{{ photo.photographer.full_name }}</span>
+                  </div>
+                </div>
+                <a
+                  :href="photo.download_url"
+                  download
+                  class="shot__dl"
+                  @click.stop
+                  title="Descargar original"
+                >
+                  ↓ Original
+                </a>
+              </figure>
+            </div>
+          </section>
+
+          <!-- VIDEOS -->
+          <section id="dossier-videos" class="section">
+            <div class="section__head anim" style="--i: 15">
+              <div>
+                <p class="section__kicker">Tu media</p>
+                <h2>Tus videos</h2>
+              </div>
+              <p>{{ dossier.videos?.length || 0 }} clip(s)</p>
+            </div>
+
+            <div v-if="!dossier.videos?.length" class="empty anim" style="--i: 16">
+              <span class="empty__mark">∅</span>
+              <p>Aún no hay videos asociados a tu placa.</p>
+              <button type="button" class="empty__link" @click="scrollTo('dossier-busca')">
+                Buscar videos de la edición →
+              </button>
+            </div>
+
+            <div v-else class="reels">
+              <article
+                v-for="(video, vIdx) in dossier.videos"
+                :key="video.id"
+                class="reel anim"
+                :style="{ '--i': 16 + Math.min(vIdx, 4) }"
+              >
+                <div
+                  class="reel__stage"
+                  :class="
+                    videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
+                      ? 'reel__stage--portrait'
+                      : 'reel__stage--landscape'
+                  "
+                >
+                  <video
+                    :src="mediaPublicUrl(video.preview_url)"
+                    :poster="video.thumb_url ? mediaPublicUrl(video.thumb_url) : undefined"
+                    controls
+                    playsinline
+                    preload="metadata"
+                    @loadedmetadata="onReelMeta($event, video)"
+                  />
+                </div>
+                <div class="reel__bar">
+                  <div class="reel__info">
+                    <strong>{{ shortName(video.original_filename) }}</strong>
+                    <div class="reel__tags">
+                      <span class="tag">
+                        {{
+                          videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
+                            ? 'Vertical'
+                            : 'Horizontal'
+                        }}
+                      </span>
+                      <span v-if="!video.has_web_preview" class="tag tag--warn">Sin versión web</span>
+                    </div>
+                    <span class="reel__by">
+                      <template v-if="video.photographer">
+                        {{ video.photographer.full_name }}
+                        <template v-if="video.photographer.instagram">
+                          · @{{ video.photographer.instagram }}
+                        </template>
+                        ·
+                      </template>
+                      {{ formatBytes(video.size_bytes) }}
+                    </span>
+                  </div>
+                  <a :href="video.download_url" download class="reel__dl">Descargar original</a>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- BUSCA -->
+          <section id="dossier-busca" class="section section--browse">
+            <DossierMediaBrowser :dossier-token="dossierToken" />
+          </section>
         </div>
       </template>
 
       <router-link class="back" to="/inicio">← Volver al inicio</router-link>
     </div>
 
-    <!-- Mini splash post-login -->
+    <!-- Splash -->
     <Teleport to="body">
       <div v-if="ceremony" class="splash" aria-hidden="true">
         <div class="splash__wipe" ref="wipeEl" />
@@ -302,31 +351,28 @@
         aria-modal="true"
         @click.self="closeLightbox"
       >
-        <button type="button" class="lb__x" @click="closeLightbox" aria-label="Cerrar">×</button>
-        <button
-          v-if="dossier.photos.length > 1"
-          type="button"
-          class="lb__nav prev"
-          @click="prevPhoto"
-          aria-label="Anterior"
-        >‹</button>
-        <figure>
-          <img
-            :src="mediaPublicUrl(dossier.photos[lightboxIndex].preview_url)"
-            :alt="dossier.photos[lightboxIndex].original_filename"
-          />
-          <figcaption>
-            <span>{{ lightboxIndex + 1 }} / {{ dossier.photos.length }} · {{ formatBytes(dossier.photos[lightboxIndex].size_bytes) }}</span>
-            <a :href="dossier.photos[lightboxIndex].download_url" download class="dl-text">Descargar original</a>
-          </figcaption>
-        </figure>
-        <button
-          v-if="dossier.photos.length > 1"
-          type="button"
-          class="lb__nav next"
-          @click="nextPhoto"
-          aria-label="Siguiente"
-        >›</button>
+        <div class="lb__panel">
+          <header class="lb__head">
+            <span>{{ lightboxIndex + 1 }} / {{ dossier.photos.length }}</span>
+            <button type="button" class="lb__x" @click="closeLightbox" aria-label="Cerrar">×</button>
+          </header>
+          <figure>
+            <img
+              :src="mediaPublicUrl(dossier.photos[lightboxIndex].preview_url)"
+              :alt="dossier.photos[lightboxIndex].original_filename"
+            />
+          </figure>
+          <div class="lb__foot">
+            <span>{{ formatBytes(dossier.photos[lightboxIndex].size_bytes) }}</span>
+            <a :href="dossier.photos[lightboxIndex].download_url" download class="lb__dl">
+              Descargar original
+            </a>
+          </div>
+          <div v-if="dossier.photos.length > 1" class="lb__navs">
+            <button type="button" @click="prevPhoto" aria-label="Anterior">‹ Anterior</button>
+            <button type="button" @click="nextPhoto" aria-label="Siguiente">Siguiente ›</button>
+          </div>
+        </div>
       </div>
     </Teleport>
   </div>
@@ -435,6 +481,12 @@ function saveMagicSession(tokenVal, dossierTok = '') {
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function playUnlockSplash(rider) {
@@ -708,17 +760,45 @@ onUnmounted(() => {
 .dossier-page {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --stagger: 55ms;
+  --cx-orange: var(--primary-color, #ff5e00);
   position: relative;
   isolation: isolate;
   min-height: 100vh;
   min-height: 100dvh;
-  background: #000;
+  background: #050505;
   color: #fff;
-  padding: clamp(1.5rem, 4vw, 2.75rem) var(--container-px) 3.5rem;
+  padding: clamp(1.1rem, 3.5vw, 2.4rem) max(1rem, var(--container-px, 1rem)) calc(3rem + env(safe-area-inset-bottom, 0));
   font-family: var(--font-main);
+  overflow-x: hidden;
 }
 
-/* Emil-style entrance: opacity + transform only, ease-out, stagger */
+.dossier-page__glow {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 55vh;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(255, 94, 0, 0.22), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 0%, rgba(255, 140, 0, 0.1), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dossier-page__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dossier-shell {
+  position: relative;
+  z-index: 1;
+  width: min(920px, 100%);
+  margin: 0 auto;
+}
+
 .anim {
   opacity: 0;
   transform: translateY(18px) scale(0.96);
@@ -732,146 +812,16 @@ onUnmounted(() => {
   animation-delay: calc(var(--i, 0) * var(--stagger));
 }
 
-.dossier-body.is-in .anim--plate {
-  animation-name: enter-plate;
-  animation-duration: 560ms;
-}
-
 @keyframes enter-up {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes enter-plate {
-  from {
-    opacity: 0;
-    transform: translateY(22px) scale(0.9);
-  }
-  65% {
-    opacity: 1;
-    transform: translateY(0) scale(1.04);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* —— Mini splash post-login —— */
-.splash {
-  position: fixed;
-  inset: 0;
-  z-index: 100000;
-  display: grid;
-  place-items: center;
-  background: #000;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.splash__wipe {
-  position: absolute;
-  top: -25%;
-  left: 0;
-  z-index: 1;
-  width: 58vw;
-  height: 150%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 94, 0, 0.55) 35%,
-    var(--primary-color) 55%,
-    rgba(255, 94, 0, 0.35) 75%,
-    transparent
-  );
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.splash__core {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 1rem;
-  max-width: min(92vw, 640px);
-}
-
-.splash__ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(72vw, 300px);
-  height: min(72vw, 300px);
-  margin: calc(min(72vw, 300px) / -2) 0 0 calc(min(72vw, 300px) / -2);
-  border: 2px solid rgba(255, 94, 0, 0.55);
-  border-radius: 50%;
-  box-shadow: 0 0 40px rgba(255, 94, 0, 0.3);
-  pointer-events: none;
-}
-
-.splash__kicker {
-  position: relative;
-  margin: 0 0 0.65rem;
-  font-family: var(--font-accent);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--primary-color);
-}
-
-.splash__plate {
-  position: relative;
-  margin: 0;
-  font-family: var(--font-podium);
-  font-size: clamp(4.5rem, 18vw, 7.5rem);
-  letter-spacing: 0.04em;
-  line-height: 0.92;
-  color: #fff;
-  text-shadow:
-    0 0 28px rgba(255, 94, 0, 0.65),
-    0 0 60px rgba(255, 94, 0, 0.35);
-}
-
-.splash__plate .sym {
-  font-family: var(--font-symbols);
-  color: var(--primary-color);
-  margin-right: 0.05em;
-}
-
-.splash__name {
-  position: relative;
-  margin: 0.85rem 0 0;
-  font-family: var(--font-podium);
-  font-size: clamp(1.45rem, 5.5vw, 2.4rem);
-  letter-spacing: 0.04em;
-  line-height: 1.05;
-  word-spacing: 0.15em;
-  color: #fff;
-  text-wrap: balance;
-}
-
-.dossier-shell {
-  position: relative;
-  z-index: 1;
-  width: min(960px, 100%);
-  margin: 0 auto;
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .kicker {
   margin: 0;
-  color: var(--primary-color);
+  color: var(--cx-orange);
   font-family: var(--font-accent);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -879,55 +829,73 @@ onUnmounted(() => {
 
 /* —— Gate —— */
 .gate {
-  padding: clamp(1.5rem, 6vh, 3rem) 0 1.25rem;
+  padding: clamp(1.25rem, 5vh, 2.5rem) 0 1rem;
 }
 
 .gate h1 {
-  margin: 0.4rem 0 0.75rem;
+  margin: 0.45rem 0 0.7rem;
   font-family: var(--font-podium);
-  font-size: clamp(3rem, 12vw, 5rem);
-  letter-spacing: 0.04em;
-  line-height: 0.92;
+  font-size: clamp(3.1rem, 14vw, 5.2rem);
+  letter-spacing: 0.03em;
+  line-height: 0.9;
 }
 
-.gate .accent {
-  color: var(--primary-color);
-}
-
-.gate-form {
-  width: min(420px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  margin-top: 1.5rem;
-  padding: 1.25rem 1.15rem 1.3rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-top: 2px solid var(--primary-color);
-  background: #000;
-}
+.gate .accent { color: var(--cx-orange); }
 
 .lede {
   margin: 0;
   max-width: 28rem;
   color: rgba(255, 255, 255, 0.58);
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: 1.5;
 }
 
+.gate-form {
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 1.35rem;
+  padding: 1.2rem 1.1rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.95), rgba(8, 8, 8, 0.98));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.gate-form--status {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.gate-form__top {
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .gate-form__label {
-  margin: 0 0 0.15rem;
+  margin: 0;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--primary-color);
+  color: var(--cx-orange);
+}
+
+.gate-form__hint {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.68rem;
+  gap: 0.4rem;
+  font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -938,23 +906,27 @@ input {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: #080808;
   color: #fff;
-  border-radius: 4px;
+  border-radius: 10px;
+  min-height: 48px;
   padding: 0.85rem 0.95rem;
   font-size: 1rem;
   font-family: var(--font-accent);
-  transition: border-color 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input:focus {
   outline: none;
   border-color: rgba(255, 94, 0, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.14);
 }
 
 .btn-primary {
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   border: none;
-  border-radius: 4px;
-  background: var(--accent-gradient);
+  border-radius: 12px;
+  min-height: 50px;
+  background: linear-gradient(135deg, #ff5e00, #ff8c00);
   color: #111;
   font-family: var(--font-accent);
   font-weight: 900;
@@ -962,16 +934,6 @@ input:focus {
   letter-spacing: 0.06em;
   padding: 0.95rem;
   cursor: pointer;
-  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), filter 160ms ease;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-}
-
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
 }
 
 .btn-primary:disabled {
@@ -985,116 +947,122 @@ input:focus {
   font-size: 0.88rem;
 }
 
-/* —— Identity (signature) —— */
-.identity {
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.identity__bar {
+/* —— Dossier chrome —— */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 8;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.35rem;
+  margin: -0.35rem 0 1.1rem;
+  padding: 0.65rem 0;
+  background: linear-gradient(180deg, #050505 65%, rgba(5, 5, 5, 0));
+}
+
+.topbar__sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .ghost {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
   color: #fff;
-  padding: 0.45rem 0.85rem;
+  min-height: 40px;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
   font-family: var(--font-accent);
   font-weight: 800;
   font-size: 0.66rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 180ms ease, color 180ms ease;
+  backdrop-filter: blur(8px);
 }
 
-.ghost:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.identity__row {
+.hero {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: clamp(1rem, 3vw, 1.75rem);
-  align-items: center;
+  gap: 1.1rem;
+  padding: 1.1rem 0 1.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.plate {
-  min-width: 6.75rem;
-  padding: 0.85rem 0.95rem 0.75rem;
-  border: 2px solid var(--primary-color);
+.hero__plate {
+  width: fit-content;
+  min-width: 7.2rem;
+  padding: 0.9rem 1.05rem 0.8rem;
+  border: 2px solid var(--cx-orange);
+  border-radius: 10px;
   text-align: center;
-  box-shadow: 6px 6px 0 rgba(255, 94, 0, 0.25);
+  background: rgba(255, 94, 0, 0.06);
+  box-shadow: 8px 8px 0 rgba(255, 94, 0, 0.22);
 }
 
-.plate__lbl {
+.hero__plate-lbl {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
 }
 
-.plate__num {
+.hero__plate-num {
   display: block;
   margin-top: 0.15rem;
   font-family: var(--font-podium);
-  font-size: clamp(2.4rem, 8vw, 3.4rem);
-  line-height: 0.92;
+  font-size: clamp(2.6rem, 12vw, 3.6rem);
+  line-height: 0.9;
   letter-spacing: 0.04em;
-  color: var(--primary-color);
+  color: var(--cx-orange);
 }
 
-.pilot {
+.hero__pilot {
   display: flex;
-  gap: 1rem;
+  gap: 0.95rem;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.pilot__photo {
-  width: 68px;
-  height: 68px;
+.hero__photo {
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(255, 94, 0, 0.55);
   flex-shrink: 0;
 }
 
-.pilot__photo img {
+.hero__photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.pilot__copy h1 {
+.hero__text h1 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  font-size: clamp(1.7rem, 6.5vw, 2.55rem);
   letter-spacing: 0.03em;
   line-height: 1;
 }
 
 .nick {
-  margin: 0.35rem 0 0;
-  color: var(--secondary-color);
+  margin: 0.4rem 0 0;
+  color: var(--secondary-color, #fbbf24);
   font-family: var(--font-accent);
   font-style: italic;
   font-size: 0.92rem;
 }
 
-.meta {
-  margin: 0.55rem 0 0;
+.hero__meta {
+  margin: 0.5rem 0 0;
   color: rgba(255, 255, 255, 0.55);
   font-size: 0.88rem;
+  line-height: 1.35;
 }
 
 .dot {
@@ -1102,59 +1070,119 @@ input:focus {
   opacity: 0.5;
 }
 
-/* —— Thanks —— */
+.jump {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin: 1.1rem 0 0.25rem;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.jump::-webkit-scrollbar { display: none; }
+
+.jump a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #0d0d0d;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-family: var(--font-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jump em {
+  font-style: normal;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 94, 0, 0.18);
+  color: #fdba74;
+  font-size: 0.65rem;
+}
+
 .thanks {
-  margin-top: 1.75rem;
-  padding-top: 0.25rem;
+  margin-top: 1.35rem;
+  padding: 1.05rem 1.05rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 94, 0, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 94, 0, 0.1), transparent 55%),
+    #0a0a0a;
+}
+
+.thanks__kicker {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-accent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cx-orange);
 }
 
 .thanks h2 {
   margin: 0 0 0.4rem;
   font-family: var(--font-podium);
-  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
   letter-spacing: 0.03em;
-  color: var(--secondary-color);
 }
 
 .thanks p {
   margin: 0;
-  max-width: 40rem;
   color: rgba(255, 255, 255, 0.62);
   line-height: 1.55;
+  font-size: 0.95rem;
 }
 
-/* —— Sections —— */
 .section {
-  margin-top: clamp(2rem, 4vw, 2.75rem);
+  margin-top: clamp(2rem, 5vw, 2.85rem);
+  scroll-margin-top: 4.5rem;
 }
 
 .section__head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-end;
   gap: 1rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
+.section__kicker {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-accent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cx-orange);
+}
+
 .section__head h2 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(1.55rem, 4vw, 2.1rem);
+  font-size: clamp(1.55rem, 5vw, 2.1rem);
   letter-spacing: 0.04em;
 }
 
 .section__head p {
   margin: 0;
   color: rgba(255, 255, 255, 0.42);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
-.section__head .ok {
-  color: #6ee7b7;
-}
+.section__head .ok { color: #6ee7b7; }
 
-/* —— Timing —— */
 .timing {
   display: grid;
   grid-template-columns: 1fr;
@@ -1162,32 +1190,41 @@ input:focus {
 }
 
 @media (min-width: 760px) {
+  .hero {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
   .timing {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 .timing__card {
-  padding: 1.15rem 1.1rem 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #000;
+  padding: 1.15rem 1.05rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: #090909;
 }
 
 .timing__card--final {
-  border-color: rgba(255, 94, 0, 0.45);
+  border-color: rgba(255, 94, 0, 0.42);
+  background:
+    linear-gradient(160deg, rgba(255, 94, 0, 0.08), transparent 45%),
+    #090909;
 }
 
 .timing__head {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.05rem;
 }
 
 .timing__head h3 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   letter-spacing: 0.04em;
 }
 
@@ -1199,29 +1236,19 @@ input:focus {
 
 .pill {
   align-self: flex-start;
-  padding: 0.3rem 0.55rem;
-  font-size: 0.6rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.pill.ok {
-  color: #6ee7b7;
-  border-color: rgba(110, 231, 183, 0.45);
-}
-.pill.live {
-  color: var(--secondary-color);
-  border-color: rgba(251, 191, 36, 0.45);
-}
-.pill.bad {
-  color: #fda4af;
-  border-color: rgba(225, 29, 72, 0.45);
-}
-.pill.muted {
-  color: rgba(255, 255, 255, 0.45);
-}
+.pill.ok { color: #6ee7b7; border-color: rgba(110, 231, 183, 0.45); }
+.pill.live { color: #fbbf24; border-color: rgba(251, 191, 36, 0.45); }
+.pill.bad { color: #fda4af; border-color: rgba(225, 29, 72, 0.45); }
+.pill.muted { color: rgba(255, 255, 255, 0.45); }
 
 .timing__hero {
   display: grid;
@@ -1246,16 +1273,16 @@ input:focus {
 .pos {
   display: block;
   font-family: var(--font-podium);
-  font-size: clamp(2.6rem, 8vw, 3.4rem);
+  font-size: clamp(2.5rem, 10vw, 3.4rem);
   line-height: 0.9;
-  color: var(--primary-color);
+  color: var(--cx-orange);
 }
 
 .chrono {
   display: block;
   font-family: var(--font-symbols);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.45rem, 3.8vw, 1.9rem);
+  font-size: clamp(1.35rem, 4.5vw, 1.85rem);
   line-height: 1;
 }
 
@@ -1266,13 +1293,8 @@ input:focus {
   align-items: center;
 }
 
-.splits__item {
-  opacity: 0.35;
-}
-
-.splits__item.on {
-  opacity: 1;
-}
+.splits__item { opacity: 0.35; }
+.splits__item.on { opacity: 1; }
 
 .splits__lbl {
   display: block;
@@ -1293,7 +1315,8 @@ input:focus {
 
 .splits__rail {
   height: 2px;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cx-orange), var(--secondary-color, #fbbf24));
   opacity: 0.55;
 }
 
@@ -1323,55 +1346,63 @@ input:focus {
 .empty-inline,
 .empty {
   margin: 0;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 0.92rem;
 }
 
 .empty {
-  padding: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1.35rem 1.1rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background: #0a0a0a;
+}
+
+.empty__mark {
+  font-family: var(--font-podium);
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.empty__link {
+  border: none;
+  background: transparent;
+  color: var(--cx-orange);
+  font-family: var(--font-accent);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0;
+  cursor: pointer;
 }
 
 /* —— Gallery —— */
 .gallery {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
 }
 
-@media (min-width: 600px) {
-  .gallery {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 920px) {
-  .gallery {
-    grid-template-columns: repeat(3, 1fr);
-  }
+@media (min-width: 720px) {
+  .gallery { grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
 }
 
 .shot {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
   cursor: zoom-in;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #000;
-  transition: border-color 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .shot:hover {
-    border-color: rgba(255, 94, 0, 0.55);
-    transform: translateY(-2px);
-  }
-
-  .shot:hover .shot__media img {
-    transform: scale(1.04);
-  }
 }
 
 .shot__media {
-  aspect-ratio: 4 / 5;
+  position: relative;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
+  border-radius: 12px;
   background: #0a0a0a;
 }
 
@@ -1380,46 +1411,61 @@ input:focus {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 280ms var(--ease-out);
 }
 
-.shot figcaption {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.55rem;
-  align-items: flex-start;
-  padding: 0.7rem 0.75rem 0.8rem;
+.shot:active .shot__media img,
+.shot:hover .shot__media img {
+  transform: scale(1.04);
 }
 
-.shot strong {
+.shot__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.78));
+  pointer-events: none;
+}
+
+.shot__overlay {
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 1;
+}
+
+.shot__overlay strong,
+.shot__overlay span {
   display: block;
-  font-size: 0.76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.shot span {
-  display: block;
-  margin-top: 0.15rem;
-  font-size: 0.66rem;
-  color: rgba(255, 255, 255, 0.42);
-  line-height: 1.35;
+.shot__overlay strong {
+  font-size: 0.78rem;
 }
 
-.icon-dl {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 94, 0, 0.5);
-  color: var(--primary-color);
-  font-size: 1rem;
+.shot__overlay span {
+  margin-top: 0.12rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.shot__dl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 94, 0, 0.4);
+  color: #ffb48a;
   text-decoration: none;
-  transition: background 160ms ease, color 160ms ease;
-}
-
-.icon-dl:hover {
-  background: var(--primary-color);
-  color: #111;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* —— Videos —— */
@@ -1431,7 +1477,8 @@ input:focus {
 
 .reel {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #000;
+  border-radius: 14px;
+  background: #090909;
   overflow: hidden;
 }
 
@@ -1439,14 +1486,14 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a0a;
+  background: #000;
   min-height: 200px;
 }
 
 .reel__stage--landscape video {
   width: 100%;
   height: auto;
-  max-height: min(50vh, 440px);
+  max-height: min(48vh, 420px);
   display: block;
   object-fit: contain;
   background: #000;
@@ -1454,67 +1501,78 @@ input:focus {
 
 .reel__stage--portrait video {
   width: auto;
-  max-width: min(100%, 380px);
-  height: min(70vh, 560px);
-  max-height: min(70vh, 560px);
+  max-width: min(100%, 360px);
+  height: min(68vh, 540px);
+  max-height: min(68vh, 540px);
   display: block;
   object-fit: contain;
   background: #000;
   margin: 0 auto;
 }
 
-.orient-tag {
-  display: inline-block !important;
-  margin: 0.25rem 0 0 !important;
-  padding: 0.15rem 0.45rem;
+.reel__bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem 1.05rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reel__info strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.reel__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.tag {
+  display: inline-flex;
+  padding: 0.2rem 0.45rem;
   border-radius: 999px;
-  background: rgba(255, 94, 0, 0.18);
-  color: #fdba74 !important;
-  font-size: 0.62rem !important;
+  background: rgba(255, 94, 0, 0.16);
+  color: #fdba74;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.orient-tag--warn {
-  background: rgba(250, 204, 21, 0.16);
-  color: #fde68a !important;
+.tag--warn {
+  background: rgba(250, 204, 21, 0.14);
+  color: #fde68a;
 }
 
-.reel__bar {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+.reel__by {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.reel__dl {
+  display: inline-flex;
   align-items: center;
-  padding: 0.85rem 0.95rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  flex-wrap: wrap;
-}
-
-.reel__bar strong {
-  display: block;
-  font-size: 0.9rem;
-}
-
-.reel__bar span {
-  display: block;
-  margin-top: 0.15rem;
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.42);
-}
-
-.dl-text {
-  color: var(--primary-color);
-  font-size: 0.68rem;
+  justify-content: center;
+  min-height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff5e00, #ff8c00);
+  color: #111;
+  text-decoration: none;
+  font-family: var(--font-accent);
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
 }
 
-.dl-text:hover {
-  text-decoration: underline;
+.section--browse {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .back {
@@ -1525,88 +1583,229 @@ input:focus {
   text-decoration: none;
 }
 
-.back:hover {
-  color: var(--primary-color);
+.back:hover { color: var(--cx-orange); }
+
+/* —— Splash —— */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  background: #000;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-/* —— Entrance handled above (Emil stagger) —— */
+.splash__wipe {
+  position: absolute;
+  top: -25%;
+  left: 0;
+  z-index: 1;
+  width: 58vw;
+  height: 150%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 94, 0, 0.55) 35%,
+    var(--cx-orange) 55%,
+    rgba(255, 94, 0, 0.35) 75%,
+    transparent
+  );
+  mix-blend-mode: screen;
+}
+
+.splash__core {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  max-width: min(92vw, 640px);
+}
+
+.splash__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(72vw, 300px);
+  height: min(72vw, 300px);
+  margin: calc(min(72vw, 300px) / -2) 0 0 calc(min(72vw, 300px) / -2);
+  border: 2px solid rgba(255, 94, 0, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(255, 94, 0, 0.3);
+}
+
+.splash__kicker {
+  position: relative;
+  margin: 0 0 0.65rem;
+  font-family: var(--font-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cx-orange);
+}
+
+.splash__plate {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-podium);
+  font-size: clamp(4.5rem, 18vw, 7.5rem);
+  letter-spacing: 0.04em;
+  line-height: 0.92;
+  color: #fff;
+  text-shadow: 0 0 28px rgba(255, 94, 0, 0.65), 0 0 60px rgba(255, 94, 0, 0.35);
+}
+
+.splash__plate .sym {
+  font-family: var(--font-symbols);
+  color: var(--cx-orange);
+  margin-right: 0.05em;
+}
+
+.splash__name {
+  position: relative;
+  margin: 0.85rem 0 0;
+  font-family: var(--font-podium);
+  font-size: clamp(1.45rem, 5.5vw, 2.4rem);
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  color: #fff;
+  text-wrap: balance;
+}
 
 /* —— Lightbox —— */
 .lb {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.94);
-  animation: fade 200ms var(--ease-out);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
 }
 
-@keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.lb__panel {
+  width: min(100%, 720px);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom, 0));
+  border-radius: 18px 18px 0 0;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.lb figure {
-  margin: 0;
-  width: min(920px, 100%);
-}
-
-.lb img {
-  width: 100%;
-  max-height: calc(100dvh - 5.5rem);
-  object-fit: contain;
-  display: block;
-  background: #000;
-}
-
-.lb figcaption {
+.lb__head {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
   align-items: center;
-  padding-top: 0.85rem;
-  flex-wrap: wrap;
   color: rgba(255, 255, 255, 0.55);
   font-size: 0.82rem;
 }
 
 .lb__x {
-  position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: #141414;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.lb figure {
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
   background: #000;
+}
+
+.lb img {
+  width: 100%;
+  max-height: min(62vh, 640px);
+  object-fit: contain;
+  display: block;
+}
+
+.lb__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+}
+
+.lb__dl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff5e00, #ff8c00);
+  color: #111;
+  text-decoration: none;
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lb__navs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.lb__navs button {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: transparent;
   color: #fff;
-  font-size: 1.5rem;
-  line-height: 1;
+  font-family: var(--font-accent);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
-.lb__nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 56px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 1.75rem;
-  cursor: pointer;
-}
-
-.lb__nav.prev { left: 0.65rem; }
-.lb__nav.next { right: 0.65rem; }
-
-@media (max-width: 640px) {
-  .identity__row {
-    grid-template-columns: 1fr;
+@media (min-width: 760px) {
+  .lb {
+    align-items: center;
+    padding: 1.5rem;
   }
 
+  .lb__panel {
+    border-radius: 16px;
+    padding: 1rem 1.15rem 1.15rem;
+  }
+
+  .reel__bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .reel__dl {
+    flex: 0 0 auto;
+    padding-inline: 1.1rem;
+  }
+}
+
+@media (max-width: 640px) {
   .splits {
     grid-template-columns: 1fr;
     gap: 0.75rem;
@@ -1614,13 +1813,9 @@ input:focus {
 
   .splits__rail {
     width: 2px;
-    height: 20px;
+    height: 18px;
     margin-left: 0.15rem;
-    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-  }
-
-  .lb__nav {
-    display: none;
+    background: linear-gradient(180deg, var(--cx-orange), var(--secondary-color, #fbbf24));
   }
 }
 
@@ -1632,16 +1827,12 @@ input:focus {
   }
 
   .splash,
-  .lb,
-  .shot,
   .shot__media img,
   .btn-primary {
     animation: none !important;
     transition: none !important;
   }
 
-  .splash {
-    display: none !important;
-  }
+  .splash { display: none !important; }
 }
 </style>
