@@ -22,6 +22,18 @@ function absolutize(url) {
   return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
+function mapGalleryItem(item) {
+  return {
+    ...item,
+    view_url: absolutize(item.view_url),
+    thumb_url: absolutize(item.thumb_url),
+    preview_url: absolutize(item.preview_url || item.view_url),
+  };
+}
+
+/**
+ * @param {{ page?: number, perPage?: number, mediaType?: 'photo'|'video'|'all' }} opts
+ */
 export async function fetchEdition4Gallery({ page = 1, perPage = 24, mediaType = 'photo' } = {}) {
   const params = new URLSearchParams({
     page: String(page),
@@ -34,11 +46,7 @@ export async function fetchEdition4Gallery({ page = 1, perPage = 24, mediaType =
     })
   );
 
-  body.data = (body.data || []).map((item) => ({
-    ...item,
-    view_url: absolutize(item.view_url),
-  }));
-
+  body.data = (body.data || []).map(mapGalleryItem);
   return body;
 }
 
@@ -59,10 +67,6 @@ export async function uploadPublicGalleryPhotos({ fullName, instagram, files }) 
     })
   );
 
-  body.data = (body.data || []).map((item) => ({
-    ...item,
-    view_url: absolutize(item.view_url),
-  }));
-
+  body.data = (body.data || []).map(mapGalleryItem);
   return body;
 }

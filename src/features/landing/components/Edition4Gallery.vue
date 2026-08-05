@@ -9,14 +9,37 @@
           4ª <span class="accent">Edición</span>
         </h2>
         <p class="e4g__sub">
-          Galería en vivo de la carrera. También puedes subir tus fotos a
-          <strong>General</strong>. La descarga del original está en Mi carrera / camarógrafos.
+          Galería en vivo de la carrera. Fotos y videos web livianos —
+          el original queda con el camarógrafo / Mi carrera.
         </p>
       </div>
       <div class="e4g__meta">
+        <div class="e4g__tabs" role="tablist" aria-label="Tipo de media">
+          <button
+            type="button"
+            role="tab"
+            class="e4g__tab"
+            :class="{ on: mediaTab === 'photo' }"
+            :aria-selected="mediaTab === 'photo'"
+            @click="setMediaTab('photo')"
+          >
+            Fotos
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="e4g__tab"
+            :class="{ on: mediaTab === 'video' }"
+            :aria-selected="mediaTab === 'video'"
+            @click="setMediaTab('video')"
+          >
+            Videos
+          </button>
+        </div>
         <span class="e4g__count">{{ totalLabel }}</span>
         <span class="e4g__lock">Sin descarga aquí</span>
         <button
+          v-if="mediaTab === 'photo'"
           type="button"
           class="e4g__upload"
           @click="openUpload"
@@ -29,8 +52,13 @@
     <div v-if="loading && !items.length" class="e4g__empty">Cargando galería…</div>
     <div v-else-if="error && !items.length" class="e4g__empty e4g__empty--err">{{ error }}</div>
     <div v-else-if="!items.length" class="e4g__empty">
-      Aún no hay fotos públicas.
-      <button type="button" class="e4g__empty-cta" @click="openUpload">Sé el primero en subir</button>
+      <template v-if="mediaTab === 'photo'">
+        Aún no hay fotos públicas.
+        <button type="button" class="e4g__empty-cta" @click="openUpload">Sé el primero en subir</button>
+      </template>
+      <template v-else>
+        Aún no hay videos con versión web.
+      </template>
     </div>
 
     <div v-else class="e4g__grid" @dragstart.prevent>
@@ -38,20 +66,24 @@
         v-for="(item, idx) in items"
         :key="item.id"
         class="cell"
-        :class="cellClass(idx)"
+        :class="[cellClass(idx), item.media_type === 'video' ? 'cell--video' : '']"
         @click="openViewer(idx)"
       >
         <img
-          :src="item.view_url"
+          :src="thumbSrc(item)"
           :alt="caption(item)"
           class="cell__img"
           loading="lazy"
           decoding="async"
           draggable="false"
         />
+        <div v-if="item.media_type === 'video'" class="cell__play" aria-hidden="true">
+          <span>▶</span>
+        </div>
         <div class="cell__shield" aria-hidden="true" />
         <div class="cell__wm" aria-hidden="true">CHACAS · 4ª</div>
         <div class="cell__mark">
+          <span v-if="item.media_type === 'video'" class="vid">Video</span>
           <span v-if="item.rider?.plate_number" class="plate">#{{ item.rider.plate_number }}</span>
           <span v-else class="gen">General</span>
         </div>
@@ -73,7 +105,7 @@
         :disabled="loading"
         @click="loadMore"
       >
-        {{ loading ? 'Cargando…' : 'Ver más fotos' }}
+        {{ loading ? 'Cargando…' : (mediaTab === 'video' ? 'Ver más videos' : 'Ver más fotos') }}
       </button>
       <p v-else-if="total > perPage" class="e4g__end">Fin de la galería</p>
     </div>
@@ -228,10 +260,23 @@
           @click="viewerIndex -= 1"
           aria-label="Anterior"
         >‹</button>
-        <div class="viewer__stage" @dragstart.prevent>
+        <div class="viewer__stage" :class="{ 'viewer__stage--video': activeItem?.media_type === 'video' }" @dragstart.prevent>
+          <video
+            v-if="activeItem?.media_type === 'video'"
+            :key="'vv-' + activeItem.id"
+            class="viewer__video"
+            :src="activeItem.view_url"
+            :poster="thumbSrc(activeItem) || undefined"
+            controls
+            playsinline
+            preload="metadata"
+            controlslist="nodownload noplaybackrate"
+            @contextmenu.prevent
+          />
           <img
-            :src="items[viewerIndex].view_url"
-            :alt="caption(items[viewerIndex])"
+            v-else
+            :src="activeItem?.view_url"
+            :alt="caption(activeItem)"
             class="viewer__img"
             draggable="false"
           />
@@ -247,16 +292,20 @@
         >›</button>
         <div class="viewer__cap">
           <div>
-            <strong v-if="items[viewerIndex].rider">
-              #{{ items[viewerIndex].rider.plate_number }}
-              · {{ items[viewerIndex].rider.full_name }}
+            <strong v-if="activeItem?.rider">
+              #{{ activeItem.rider.plate_number }}
+              · {{ activeItem.rider.full_name }}
             </strong>
+            <strong v-else-if="activeItem?.media_type === 'video'">Video general</strong>
             <strong v-else>Toma general</strong>
-            <p v-if="items[viewerIndex].photographer">
-              {{ items[viewerIndex].photographer.full_name }}
-              <template v-if="items[viewerIndex].photographer.instagram">
-                · @{{ items[viewerIndex].photographer.instagram }}
+            <p v-if="activeItem?.photographer">
+              {{ activeItem.photographer.full_name }}
+              <template v-if="activeItem.photographer.instagram">
+                · @{{ activeItem.photographer.instagram }}
               </template>
+            </p>
+            <p v-if="activeItem?.media_type === 'video' && !activeItem.has_web_preview" class="viewer__warn">
+              Sin versión web — puede no reproducir en este navegador.
             </p>
           </div>
           <p class="viewer__note">
@@ -274,7 +323,11 @@ import { useRoute } from 'vue-router';
 import { fetchEdition4Gallery, uploadPublicGalleryPhotos } from '../api/editionGalleryApi';
 
 const route = useRoute();
-const perPage = 18;
+/** Fotos: más por página. Videos: menos para no saturar red. */
+const PHOTO_PER_PAGE = 18;
+const VIDEO_PER_PAGE = 9;
+
+const mediaTab = ref('photo'); // photo | video
 const items = ref([]);
 const page = ref(1);
 const lastPage = ref(1);
@@ -296,9 +349,16 @@ const form = ref({ name: '', instagram: '', files: [] });
 const previews = ref([]);
 let lockedScrollY = 0;
 
+const perPage = computed(() => (mediaTab.value === 'video' ? VIDEO_PER_PAGE : PHOTO_PER_PAGE));
 const hasMore = computed(() => page.value < lastPage.value);
+const activeItem = computed(() => (
+  viewerIndex.value != null ? items.value[viewerIndex.value] : null
+));
 const totalLabel = computed(() => {
-  if (!total.value) return '0 tomas';
+  if (!total.value) return mediaTab.value === 'video' ? '0 videos' : '0 tomas';
+  if (mediaTab.value === 'video') {
+    return `${total.value} video${total.value === 1 ? '' : 's'}`;
+  }
   return `${total.value} toma${total.value === 1 ? '' : 's'}`;
 });
 
@@ -312,14 +372,36 @@ function cellClass(idx) {
 
 function caption(item) {
   if (item?.rider) return `#${item.rider.plate_number} ${item.rider.full_name}`;
+  if (item?.media_type === 'video') return 'Video · 4ª edición';
   return 'Toma general · 4ª edición';
+}
+
+/** En grilla: solo JPEG liviano. Nunca el mp4. */
+function thumbSrc(item) {
+  if (!item) return '';
+  return item.thumb_url || (item.media_type === 'photo' ? item.view_url : '') || '';
+}
+
+function setMediaTab(tab) {
+  if (mediaTab.value === tab) return;
+  mediaTab.value = tab;
+  viewerIndex.value = null;
+  items.value = [];
+  page.value = 1;
+  lastPage.value = 1;
+  total.value = 0;
+  loadPage(1);
 }
 
 async function loadPage(p, { append = false } = {}) {
   loading.value = true;
   error.value = '';
   try {
-    const res = await fetchEdition4Gallery({ page: p, perPage, mediaType: 'photo' });
+    const res = await fetchEdition4Gallery({
+      page: p,
+      perPage: perPage.value,
+      mediaType: mediaTab.value,
+    });
     competitionName.value = res.competition?.name || '';
     const rows = res.data || [];
     items.value = append ? [...items.value, ...rows] : rows;
@@ -610,6 +692,33 @@ onUnmounted(() => {
   gap: 0.45rem;
 }
 
+.e4g__tabs {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.e4g__tab {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+}
+
+.e4g__tab.on {
+  background: var(--primary-color);
+  color: #111;
+}
+
 .e4g__count {
   font-family: var(--font-podium);
   font-size: 1.4rem;
@@ -764,6 +873,32 @@ onUnmounted(() => {
   background: #111;
 }
 
+.cell--video {
+  cursor: pointer;
+}
+
+.cell__play {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.cell__play span {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 0.85rem;
+  padding-left: 3px;
+}
+
 .cell__shield,
 .viewer__shield {
   position: absolute;
@@ -794,8 +929,10 @@ onUnmounted(() => {
 }
 
 .plate,
-.gen {
+.gen,
+.vid {
   display: inline-block;
+  margin-right: 0.25rem;
   padding: 0.2rem 0.45rem;
   font-family: var(--font-accent);
   font-size: 0.62rem;
@@ -804,6 +941,10 @@ onUnmounted(() => {
   text-transform: uppercase;
   background: var(--primary-color);
   color: #111;
+}
+
+.vid {
+  background: rgba(255, 94, 0, 0.9);
 }
 
 .gen {
@@ -1323,6 +1464,25 @@ onUnmounted(() => {
   width: auto;
   height: auto;
   pointer-events: none;
+}
+
+.viewer__stage--video .viewer__shield {
+  pointer-events: none;
+}
+
+.viewer__video {
+  display: block;
+  position: relative;
+  z-index: 4;
+  width: min(960px, 100%);
+  max-height: min(68vh, 720px);
+  background: #000;
+  outline: none;
+}
+
+.viewer__warn {
+  margin-top: 0.35rem !important;
+  color: #fde68a !important;
 }
 
 .viewer__wm {
