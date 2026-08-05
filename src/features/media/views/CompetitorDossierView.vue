@@ -1350,41 +1350,41 @@ input:focus {
 
 .chrono-board__podium {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.85rem 1rem;
+  grid-template-columns: minmax(4.8rem, 0.9fr) minmax(0, 1.4fr);
+  gap: 0.55rem;
   align-items: stretch;
-  margin-bottom: 1.15rem;
+  margin-bottom: 1rem;
 }
 
 .chrono-board__rank {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-width: 5.5rem;
-  padding: 0.85rem 0.8rem 0.75rem;
-  border-radius: 14px;
+  min-width: 0;
+  padding: 0.7rem 0.55rem 0.65rem;
+  border-radius: 12px;
   border: 1px solid rgba(255, 94, 0, 0.45);
   background:
     linear-gradient(160deg, rgba(255, 94, 0, 0.18), transparent 60%),
     #0c0c0c;
-  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.08), 6px 6px 0 rgba(255, 94, 0, 0.16);
+  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.08), 4px 4px 0 rgba(255, 94, 0, 0.16);
   text-align: center;
 }
 
 .chrono-board__rank-lbl {
-  font-size: 0.56rem;
+  font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
 }
 
 .chrono-board__rank-num {
   display: block;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
   font-family: var(--font-podium);
-  font-size: clamp(2.4rem, 11vw, 3.2rem);
-  line-height: 0.88;
+  font-size: clamp(1.85rem, 8vw, 2.75rem);
+  line-height: 0.9;
   letter-spacing: 0.02em;
   color: var(--cx-orange);
 }
@@ -1393,6 +1393,7 @@ input:focus {
   font-family: var(--font-symbols);
   opacity: 0.55;
   margin-right: 0.02em;
+  font-size: 0.72em;
 }
 
 .chrono-board__net {
@@ -1400,8 +1401,8 @@ input:focus {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  padding: 0.85rem 0.9rem;
-  border-radius: 14px;
+  padding: 0.7rem 0.75rem;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
@@ -1409,29 +1410,35 @@ input:focus {
 }
 
 .chrono-board__net-lbl {
-  font-size: 0.56rem;
+  font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.42);
 }
 
 .chrono-board__net-val {
   display: block;
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
   font-family: var(--font-symbols);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.55rem, 6.5vw, 2.05rem);
-  line-height: 1;
-  letter-spacing: 0.04em;
+  font-size: clamp(1.15rem, 5vw, 1.85rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
   color: #fff;
   text-shadow: 0 0 24px rgba(255, 94, 0, 0.25);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chrono-board__net-hint {
-  margin-top: 0.45rem;
-  font-size: 0.68rem;
+  margin-top: 0.3rem;
+  font-size: 0.62rem;
   color: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chrono-track {
@@ -1594,12 +1601,17 @@ input:focus {
 }
 
 @media (max-width: 420px) {
-  .chrono-board__podium {
-    grid-template-columns: 1fr;
+  .chrono-board__rank {
+    box-shadow: 3px 3px 0 rgba(255, 94, 0, 0.16);
+    padding: 0.6rem 0.4rem 0.55rem;
   }
 
-  .chrono-board__rank {
-    box-shadow: 4px 4px 0 rgba(255, 94, 0, 0.16);
+  .chrono-board__net {
+    padding: 0.6rem 0.65rem;
+  }
+
+  .chrono-board__net-hint {
+    display: none;
   }
 
   .chrono-track {
