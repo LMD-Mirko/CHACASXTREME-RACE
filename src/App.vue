@@ -10,8 +10,8 @@ import SplashScreen from './components/common/SplashScreen.vue';
 import PublicRaceLiveLayer from './components/common/PublicRaceLiveLayer.vue';
 
 const route = useRoute();
-/** Edición 4 tiene su propio splash — no duplicar al entrar directo */
-const showSplash = ref(route.name !== 'edition-4');
+/** Edición 4 y /subir: sin splash para no tapar el modal de fotos */
+const showSplash = ref(route.name !== 'edition-4' && route.name !== 'public-upload');
 const { t, te, locale } = useI18n();
 
 // Hide navigation on teaser / edición / media tools
@@ -295,7 +295,7 @@ onMounted(() => {
     <Navbar v-if="showNavigation" />
     <router-view v-slot="{ Component }">
       <transition name="page-fade" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="route.name" />
       </transition>
     </router-view>
     <Footer id="ubicacion" v-if="showNavigation" />

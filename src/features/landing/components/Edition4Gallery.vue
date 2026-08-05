@@ -88,13 +88,18 @@
           aria-modal="true"
           aria-labelledby="up-title"
           @click.self="closeUpload"
+          @touchmove="onOverlayTouchMove"
         >
           <div class="up__atmosphere" aria-hidden="true">
             <div class="up__glow" />
             <div class="up__grain" />
           </div>
 
-          <form class="up__card" @submit.prevent="submitUpload">
+          <form
+            class="up__card"
+            @submit.prevent="submitUpload"
+            @touchmove.stop
+          >
             <div class="up__hazard" aria-hidden="true" />
 
             <header class="up__head">
@@ -104,8 +109,7 @@
                   Sube tu <span>toma</span>
                 </h3>
                 <p class="up__hint">
-                  Entra al álbum vivo de Chacas. Tus fotos van a
-                  <strong>General</strong> — sin placa, para toda la comunidad.
+                  Fotos a <strong>General</strong>, para toda la comunidad.
                 </p>
               </div>
               <button type="button" class="up__x" @click="closeUpload" aria-label="Cerrar">
@@ -123,7 +127,8 @@
                   minlength="2"
                   maxlength="255"
                   autocomplete="name"
-                  placeholder="Cómo te firmas en la foto"
+                  placeholder="Tu nombre"
+                  enterkeyhint="next"
                 />
               </label>
 
@@ -136,23 +141,20 @@
                     type="text"
                     maxlength="100"
                     autocomplete="username"
-                    placeholder="tu_usuario"
+                    placeholder="usuario"
+                    enterkeyhint="done"
                   />
                 </div>
               </label>
             </div>
 
-            <div
-              class="up__drop"
-              :class="{
-                'up__drop--active': dropActive,
-                'up__drop--filled': form.files.length,
-              }"
+            <label
+              class="up__pick"
+              :class="{ 'up__pick--filled': form.files.length }"
               @dragenter.prevent="dropActive = true"
               @dragover.prevent="dropActive = true"
               @dragleave.prevent="dropActive = false"
               @drop.prevent="onDrop"
-              @click="fileInput?.click()"
             >
               <input
                 ref="fileInput"
@@ -162,18 +164,13 @@
                 hidden
                 @change="onFilesPicked"
               />
-              <div class="up__drop-icon" aria-hidden="true">
-                <span class="up__drop-ring" />
-                <span class="up__drop-plus">+</span>
-              </div>
-              <div class="up__drop-copy">
-                <strong v-if="!form.files.length">Arrastra o elige tus fotos</strong>
-                <strong v-else>
-                  {{ form.files.length }} foto{{ form.files.length === 1 ? '' : 's' }} lista{{ form.files.length === 1 ? '' : 's' }}
-                </strong>
-                <small>JPG · PNG · WebP · hasta 12 · toca para {{ form.files.length ? 'cambiar' : 'elegir' }}</small>
-              </div>
-            </div>
+              <span class="up__pick-main">
+                {{ form.files.length
+                  ? `${form.files.length} foto${form.files.length === 1 ? '' : 's'}`
+                  : 'Elegir fotos' }}
+              </span>
+              <span class="up__pick-sub">JPG, PNG o WebP · máx. 12</span>
+            </label>
 
             <ul v-if="previews.length" class="up__previews">
               <li v-for="(p, i) in previews" :key="p.url">
@@ -182,7 +179,7 @@
                   type="button"
                   class="up__rm"
                   :aria-label="`Quitar ${p.name || 'imagen'}`"
-                  @click.stop="removeFile(i)"
+                  @click.prevent="removeFile(i)"
                 >
                   ×
                 </button>
@@ -297,6 +294,7 @@ const dropActive = ref(false);
 const form = ref({ name: '', instagram: '', files: [] });
 /** @type {import('vue').Ref<Array<{ url: string, name: string }>>} */
 const previews = ref([]);
+let lockedScrollY = 0;
 
 const hasMore = computed(() => page.value < lastPage.value);
 const totalLabel = computed(() => {
@@ -343,14 +341,44 @@ function loadMore() {
   loadPage(page.value + 1, { append: true });
 }
 
+function lockBodyScroll() {
+  lockedScrollY = window.scrollY || window.pageYOffset || 0;
+  const body = document.body;
+  body.style.position = 'fixed';
+  body.style.top = `-${lockedScrollY}px`;
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+  body.style.overflow = 'hidden';
+  body.style.touchAction = 'none';
+}
+
+function unlockBodyScroll() {
+  const body = document.body;
+  body.style.position = '';
+  body.style.top = '';
+  body.style.left = '';
+  body.style.right = '';
+  body.style.width = '';
+  body.style.overflow = '';
+  body.style.touchAction = '';
+  window.scrollTo(0, lockedScrollY);
+}
+
+/** Evita que el fondo se mueva al tocar fuera de la card. */
+function onOverlayTouchMove(e) {
+  const card = e.target?.closest?.('.up__card');
+  if (!card) e.preventDefault();
+}
+
 function openViewer(idx) {
   viewerIndex.value = idx;
-  document.body.style.overflow = 'hidden';
+  if (!uploadOpen.value) lockBodyScroll();
 }
 
 function closeViewer() {
   viewerIndex.value = null;
-  if (!uploadOpen.value) document.body.style.overflow = '';
+  if (!uploadOpen.value) unlockBodyScroll();
 }
 
 function revokePreviews() {
@@ -359,11 +387,11 @@ function revokePreviews() {
 }
 
 function openUpload() {
+  if (!uploadOpen.value) lockBodyScroll();
   uploadOpen.value = true;
   uploadError.value = '';
   uploadOk.value = '';
   dropActive.value = false;
-  document.body.style.overflow = 'hidden';
 }
 
 function closeUpload() {
@@ -374,7 +402,7 @@ function closeUpload() {
   dropActive.value = false;
   form.value = { name: form.value.name, instagram: form.value.instagram, files: [] };
   revokePreviews();
-  if (viewerIndex.value == null) document.body.style.overflow = '';
+  if (viewerIndex.value == null) unlockBodyScroll();
 }
 
 function isImageFile(file) {
@@ -473,12 +501,7 @@ function shouldOpenPublicUpload() {
 
 async function openPublicUploadFromUrl() {
   if (!shouldOpenPublicUpload()) return;
-  try {
-    document.getElementById('edicion-4-galeria')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch {
-    /* ignore */
-  }
-  await nextTick();
+  // No scrollIntoView: en móvil mueve el fondo y el modal “baila”.
   openUpload();
 }
 
@@ -499,24 +522,23 @@ onMounted(() => {
     loadPage(1);
   }, 60000);
 
-  // Deep-link redes: /subir o /?upload=1
-  setTimeout(() => {
-    openPublicUploadFromUrl();
-  }, 350);
+  if (shouldOpenPublicUpload()) {
+    nextTick(() => openPublicUploadFromUrl());
+  }
 });
 
 watch(
-  () => [route.name, route.query.upload, route.query.subir],
+  () => [route.fullPath, route.name, route.meta?.openPublicUpload],
   () => {
     if (shouldOpenPublicUpload() && !uploadOpen.value) {
-      openPublicUploadFromUrl();
+      nextTick(() => openPublicUploadFromUrl());
     }
   },
 );
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey);
-  document.body.style.overflow = '';
+  if (uploadOpen.value || viewerIndex.value != null) unlockBodyScroll();
   if (pollTimer) clearInterval(pollTimer);
   io?.disconnect();
   revokePreviews();
@@ -851,22 +873,28 @@ onUnmounted(() => {
   cursor: wait;
 }
 
-/* Upload modal — epic public share */
+/* Upload modal — fijo en móvil (sin bounce del fondo) */
 .up {
   position: fixed;
   inset: 0;
-  z-index: 10050;
+  z-index: 110000;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 0;
-  overflow: auto;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
 }
 
 @media (min-width: 720px) {
   .up {
     align-items: center;
     padding: 1.25rem;
+    touch-action: auto;
   }
 }
 
@@ -874,75 +902,67 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 80% 55% at 50% 110%, rgba(255, 94, 0, 0.28), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255, 140, 0, 0.12), transparent 50%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.92));
+  background: rgba(0, 0, 0, 0.82);
 }
 
 .up__glow {
-  position: absolute;
-  inset: auto 10% -20% 10%;
-  height: 45%;
-  background: radial-gradient(ellipse at center, rgba(255, 94, 0, 0.35), transparent 70%);
-  filter: blur(40px);
-  animation: up-pulse 3.6s ease-in-out infinite;
+  display: none;
 }
 
 .up__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.18;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
+  display: none;
 }
 
 .up__card {
   position: relative;
   z-index: 1;
-  width: min(520px, 100%);
-  max-height: min(94vh, 900px);
-  overflow: auto;
+  width: 100%;
+  max-height: min(88svh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   margin: 0;
-  padding: 0 1.15rem 1.25rem;
+  padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
   color: #fff;
-  background:
-    linear-gradient(165deg, rgba(28, 16, 8, 0.96) 0%, rgba(8, 8, 8, 0.98) 42%, #050505 100%);
-  border: 1px solid rgba(255, 94, 0, 0.28);
-  border-radius: 22px 22px 0 0;
-  box-shadow:
-    0 -20px 60px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  animation: up-rise 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55);
+  transform: translateZ(0);
+  will-change: transform;
+  animation: up-rise 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (min-width: 720px) {
   .up__card {
-    border-radius: 18px;
-    padding: 0 1.45rem 1.4rem;
-    box-shadow:
-      0 30px 80px rgba(0, 0, 0, 0.65),
-      0 0 40px rgba(255, 94, 0, 0.12);
+    width: min(440px, 100%);
+    max-height: min(86vh, 760px);
+    border-radius: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 1.25rem 1.25rem;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   }
 }
 
 .up__hazard {
-  height: 8px;
-  margin: 0 -1.15rem 1.15rem;
+  height: 6px;
+  margin: 0 -1rem 1rem;
   background: repeating-linear-gradient(
     -45deg,
     #ff5e00,
-    #ff5e00 10px,
-    #111 10px,
-    #111 20px
+    #ff5e00 8px,
+    #111 8px,
+    #111 16px
   );
-  opacity: 0.95;
 }
 
 @media (min-width: 720px) {
   .up__hazard {
-    margin: 0 -1.45rem 1.25rem;
-    border-radius: 18px 18px 0 0;
+    margin: 0 -1.25rem 1.1rem;
+    border-radius: 16px 16px 0 0;
   }
 }
 
@@ -950,25 +970,25 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.15rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .up__edition {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
   color: #ff8c00;
   font-family: var(--font-accent);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .up__brand h3 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(1.85rem, 6vw, 2.35rem);
-  line-height: 0.95;
+  font-size: clamp(1.6rem, 7vw, 2rem);
+  line-height: 0.98;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -978,11 +998,11 @@ onUnmounted(() => {
 }
 
 .up__hint {
-  margin: 0.65rem 0 0;
-  max-width: 34ch;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  margin: 0.5rem 0 0;
+  max-width: 36ch;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.84rem;
+  line-height: 1.4;
 }
 
 .up__hint strong {
@@ -992,47 +1012,35 @@ onUnmounted(() => {
 
 .up__x {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
   color: #fff;
-  font-size: 1.45rem;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease;
-}
-
-.up__x:hover {
-  border-color: rgba(255, 94, 0, 0.7);
-  background: rgba(255, 94, 0, 0.12);
 }
 
 .up__grid {
   display: grid;
-  gap: 0.75rem;
-  margin-bottom: 0.95rem;
-}
-
-@media (min-width: 560px) {
-  .up__grid {
-    grid-template-columns: 1.15fr 0.85fr;
-  }
+  gap: 0.7rem;
+  margin-bottom: 0.85rem;
 }
 
 .up__field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .up__field span {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .up__field em {
@@ -1040,18 +1048,17 @@ onUnmounted(() => {
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .up__field input {
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.55);
+  background: #000;
   color: #fff;
-  padding: 0.82rem 0.9rem;
-  font-size: 0.95rem;
+  padding: 0.85rem 0.9rem;
+  font-size: 16px; /* evita zoom iOS */
   outline: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .up__field input::placeholder {
@@ -1059,8 +1066,7 @@ onUnmounted(() => {
 }
 
 .up__field input:focus {
-  border-color: rgba(255, 94, 0, 0.75);
-  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.12);
+  border-color: rgba(255, 94, 0, 0.7);
 }
 
 .up__ig {
@@ -1068,13 +1074,11 @@ onUnmounted(() => {
   align-items: stretch;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  background: #000;
 }
 
 .up__ig:focus-within {
-  border-color: rgba(255, 94, 0, 0.75);
-  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.12);
+  border-color: rgba(255, 94, 0, 0.7);
 }
 
 .up__at {
@@ -1091,120 +1095,70 @@ onUnmounted(() => {
   border: 0;
   border-radius: 12px;
   background: transparent;
-  box-shadow: none;
   padding-left: 0.25rem;
 }
 
 .up__ig input:focus {
   border-color: transparent;
-  box-shadow: none;
 }
 
-.up__drop {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.95rem;
-  margin: 0.15rem 0 0.95rem;
-  border: 1px dashed rgba(255, 94, 0, 0.5);
-  border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(255, 94, 0, 0.1), rgba(255, 94, 0, 0.02)),
-    rgba(0, 0, 0, 0.35);
-  padding: 1.15rem 1rem;
-  cursor: pointer;
-  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
-}
-
-.up__drop:hover,
-.up__drop--active {
-  border-color: #ff8c00;
-  background:
-    linear-gradient(135deg, rgba(255, 94, 0, 0.18), rgba(255, 94, 0, 0.05)),
-    rgba(0, 0, 0, 0.4);
-  transform: translateY(-1px);
-}
-
-.up__drop--filled {
-  border-style: solid;
-  border-color: rgba(255, 94, 0, 0.55);
-}
-
-.up__drop-icon {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-}
-
-.up__drop-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 94, 0, 0.45);
-  animation: up-ring 2.4s ease-out infinite;
-}
-
-.up__drop-plus {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff5e00, #ff8c00);
-  color: #111;
-  font-size: 1.45rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.up__drop-copy {
+/* Selector de fotos — minimal */
+.up__pick {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 88px;
+  margin: 0 0 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
-.up__drop-copy strong {
+.up__pick:hover,
+.up__pick:focus-within {
+  border-color: rgba(255, 94, 0, 0.65);
+  background: rgba(255, 94, 0, 0.06);
+}
+
+.up__pick--filled {
+  border-color: rgba(255, 94, 0, 0.45);
+}
+
+.up__pick-main {
   font-family: var(--font-accent);
-  font-size: 0.82rem;
-  font-weight: 900;
+  font-size: 0.8rem;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #fff;
 }
 
-.up__drop-copy small {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.78rem;
-  line-height: 1.35;
+.up__pick-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .up__previews {
   list-style: none;
-  margin: 0 0 0.95rem;
+  margin: 0 0 0.85rem;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.45rem;
-}
-
-@media (min-width: 480px) {
-  .up__previews {
-    grid-template-columns: repeat(6, 1fr);
-  }
+  gap: 0.4rem;
 }
 
 .up__previews li {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  animation: up-pop 280ms ease;
 }
 
 .up__previews img {
@@ -1216,25 +1170,25 @@ onUnmounted(() => {
 
 .up__rm {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
+  top: 3px;
+  right: 3px;
+  width: 26px;
+  height: 26px;
   border: 0;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.75);
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
 }
 
 .up__progress {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.75rem;
 }
 
 .up__progress-bar {
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, #ff5e00, #ffb347, #ff5e00);
   background-size: 200% 100%;
@@ -1242,82 +1196,74 @@ onUnmounted(() => {
 }
 
 .up__progress p {
-  margin: 0.45rem 0 0;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.04em;
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .up__err {
-  margin: 0 0 0.65rem;
-  padding: 0.65rem 0.75rem;
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.7rem;
   border-radius: 10px;
   background: rgba(248, 113, 113, 0.12);
   color: #fca5a5;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
 }
 
 .up__ok {
-  margin: 0 0 0.65rem;
-  padding: 0.65rem 0.75rem;
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.7rem;
   border-radius: 10px;
   background: rgba(52, 211, 153, 0.12);
   color: #86efac;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 
 .up__foot {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  padding-top: 0.25rem;
+  gap: 0.55rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.15rem;
+  background: #0b0b0b;
 }
 
 .up__legal {
   margin: 0;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
-  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.32);
 }
 
 .up__submit {
   width: 100%;
+  min-height: 52px;
   border: 0;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #ff5e00 0%, #ff8c00 55%, #ffb347 100%);
+  border-radius: 12px;
+  background: #ff5e00;
   color: #111;
   font-family: var(--font-accent);
   font-weight: 900;
   font-size: 0.78rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 1.05rem 1rem;
+  padding: 0.95rem 1rem;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.28);
-  transition: filter 160ms ease, transform 160ms ease;
-}
-
-.up__submit:hover:not(:disabled) {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
 }
 
 .up__submit:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
 
 .up-fade-enter-active,
 .up-fade-leave-active {
-  transition: opacity 220ms ease;
+  transition: opacity 180ms ease;
 }
 
 .up-fade-enter-active .up__card,
 .up-fade-leave-active .up__card {
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .up-fade-enter-from,
@@ -1327,34 +1273,16 @@ onUnmounted(() => {
 
 .up-fade-enter-from .up__card,
 .up-fade-leave-to .up__card {
-  transform: translateY(28px);
-  opacity: 0;
+  transform: translate3d(0, 18px, 0);
 }
 
 @keyframes up-rise {
   from {
-    opacity: 0;
-    transform: translateY(24px);
+    transform: translate3d(0, 16px, 0);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
-}
-
-@keyframes up-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.05); }
-}
-
-@keyframes up-ring {
-  0% { transform: scale(0.92); opacity: 0.9; }
-  100% { transform: scale(1.35); opacity: 0; }
-}
-
-@keyframes up-pop {
-  from { opacity: 0; transform: scale(0.88); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes up-shine {
