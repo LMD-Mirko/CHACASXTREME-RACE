@@ -1437,11 +1437,11 @@ input:focus {
 .chrono-track {
   list-style: none;
   margin: 0;
-  padding: 0.95rem 0.85rem;
+  padding: 0.85rem 0.75rem;
   display: grid;
-  grid-template-columns: 1fr 48px 1fr;
-  gap: 0.35rem;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+  gap: 0.25rem 0.35rem;
+  align-items: start;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.45);
@@ -1450,9 +1450,14 @@ input:focus {
 .chrono-track__node {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.22rem;
   opacity: 0.32;
   min-width: 0;
+}
+
+.chrono-track__node:last-child {
+  text-align: right;
+  align-items: flex-end;
 }
 
 .chrono-track__node.on {
@@ -1465,6 +1470,7 @@ input:focus {
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.35);
   background: transparent;
+  flex-shrink: 0;
 }
 
 .chrono-track__node.on .chrono-track__dot {
@@ -1490,17 +1496,20 @@ input:focus {
 .chrono-track__time {
   font-family: var(--font-symbols);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1rem, 3.8vw, 1.15rem);
+  font-size: clamp(0.95rem, 3.6vw, 1.15rem);
   letter-spacing: 0.02em;
   color: #fff;
+  white-space: nowrap;
 }
 
 .chrono-track__link {
   position: relative;
-  height: 100%;
-  min-height: 2.5rem;
+  align-self: center;
+  height: 2px;
+  min-height: 2px;
   display: grid;
   place-items: center;
+  margin-top: 0.2rem;
 }
 
 .chrono-track__line {
@@ -1514,8 +1523,8 @@ input:focus {
 
 .chrono-track__pulse {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.65);
@@ -1523,9 +1532,9 @@ input:focus {
 }
 
 @keyframes chrono-pulse {
-  0% { transform: translateX(-14px); opacity: 0; }
+  0% { transform: translateX(-12px); opacity: 0; }
   25% { opacity: 1; }
-  100% { transform: translateX(14px); opacity: 0; }
+  100% { transform: translateX(12px); opacity: 0; }
 }
 
 .chrono-facts {
@@ -1592,36 +1601,14 @@ input:focus {
   .chrono-board__rank {
     box-shadow: 4px 4px 0 rgba(255, 94, 0, 0.16);
   }
-}
 
-@media (max-width: 640px) {
   .chrono-track {
-    grid-template-columns: 1fr;
-    gap: 0.55rem;
+    padding: 0.75rem 0.65rem;
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
   }
 
-  .chrono-track__link {
-    min-height: 22px;
-    width: 2px;
-    justify-self: start;
-    margin-left: 4px;
-  }
-
-  .chrono-track__line {
-    width: 2px;
-    height: 100%;
-    min-height: 18px;
-    background: linear-gradient(180deg, var(--cx-orange), var(--secondary-color, #fbbf24));
-  }
-
-  .chrono-track__pulse {
-    animation-name: chrono-pulse-y;
-  }
-
-  @keyframes chrono-pulse-y {
-    0% { transform: translateY(-8px); opacity: 0; }
-    25% { opacity: 1; }
-    100% { transform: translateY(8px); opacity: 0; }
+  .chrono-track__time {
+    font-size: 0.92rem;
   }
 }
 
