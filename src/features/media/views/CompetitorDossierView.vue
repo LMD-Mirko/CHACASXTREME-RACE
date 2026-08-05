@@ -129,71 +129,101 @@
           <section id="dossier-tiempos" class="section">
             <div class="section__head anim" style="--i: 4">
               <div>
-                <p class="section__kicker">Resultados</p>
+                <p class="section__kicker">Cronometría oficial</p>
                 <h2>Tus tiempos</h2>
               </div>
-              <p>Clasificación y Final</p>
+              <p>Salida → Meta</p>
             </div>
 
             <div class="timing">
               <article
                 v-for="(phase, pIdx) in phases"
                 :key="phase.key"
-                class="timing__card anim"
-                :class="{ 'timing__card--final': phase.key === 'final' }"
+                class="chrono-board anim"
+                :class="[
+                  phase.key === 'final' ? 'chrono-board--final' : 'chrono-board--class',
+                  { 'chrono-board--empty': !dossier.results?.[phase.key] },
+                ]"
                 :style="{ '--i': 5 + pIdx }"
               >
-                <header class="timing__head">
-                  <div>
-                    <h3>{{ phase.label }}</h3>
-                    <p>{{ phase.sub }}</p>
+                <div class="chrono-board__glow" aria-hidden="true" />
+                <div class="chrono-board__grid" aria-hidden="true" />
+
+                <header class="chrono-board__head">
+                  <div class="chrono-board__phase">
+                    <span class="chrono-board__idx">{{ String(pIdx + 1).padStart(2, '0') }}</span>
+                    <div>
+                      <h3>{{ phase.label }}</h3>
+                      <p>{{ phase.sub }}</p>
+                    </div>
                   </div>
-                  <span class="pill" :class="statusClass(dossier.results?.[phase.key]?.status)">
+                  <span
+                    class="chrono-board__status"
+                    :class="statusClass(dossier.results?.[phase.key]?.status)"
+                  >
+                    <i aria-hidden="true" />
                     {{ statusLabel(dossier.results?.[phase.key]?.status) }}
                   </span>
                 </header>
 
                 <template v-if="dossier.results?.[phase.key]">
-                  <div class="timing__hero">
-                    <div>
-                      <span class="micro">Puesto</span>
-                      <strong class="pos">{{ formatPositionNum(dossier.results[phase.key]) }}</strong>
+                  <div class="chrono-board__podium">
+                    <div class="chrono-board__rank">
+                      <span class="chrono-board__rank-lbl">Puesto</span>
+                      <strong class="chrono-board__rank-num">
+                        <span class="hash" aria-hidden="true">#</span>{{ formatPositionNum(dossier.results[phase.key]) }}
+                      </strong>
                     </div>
-                    <div>
-                      <span class="micro">Tiempo neto</span>
-                      <strong class="chrono">{{ formatResult(dossier.results[phase.key]) }}</strong>
-                    </div>
-                  </div>
-
-                  <div class="splits">
-                    <div class="splits__item" :class="{ on: !!dossier.results[phase.key].start_time }">
-                      <span class="splits__lbl">Salida</span>
-                      <strong>{{ displayClock(dossier.results[phase.key].start_time) }}</strong>
-                    </div>
-                    <div class="splits__rail" aria-hidden="true" />
-                    <div class="splits__item" :class="{ on: !!dossier.results[phase.key].meta_time }">
-                      <span class="splits__lbl">Meta</span>
-                      <strong>{{ displayClock(dossier.results[phase.key].meta_time) }}</strong>
+                    <div class="chrono-board__net">
+                      <span class="chrono-board__net-lbl">Tiempo neto</span>
+                      <strong class="chrono-board__net-val">{{ formatResult(dossier.results[phase.key]) }}</strong>
+                      <span class="chrono-board__net-hint">Oficial · placa {{ padPlate(dossier.rider.plate_number) }}</span>
                     </div>
                   </div>
 
-                  <dl class="facts">
-                    <div>
-                      <dt>Categoría</dt>
-                      <dd>{{ dossier.results[phase.key].category_name || dossier.rider.category || '—' }}</dd>
-                    </div>
-                    <div v-if="dossier.results[phase.key].gap && dossier.results[phase.key].gap !== '—'">
-                      <dt>Diferencia</dt>
-                      <dd>{{ dossier.results[phase.key].gap }}</dd>
-                    </div>
-                    <div v-if="dossier.results[phase.key].duration_ms != null">
-                      <dt>Duración</dt>
-                      <dd>{{ formatMs(dossier.results[phase.key].duration_ms) }}</dd>
-                    </div>
-                  </dl>
+                  <ol class="chrono-track" aria-label="Salida a meta">
+                    <li
+                      class="chrono-track__node"
+                      :class="{ on: !!dossier.results[phase.key].start_time }"
+                    >
+                      <span class="chrono-track__dot" aria-hidden="true" />
+                      <span class="chrono-track__lbl">Salida</span>
+                      <time class="chrono-track__time">{{ displayClock(dossier.results[phase.key].start_time) }}</time>
+                    </li>
+                    <li class="chrono-track__link" aria-hidden="true">
+                      <span class="chrono-track__line" />
+                      <span class="chrono-track__pulse" />
+                    </li>
+                    <li
+                      class="chrono-track__node"
+                      :class="{ on: !!dossier.results[phase.key].meta_time }"
+                    >
+                      <span class="chrono-track__dot chrono-track__dot--meta" aria-hidden="true" />
+                      <span class="chrono-track__lbl">Meta</span>
+                      <time class="chrono-track__time">{{ displayClock(dossier.results[phase.key].meta_time) }}</time>
+                    </li>
+                  </ol>
+
+                  <ul class="chrono-facts">
+                    <li>
+                      <span>Categoría</span>
+                      <strong>{{ dossier.results[phase.key].category_name || dossier.rider.category || '—' }}</strong>
+                    </li>
+                    <li v-if="dossier.results[phase.key].gap && dossier.results[phase.key].gap !== '—'">
+                      <span>Diferencia</span>
+                      <strong>{{ dossier.results[phase.key].gap }}</strong>
+                    </li>
+                    <li v-if="dossier.results[phase.key].duration_ms != null">
+                      <span>Duración</span>
+                      <strong>{{ formatMs(dossier.results[phase.key].duration_ms) }}</strong>
+                    </li>
+                  </ul>
                 </template>
 
-                <p v-else class="empty-inline">Aún sin registro en esta fase.</p>
+                <div v-else class="chrono-board__vacant">
+                  <span class="chrono-board__vacant-mark" aria-hidden="true">—:—:—</span>
+                  <p>Sin registro en esta fase todavía.</p>
+                </div>
               </article>
             </div>
           </section>
@@ -1186,7 +1216,7 @@ input:focus {
 .timing {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 @media (min-width: 760px) {
@@ -1197,160 +1227,415 @@ input:focus {
 
   .timing {
     grid-template-columns: 1fr 1fr;
+    gap: 1.1rem;
   }
 }
 
-.timing__card {
+.chrono-board {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: 1.15rem 1.05rem 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  background: #090909;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #080808;
 }
 
-.timing__card--final {
-  border-color: rgba(255, 94, 0, 0.42);
-  background:
-    linear-gradient(160deg, rgba(255, 94, 0, 0.08), transparent 45%),
-    #090909;
+.chrono-board--final {
+  border-color: rgba(255, 94, 0, 0.45);
 }
 
-.timing__head {
+.chrono-board__glow {
+  position: absolute;
+  inset: -30% -20% auto;
+  height: 70%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at 20% 0%, rgba(255, 94, 0, 0.18), transparent 60%);
+  opacity: 0.85;
+}
+
+.chrono-board--class .chrono-board__glow {
+  background: radial-gradient(ellipse at 80% 0%, rgba(255, 255, 255, 0.08), transparent 55%);
+}
+
+.chrono-board__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.45) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 75%);
+}
+
+.chrono-board__head,
+.chrono-board__podium,
+.chrono-track,
+.chrono-facts,
+.chrono-board__vacant {
+  position: relative;
+  z-index: 1;
+}
+
+.chrono-board__head {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.75rem;
-  margin-bottom: 1.05rem;
+  margin-bottom: 1.15rem;
 }
 
-.timing__head h3 {
+.chrono-board__phase {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.chrono-board__idx {
+  flex: 0 0 auto;
+  font-family: var(--font-podium);
+  font-size: 1.65rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.chrono-board__phase h3 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: 1.3rem;
+  font-size: clamp(1.25rem, 4.5vw, 1.45rem);
   letter-spacing: 0.04em;
+  line-height: 1;
 }
 
-.timing__head p {
-  margin: 0.2rem 0 0;
-  color: rgba(255, 255, 255, 0.4);
+.chrono-board__phase p {
+  margin: 0.28rem 0 0;
+  color: rgba(255, 255, 255, 0.42);
   font-size: 0.78rem;
 }
 
-.pill {
-  align-self: flex-start;
-  padding: 0.35rem 0.55rem;
+.chrono-board__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  padding: 0.4rem 0.65rem;
   border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.35);
+  font-family: var(--font-accent);
   font-size: 0.58rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.pill.ok { color: #6ee7b7; border-color: rgba(110, 231, 183, 0.45); }
-.pill.live { color: #fbbf24; border-color: rgba(251, 191, 36, 0.45); }
-.pill.bad { color: #fda4af; border-color: rgba(225, 29, 72, 0.45); }
-.pill.muted { color: rgba(255, 255, 255, 0.45); }
+.chrono-board__status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
 
-.timing__hero {
+.chrono-board__status.ok { color: #6ee7b7; border-color: rgba(110, 231, 183, 0.4); }
+.chrono-board__status.live { color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); }
+.chrono-board__status.bad { color: #fda4af; border-color: rgba(225, 29, 72, 0.4); }
+.chrono-board__status.muted { color: rgba(255, 255, 255, 0.45); }
+
+.chrono-board__podium {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 1.1rem;
-  align-items: end;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 0.85rem 1rem;
+  align-items: stretch;
+  margin-bottom: 1.15rem;
 }
 
-.micro {
-  display: block;
-  margin-bottom: 0.2rem;
-  font-size: 0.58rem;
+.chrono-board__rank {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 5.5rem;
+  padding: 0.85rem 0.8rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 94, 0, 0.45);
+  background:
+    linear-gradient(160deg, rgba(255, 94, 0, 0.18), transparent 60%),
+    #0c0c0c;
+  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.08), 6px 6px 0 rgba(255, 94, 0, 0.16);
+  text-align: center;
+}
+
+.chrono-board__rank-lbl {
+  font-size: 0.56rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.pos {
+.chrono-board__rank-num {
   display: block;
+  margin-top: 0.2rem;
   font-family: var(--font-podium);
-  font-size: clamp(2.5rem, 10vw, 3.4rem);
-  line-height: 0.9;
+  font-size: clamp(2.4rem, 11vw, 3.2rem);
+  line-height: 0.88;
+  letter-spacing: 0.02em;
   color: var(--cx-orange);
 }
 
-.chrono {
-  display: block;
+.chrono-board__rank-num .hash {
   font-family: var(--font-symbols);
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(1.35rem, 4.5vw, 1.85rem);
-  line-height: 1;
+  opacity: 0.55;
+  margin-right: 0.02em;
 }
 
-.splits {
-  display: grid;
-  grid-template-columns: 1fr 28px 1fr;
-  gap: 0.5rem;
-  align-items: center;
+.chrono-board__net {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    #050505;
 }
 
-.splits__item { opacity: 0.35; }
-.splits__item.on { opacity: 1; }
-
-.splits__lbl {
-  display: block;
-  font-size: 0.58rem;
+.chrono-board__net-lbl {
+  font-size: 0.56rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.42);
 }
 
-.splits__item strong {
+.chrono-board__net-val {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: 0.35rem;
   font-family: var(--font-symbols);
   font-variant-numeric: tabular-nums;
-  font-size: 1.02rem;
+  font-size: clamp(1.55rem, 6.5vw, 2.05rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(255, 94, 0, 0.25);
 }
 
-.splits__rail {
+.chrono-board__net-hint {
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.chrono-track {
+  list-style: none;
+  margin: 0;
+  padding: 0.95rem 0.85rem;
+  display: grid;
+  grid-template-columns: 1fr 48px 1fr;
+  gap: 0.35rem;
+  align-items: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.chrono-track__node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  opacity: 0.32;
+  min-width: 0;
+}
+
+.chrono-track__node.on {
+  opacity: 1;
+}
+
+.chrono-track__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+}
+
+.chrono-track__node.on .chrono-track__dot {
+  border-color: var(--cx-orange);
+  background: var(--cx-orange);
+  box-shadow: 0 0 12px rgba(255, 94, 0, 0.55);
+}
+
+.chrono-track__node.on .chrono-track__dot--meta {
+  border-color: var(--secondary-color, #fbbf24);
+  background: var(--secondary-color, #fbbf24);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+}
+
+.chrono-track__lbl {
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.chrono-track__time {
+  font-family: var(--font-symbols);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1rem, 3.8vw, 1.15rem);
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.chrono-track__link {
+  position: relative;
+  height: 100%;
+  min-height: 2.5rem;
+  display: grid;
+  place-items: center;
+}
+
+.chrono-track__line {
+  display: block;
+  width: 100%;
   height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--cx-orange), var(--secondary-color, #fbbf24));
-  opacity: 0.55;
+  opacity: 0.65;
 }
 
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem 1.35rem;
-  margin: 1rem 0 0;
-  padding-top: 0.9rem;
+.chrono-track__pulse {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.65);
+  animation: chrono-pulse 1.8s var(--ease-out) infinite;
+}
+
+@keyframes chrono-pulse {
+  0% { transform: translateX(-14px); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateX(14px); opacity: 0; }
+}
+
+.chrono-facts {
+  list-style: none;
+  margin: 0.95rem 0 0;
+  padding: 0.85rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.facts dt {
-  font-size: 0.58rem;
+.chrono-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.chrono-facts span {
+  font-size: 0.56rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.38);
 }
 
-.facts dd {
-  margin: 0.12rem 0 0;
-  font-size: 0.88rem;
-  font-weight: 600;
+.chrono-facts strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.empty-inline,
+.chrono-board__vacant {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1.35rem 0.85rem 0.85rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.chrono-board__vacant-mark {
+  font-family: var(--font-symbols);
+  font-size: 1.8rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.chrono-board__vacant p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 420px) {
+  .chrono-board__podium {
+    grid-template-columns: 1fr;
+  }
+
+  .chrono-board__rank {
+    box-shadow: 4px 4px 0 rgba(255, 94, 0, 0.16);
+  }
+}
+
+@media (max-width: 640px) {
+  .chrono-track {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .chrono-track__link {
+    min-height: 22px;
+    width: 2px;
+    justify-self: start;
+    margin-left: 4px;
+  }
+
+  .chrono-track__line {
+    width: 2px;
+    height: 100%;
+    min-height: 18px;
+    background: linear-gradient(180deg, var(--cx-orange), var(--secondary-color, #fbbf24));
+  }
+
+  .chrono-track__pulse {
+    animation-name: chrono-pulse-y;
+  }
+
+  @keyframes chrono-pulse-y {
+    0% { transform: translateY(-8px); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translateY(8px); opacity: 0; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chrono-track__pulse {
+    animation: none !important;
+    opacity: 0.5;
+  }
+}
+
 .empty {
   margin: 0;
   color: rgba(255, 255, 255, 0.45);
   font-size: 0.92rem;
-}
-
-.empty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
