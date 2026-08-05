@@ -230,15 +230,24 @@
               <button type="button" class="sheet__orient" @click="toggleViewerOrient">
                 {{ viewerOrient === 'portrait' ? 'Ver horizontal' : 'Ver vertical' }}
               </button>
-              <a
-                v-if="downloadHref"
-                class="sheet__dl"
-                :href="downloadHref"
-                download
-              >
-                Descargar original
-              </a>
-              <button type="button" class="sheet__sec" @click="closeItem">Cerrar</button>
+              <div class="sheet__row">
+                <a
+                  v-if="downloadHref"
+                  class="sheet__dl"
+                  :href="downloadHref"
+                  download
+                >
+                  Descargar original
+                </a>
+                <button
+                  type="button"
+                  class="sheet__x"
+                  aria-label="Cerrar"
+                  @click="closeItem"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -998,8 +1007,14 @@ onUnmounted(() => {
   gap: 0.55rem;
 }
 
+.sheet__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
 .sheet__dl,
-.sheet__sec,
 .sheet__orient {
   display: inline-flex;
   align-items: center;
@@ -1021,11 +1036,26 @@ onUnmounted(() => {
   color: #111;
 }
 
-.sheet__orient,
-.sheet__sec {
+.sheet__orient {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: transparent;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.sheet__x {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: #fff;
+  font-size: 1.55rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (min-width: 720px) {
@@ -1042,10 +1072,6 @@ onUnmounted(() => {
 
   .sheet__grab {
     display: none;
-  }
-
-  .sheet__actions {
-    grid-template-columns: 1fr 1.3fr 0.8fr;
   }
 }
 
