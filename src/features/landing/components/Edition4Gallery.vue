@@ -9,35 +9,28 @@
           4ª <span class="accent">Edición</span>
         </h2>
         <p class="e4g__sub">
-          Galería en vivo de lo que se captura en carrera. Solo visualización —
-          el original queda con el camarógrafo y el competidor.
+          Galería en vivo de la carrera. También puedes subir tus fotos a
+          <strong>General</strong>. La descarga del original está en Mi carrera / camarógrafos.
         </p>
       </div>
       <div class="e4g__meta">
         <span class="e4g__count">{{ totalLabel }}</span>
-        <span class="e4g__lock">Sin descarga</span>
+        <span class="e4g__lock">Sin descarga aquí</span>
         <button
           type="button"
-          class="e4g__upload e4g__upload--soon"
-          :title="uploadSoonMessage"
-          :aria-label="uploadSoonMessage"
-          @mouseenter="showUploadSoon"
-          @focus="showUploadSoon"
-          @click="showUploadSoon"
+          class="e4g__upload"
+          @click="openUpload"
         >
-          Próximo
+          Subir imagen
         </button>
-        <p v-if="soonHintVisible" class="e4g__soon-hint" role="status">
-          {{ uploadSoonMessage }}
-        </p>
       </div>
     </div>
 
     <div v-if="loading && !items.length" class="e4g__empty">Cargando galería…</div>
     <div v-else-if="error && !items.length" class="e4g__empty e4g__empty--err">{{ error }}</div>
     <div v-else-if="!items.length" class="e4g__empty">
-      Aún no hay fotos. La subida se habilita el
-      <strong>25 de julio (Perú)</strong>, al inicio del evento.
+      Aún no hay fotos públicas.
+      <button type="button" class="e4g__empty-cta" @click="openUpload">Sé el primero en subir</button>
     </div>
 
     <div v-else class="e4g__grid" @dragstart.prevent>
@@ -237,20 +230,6 @@ const fileInput = ref(null);
 const form = ref({ name: '', instagram: '', files: [] });
 const previews = ref([]);
 
-/** Subida pública bloqueada hasta el día del evento (Perú). */
-const uploadSoonMessage =
-  'Se habilita al inicio del evento: 25 de julio (Perú).';
-const soonHintVisible = ref(false);
-let soonHintTimer = null;
-
-function showUploadSoon() {
-  soonHintVisible.value = true;
-  if (soonHintTimer) clearTimeout(soonHintTimer);
-  soonHintTimer = setTimeout(() => {
-    soonHintVisible.value = false;
-  }, 4200);
-}
-
 const hasMore = computed(() => page.value < lastPage.value);
 const totalLabel = computed(() => {
   if (!total.value) return '0 tomas';
@@ -408,7 +387,6 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKey);
   document.body.style.overflow = '';
   if (pollTimer) clearInterval(pollTimer);
-  if (soonHintTimer) clearTimeout(soonHintTimer);
   io?.disconnect();
   revokePreviews();
 });
@@ -515,31 +493,19 @@ onUnmounted(() => {
   transform: translateY(-1px);
 }
 
-.e4g__upload--soon {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.72);
-  border: 1px dashed rgba(255, 94, 0, 0.65);
-  cursor: help;
-}
-
-.e4g__upload--soon:hover {
-  filter: none;
-  transform: none;
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-  background: rgba(255, 94, 0, 0.08);
-}
-
-.e4g__soon-hint {
-  margin: 0.45rem 0 0;
-  max-width: 14rem;
+.e4g__empty-cta {
+  display: inline-flex;
+  margin-top: 0.85rem;
+  border: 0;
+  background: var(--primary-color);
+  color: #111;
+  font-family: var(--font-accent);
+  font-weight: 900;
   font-size: 0.72rem;
-  line-height: 1.35;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
-  border-left: 2px solid var(--primary-color);
-  padding-left: 0.55rem;
-  text-align: right;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.15rem;
+  cursor: pointer;
 }
 
 .e4g__empty {

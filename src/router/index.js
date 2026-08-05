@@ -3,8 +3,12 @@ import { createRouter, createWebHistory } from 'vue-router';
 const routes = [
     {
         path: '/',
-        name: 'countdown',
-        component: () => import('../views/CountdownView.vue')
+        name: 'home',
+        component: () => import('../views/HomeView.vue')
+    },
+    {
+        path: '/countdown',
+        redirect: '/',
     },
     {
         path: '/edicion-4',
@@ -13,8 +17,7 @@ const routes = [
     },
     {
         path: '/inicio',
-        name: 'home',
-        component: () => import('../views/HomeView.vue')
+        redirect: (to) => ({ path: '/', hash: to.hash, query: to.query }),
     },
     {
         path: '/como-participar',

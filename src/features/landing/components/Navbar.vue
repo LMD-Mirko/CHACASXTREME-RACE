@@ -13,8 +13,8 @@ const isLoaded = ref(false);
 
 // Computed navigation links for reactivity on language change
 const navLinks = computed(() => [
-  { name: t('nav.home'), to: { path: '/inicio', hash: '#inicio' } },
-  { name: t('nav.about'), to: { path: '/inicio', hash: '#sobre-nosotros' } },
+  { name: t('nav.home'), to: { path: '/', hash: '#inicio' } },
+  { name: t('nav.about'), to: { path: '/', hash: '#sobre-nosotros' } },
   { name: t('nav.edition4'), to: '/edicion-4' },
   {
     name: t('nav.participate'),
@@ -57,7 +57,7 @@ onUnmounted(() => {
 <template>
   <nav :class="['navbar', { 'navbar--scrolled': isScrolled, 'navbar--mobile-open': isMobileMenuOpen, 'navbar--loaded': isLoaded }]">
     <div class="container navbar__content">
-      <RouterLink to="/inicio" class="navbar__logo nav-enter nav-enter--1">
+      <RouterLink to="/" class="navbar__logo nav-enter nav-enter--1">
         <span class="logo-text">CHACAS</span>
         <span class="logo-accent">
           <span class="x-accent">X</span>TREME

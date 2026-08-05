@@ -17,7 +17,7 @@ const { t, te, locale } = useI18n();
 // Hide navigation on teaser / edición / media tools
 const showNavigation = computed(() => {
   if (route.meta?.hideChrome) return false;
-  return route.name !== 'countdown' && route.name !== 'edition-4';
+  return route.name !== 'edition-4';
 });
 
 const handleSplashFinish = () => {

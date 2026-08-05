@@ -12,7 +12,7 @@ import { computed } from 'vue';
 const route = useRoute();
 
 const navItems = [
-  { name: 'Inicio', path: '/inicio', icon: Home },
+  { name: 'Inicio', path: '/', icon: Home },
   { name: 'En vivo', path: '/edicion-4', icon: Radio },
   { name: 'PARTICIPAR', path: '/como-participar', icon: Zap, isAction: true },
   { name: 'Chacas', path: '/conoce-chacas', icon: Map },
@@ -20,7 +20,7 @@ const navItems = [
 ];
 
 const isActive = (path) => {
-  if (path === '/') return route.path === '/' && !route.hash;
+  if (path === '/') return route.path === '/' || route.path === '/inicio';
   return route.path.startsWith(path);
 };
 </script>
