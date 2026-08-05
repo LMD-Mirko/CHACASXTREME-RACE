@@ -7,6 +7,21 @@ const routes = [
         component: () => import('../views/HomeView.vue')
     },
     {
+        /** URL para redes: abre el modal de subida pública de fotos */
+        path: '/subir',
+        name: 'public-upload',
+        component: () => import('../views/HomeView.vue'),
+        meta: {
+            openPublicUpload: true,
+            title: 'Sube tu foto · Chacas Xtreme Race',
+            description: 'Comparte tus fotos de la 4ª edición. Publicación rápida en la galería General.',
+        },
+    },
+    {
+        path: '/subir-imagen',
+        redirect: '/subir',
+    },
+    {
         path: '/countdown',
         redirect: '/',
     },

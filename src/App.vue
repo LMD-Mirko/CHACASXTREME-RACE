@@ -225,8 +225,10 @@ const updateMetaTags = () => {
   const titleKey = `seo.${routeName}.title`;
   const descKey = `seo.${routeName}.description`;
 
-  const title = te(titleKey) ? t(titleKey) : 'Chacas Xtreme Race';
-  const description = te(descKey) ? t(descKey) : '';
+  const title = route.meta?.title
+    || (te(titleKey) ? t(titleKey) : 'Chacas Xtreme Race');
+  const description = route.meta?.description
+    || (te(descKey) ? t(descKey) : '');
 
   document.title = title;
 

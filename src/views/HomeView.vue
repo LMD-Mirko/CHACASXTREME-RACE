@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import HeroSlider from '@/features/landing/components/HeroSlider.vue';
 import Edition4Gallery from '@/features/landing/components/Edition4Gallery.vue';
 import AboutSection from '@/features/landing/components/AboutSection.vue';
@@ -10,11 +10,15 @@ import ContactSection from '@/features/landing/components/ContactSection.vue';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 
 const router = useRouter();
+const route = useRoute();
 const showRiderListModal = ref(false);
 
 useScrollReveal();
 
 onMounted(() => {
+  // En /subir no mostrar el popup de padrón; el de fotos ya se abre solo.
+  if (route.meta?.openPublicUpload) return;
+
   const hasShown = sessionStorage.getItem('extreme-modal-shown');
   if (!hasShown) {
     setTimeout(() => {

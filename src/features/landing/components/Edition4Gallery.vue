@@ -80,73 +80,137 @@
 
     <!-- Modal subir -->
     <Teleport to="body">
-      <div
-        v-if="uploadOpen"
-        class="up"
-        role="dialog"
-        aria-modal="true"
-        @click.self="closeUpload"
-      >
-        <form class="up__card" @submit.prevent="submitUpload">
-          <header class="up__head">
-            <div>
-              <p class="up__kicker">Categoría General</p>
-              <h3>Subir imagen</h3>
+      <Transition name="up-fade">
+        <div
+          v-if="uploadOpen"
+          class="up"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="up-title"
+          @click.self="closeUpload"
+        >
+          <div class="up__atmosphere" aria-hidden="true">
+            <div class="up__glow" />
+            <div class="up__grain" />
+          </div>
+
+          <form class="up__card" @submit.prevent="submitUpload">
+            <div class="up__hazard" aria-hidden="true" />
+
+            <header class="up__head">
+              <div class="up__brand">
+                <p class="up__edition">4ª edición · 2026</p>
+                <h3 id="up-title">
+                  Sube tu <span>toma</span>
+                </h3>
+                <p class="up__hint">
+                  Entra al álbum vivo de Chacas. Tus fotos van a
+                  <strong>General</strong> — sin placa, para toda la comunidad.
+                </p>
+              </div>
+              <button type="button" class="up__x" @click="closeUpload" aria-label="Cerrar">
+                <span aria-hidden="true">×</span>
+              </button>
+            </header>
+
+            <div class="up__grid">
+              <label class="up__field">
+                <span>Tu nombre</span>
+                <input
+                  v-model.trim="form.name"
+                  type="text"
+                  required
+                  minlength="2"
+                  maxlength="255"
+                  autocomplete="name"
+                  placeholder="Cómo te firmas en la foto"
+                />
+              </label>
+
+              <label class="up__field">
+                <span>Instagram <em>opcional</em></span>
+                <div class="up__ig">
+                  <span class="up__at" aria-hidden="true">@</span>
+                  <input
+                    v-model.trim="form.instagram"
+                    type="text"
+                    maxlength="100"
+                    autocomplete="username"
+                    placeholder="tu_usuario"
+                  />
+                </div>
+              </label>
             </div>
-            <button type="button" class="up__x" @click="closeUpload" aria-label="Cerrar">×</button>
-          </header>
 
-          <p class="up__hint">
-            Cualquiera puede aportar. Las fotos van a <strong>General</strong>
-            (sin placa de competidor).
-          </p>
-
-          <label class="up__field">
-            <span>Tu nombre</span>
-            <input v-model.trim="form.name" type="text" required minlength="2" maxlength="255" autocomplete="name" />
-          </label>
-
-          <label class="up__field">
-            <span>Instagram <em>(opcional)</em></span>
-            <div class="up__ig">
-              <span class="up__at" aria-hidden="true">@</span>
-              <input v-model.trim="form.instagram" type="text" maxlength="100" autocomplete="username" />
+            <div
+              class="up__drop"
+              :class="{
+                'up__drop--active': dropActive,
+                'up__drop--filled': form.files.length,
+              }"
+              @dragenter.prevent="dropActive = true"
+              @dragover.prevent="dropActive = true"
+              @dragleave.prevent="dropActive = false"
+              @drop.prevent="onDrop"
+              @click="fileInput?.click()"
+            >
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp"
+                multiple
+                hidden
+                @change="onFilesPicked"
+              />
+              <div class="up__drop-icon" aria-hidden="true">
+                <span class="up__drop-ring" />
+                <span class="up__drop-plus">+</span>
+              </div>
+              <div class="up__drop-copy">
+                <strong v-if="!form.files.length">Arrastra o elige tus fotos</strong>
+                <strong v-else>
+                  {{ form.files.length }} foto{{ form.files.length === 1 ? '' : 's' }} lista{{ form.files.length === 1 ? '' : 's' }}
+                </strong>
+                <small>JPG · PNG · WebP · hasta 12 · toca para {{ form.files.length ? 'cambiar' : 'elegir' }}</small>
+              </div>
             </div>
-          </label>
 
-          <label class="up__drop">
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp"
-              multiple
-              hidden
-              @change="onFilesPicked"
-            />
-            <span v-if="!form.files.length" class="up__drop-label">
-              Elegir imágenes
-              <small>JPG, PNG o WebP · hasta 12</small>
-            </span>
-            <span v-else class="up__drop-label">
-              {{ form.files.length }} archivo{{ form.files.length === 1 ? '' : 's' }} listo{{ form.files.length === 1 ? '' : 's' }}
-              <small>Toca para cambiar</small>
-            </span>
-          </label>
+            <ul v-if="previews.length" class="up__previews">
+              <li v-for="(p, i) in previews" :key="p.url">
+                <img :src="p.url" :alt="p.name || 'Vista previa'" />
+                <button
+                  type="button"
+                  class="up__rm"
+                  :aria-label="`Quitar ${p.name || 'imagen'}`"
+                  @click.stop="removeFile(i)"
+                >
+                  ×
+                </button>
+              </li>
+            </ul>
 
-          <ul v-if="previews.length" class="up__previews">
-            <li v-for="(p, i) in previews" :key="p + i">
-              <img :src="p" alt="" />
-            </li>
-          </ul>
+            <div v-if="uploading" class="up__progress" aria-live="polite">
+              <div class="up__progress-bar" />
+              <p>Subiendo a la galería…</p>
+            </div>
 
-          <p v-if="uploadError" class="up__err">{{ uploadError }}</p>
-          <p v-if="uploadOk" class="up__ok">{{ uploadOk }}</p>
+            <p v-if="uploadError" class="up__err" role="alert">{{ uploadError }}</p>
+            <p v-if="uploadOk" class="up__ok" role="status">{{ uploadOk }}</p>
 
-          <button type="submit" class="up__submit" :disabled="uploading || !form.files.length">
-            {{ uploading ? 'Subiendo…' : 'Publicar en General' }}
-          </button>
-        </form>
-      </div>
+            <div class="up__foot">
+              <p class="up__legal">Sin descarga pública · queda en General</p>
+              <button
+                type="submit"
+                class="up__submit"
+                :disabled="uploading || !form.files.length || !form.name"
+              >
+                <span v-if="uploading">Publicando…</span>
+                <span v-else>Publicar en General →</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </Transition>
     </Teleport>
 
     <!-- Viewer -->
@@ -208,9 +272,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import { fetchEdition4Gallery, uploadPublicGalleryPhotos } from '../api/editionGalleryApi';
 
+const route = useRoute();
 const perPage = 18;
 const items = ref([]);
 const page = ref(1);
@@ -227,7 +293,9 @@ const uploading = ref(false);
 const uploadError = ref('');
 const uploadOk = ref('');
 const fileInput = ref(null);
+const dropActive = ref(false);
 const form = ref({ name: '', instagram: '', files: [] });
+/** @type {import('vue').Ref<Array<{ url: string, name: string }>>} */
 const previews = ref([]);
 
 const hasMore = computed(() => page.value < lastPage.value);
@@ -286,7 +354,7 @@ function closeViewer() {
 }
 
 function revokePreviews() {
-  previews.value.forEach((u) => URL.revokeObjectURL(u));
+  previews.value.forEach((p) => URL.revokeObjectURL(p.url));
   previews.value = [];
 }
 
@@ -294,6 +362,7 @@ function openUpload() {
   uploadOpen.value = true;
   uploadError.value = '';
   uploadOk.value = '';
+  dropActive.value = false;
   document.body.style.overflow = 'hidden';
 }
 
@@ -302,16 +371,45 @@ function closeUpload() {
   uploading.value = false;
   uploadError.value = '';
   uploadOk.value = '';
+  dropActive.value = false;
   form.value = { name: form.value.name, instagram: form.value.instagram, files: [] };
   revokePreviews();
   if (viewerIndex.value == null) document.body.style.overflow = '';
 }
 
-function onFilesPicked(e) {
-  const list = Array.from(e.target.files || []).slice(0, 12);
+function isImageFile(file) {
+  if (!file) return false;
+  if (file.type && file.type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+}
+
+function setFiles(fileList) {
+  const list = Array.from(fileList || []).filter(isImageFile).slice(0, 12);
   revokePreviews();
   form.value.files = list;
-  previews.value = list.map((f) => URL.createObjectURL(f));
+  previews.value = list.map((f) => ({
+    url: URL.createObjectURL(f),
+    name: f.name || 'foto',
+  }));
+  uploadError.value = '';
+  uploadOk.value = '';
+  if (fileInput.value) fileInput.value.value = '';
+}
+
+function onFilesPicked(e) {
+  setFiles(e.target.files);
+}
+
+function onDrop(e) {
+  dropActive.value = false;
+  setFiles(e.dataTransfer?.files);
+}
+
+function removeFile(index) {
+  const doomed = previews.value[index];
+  if (doomed?.url) URL.revokeObjectURL(doomed.url);
+  form.value.files = form.value.files.filter((_, i) => i !== index);
+  previews.value = previews.value.filter((_, i) => i !== index);
 }
 
 async function submitUpload() {
@@ -328,12 +426,12 @@ async function submitUpload() {
       instagram: form.value.instagram.replace(/^@+/, ''),
       files: form.value.files,
     });
-    uploadOk.value = res.message || 'Publicado.';
+    uploadOk.value = res.message || '¡Publicado en la galería!';
     form.value.files = [];
     revokePreviews();
     if (fileInput.value) fileInput.value.value = '';
     await loadPage(1);
-    setTimeout(() => closeUpload(), 900);
+    setTimeout(() => closeUpload(), 1100);
   } catch (e) {
     uploadError.value = e.message || 'No se pudo subir.';
   } finally {
@@ -365,6 +463,25 @@ watch(moreBtn, (el, _, onCleanup) => {
   onCleanup(() => io?.unobserve(el));
 });
 
+function shouldOpenPublicUpload() {
+  if (route.meta?.openPublicUpload) return true;
+  const q = route.query?.upload ?? route.query?.subir;
+  if (q == null) return false;
+  const v = String(q).toLowerCase();
+  return v === '1' || v === 'true' || v === 'si' || v === 'sí' || v === '';
+}
+
+async function openPublicUploadFromUrl() {
+  if (!shouldOpenPublicUpload()) return;
+  try {
+    document.getElementById('edicion-4-galeria')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch {
+    /* ignore */
+  }
+  await nextTick();
+  openUpload();
+}
+
 onMounted(() => {
   loadPage(1);
   window.addEventListener('keydown', onKey);
@@ -381,7 +498,21 @@ onMounted(() => {
     if (document.hidden || viewerIndex.value != null || uploadOpen.value || page.value > 1) return;
     loadPage(1);
   }, 60000);
+
+  // Deep-link redes: /subir o /?upload=1
+  setTimeout(() => {
+    openPublicUploadFromUrl();
+  }, 350);
 });
+
+watch(
+  () => [route.name, route.query.upload, route.query.subir],
+  () => {
+    if (shouldOpenPublicUpload() && !uploadOpen.value) {
+      openPublicUploadFromUrl();
+    }
+  },
+);
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey);
@@ -720,24 +851,99 @@ onUnmounted(() => {
   cursor: wait;
 }
 
-/* Upload modal */
+/* Upload modal — epic public share */
 .up {
   position: fixed;
   inset: 0;
   z-index: 10050;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.88);
+  padding: 0;
+  overflow: auto;
+}
+
+@media (min-width: 720px) {
+  .up {
+    align-items: center;
+    padding: 1.25rem;
+  }
+}
+
+.up__atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 110%, rgba(255, 94, 0, 0.28), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(255, 140, 0, 0.12), transparent 50%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.92));
+}
+
+.up__glow {
+  position: absolute;
+  inset: auto 10% -20% 10%;
+  height: 45%;
+  background: radial-gradient(ellipse at center, rgba(255, 94, 0, 0.35), transparent 70%);
+  filter: blur(40px);
+  animation: up-pulse 3.6s ease-in-out infinite;
+}
+
+.up__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 
 .up__card {
-  width: min(420px, 100%);
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 1.35rem 1.25rem 1.25rem;
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  max-height: min(94vh, 900px);
+  overflow: auto;
+  margin: 0;
+  padding: 0 1.15rem 1.25rem;
   color: #fff;
+  background:
+    linear-gradient(165deg, rgba(28, 16, 8, 0.96) 0%, rgba(8, 8, 8, 0.98) 42%, #050505 100%);
+  border: 1px solid rgba(255, 94, 0, 0.28);
+  border-radius: 22px 22px 0 0;
+  box-shadow:
+    0 -20px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  animation: up-rise 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 720px) {
+  .up__card {
+    border-radius: 18px;
+    padding: 0 1.45rem 1.4rem;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.65),
+      0 0 40px rgba(255, 94, 0, 0.12);
+  }
+}
+
+.up__hazard {
+  height: 8px;
+  margin: 0 -1.15rem 1.15rem;
+  background: repeating-linear-gradient(
+    -45deg,
+    #ff5e00,
+    #ff5e00 10px,
+    #111 10px,
+    #111 20px
+  );
+  opacity: 0.95;
+}
+
+@media (min-width: 720px) {
+  .up__hazard {
+    margin: 0 -1.45rem 1.25rem;
+    border-radius: 18px 18px 0 0;
+  }
 }
 
 .up__head {
@@ -745,58 +951,86 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.15rem;
 }
 
-.up__kicker {
-  margin: 0 0 0.25rem;
-  color: var(--primary-color);
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
+.up__edition {
+  margin: 0 0 0.35rem;
+  color: #ff8c00;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.up__head h3 {
+.up__brand h3 {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: 1.55rem;
-  letter-spacing: 0.03em;
+  font-size: clamp(1.85rem, 6vw, 2.35rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-.up__x {
-  width: 36px;
-  height: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: #fff;
-  font-size: 1.35rem;
-  cursor: pointer;
+.up__brand h3 span {
+  color: var(--primary-color);
 }
 
 .up__hint {
-  margin: 0 0 1.1rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.86rem;
+  margin: 0.65rem 0 0;
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 
 .up__hint strong {
-  color: var(--primary-color);
+  color: #fdba74;
   font-weight: 800;
+}
+
+.up__x {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.up__x:hover {
+  border-color: rgba(255, 94, 0, 0.7);
+  background: rgba(255, 94, 0, 0.12);
+}
+
+.up__grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+@media (min-width: 560px) {
+  .up__grid {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
 }
 
 .up__field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.85rem;
+  gap: 0.4rem;
 }
 
 .up__field span {
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -806,38 +1040,48 @@ onUnmounted(() => {
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.32);
 }
 
 .up__field input {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  padding: 0.7rem 0.75rem;
+  padding: 0.82rem 0.9rem;
   font-size: 0.95rem;
   outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.up__field input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .up__field input:focus {
-  border-color: rgba(255, 94, 0, 0.7);
+  border-color: rgba(255, 94, 0, 0.75);
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.12);
 }
 
 .up__ig {
   display: flex;
   align-items: stretch;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .up__ig:focus-within {
-  border-color: rgba(255, 94, 0, 0.7);
+  border-color: rgba(255, 94, 0, 0.75);
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.12);
 }
 
 .up__at {
   display: flex;
   align-items: center;
-  padding: 0 0.15rem 0 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  padding: 0 0.1rem 0 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 700;
   user-select: none;
 }
@@ -845,100 +1089,277 @@ onUnmounted(() => {
 .up__ig input {
   flex: 1;
   border: 0;
-  padding-left: 0.2rem;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0.25rem;
 }
 
 .up__ig input:focus {
   border-color: transparent;
+  box-shadow: none;
 }
 
 .up__drop {
-  display: block;
-  margin: 0.4rem 0 0.85rem;
-  border: 1px dashed rgba(255, 94, 0, 0.45);
-  background: rgba(255, 94, 0, 0.06);
-  padding: 1.15rem 0.85rem;
-  text-align: center;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.95rem;
+  margin: 0.15rem 0 0.95rem;
+  border: 1px dashed rgba(255, 94, 0, 0.5);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 94, 0, 0.1), rgba(255, 94, 0, 0.02)),
+    rgba(0, 0, 0, 0.35);
+  padding: 1.15rem 1rem;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
-.up__drop:hover {
-  background: rgba(255, 94, 0, 0.12);
-  border-color: var(--primary-color);
+.up__drop:hover,
+.up__drop--active {
+  border-color: #ff8c00;
+  background:
+    linear-gradient(135deg, rgba(255, 94, 0, 0.18), rgba(255, 94, 0, 0.05)),
+    rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
 }
 
-.up__drop-label {
+.up__drop--filled {
+  border-style: solid;
+  border-color: rgba(255, 94, 0, 0.55);
+}
+
+.up__drop-icon {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+}
+
+.up__drop-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 94, 0, 0.45);
+  animation: up-ring 2.4s ease-out infinite;
+}
+
+.up__drop-plus {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5e00, #ff8c00);
+  color: #111;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.up__drop-copy {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-family: var(--font-accent);
-  font-weight: 900;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--primary-color);
+  gap: 0.2rem;
+  min-width: 0;
 }
 
-.up__drop-label small {
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  text-transform: none;
-  color: rgba(255, 255, 255, 0.4);
+.up__drop-copy strong {
+  font-family: var(--font-accent);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.up__drop-copy small {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .up__previews {
   list-style: none;
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.95rem;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.35rem;
+  gap: 0.45rem;
+}
+
+@media (min-width: 480px) {
+  .up__previews {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 .up__previews li {
+  position: relative;
   aspect-ratio: 1;
   overflow: hidden;
+  border-radius: 10px;
   background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: up-pop 280ms ease;
 }
 
 .up__previews img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.up__rm {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.up__progress {
+  margin: 0 0 0.85rem;
+}
+
+.up__progress-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff5e00, #ffb347, #ff5e00);
+  background-size: 200% 100%;
+  animation: up-shine 1.1s linear infinite;
+}
+
+.up__progress p {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.04em;
 }
 
 .up__err {
   margin: 0 0 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(248, 113, 113, 0.12);
   color: #fca5a5;
   font-size: 0.85rem;
 }
 
 .up__ok {
   margin: 0 0 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.12);
   color: #86efac;
   font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.up__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+.up__legal {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.04em;
 }
 
 .up__submit {
   width: 100%;
   border: 0;
-  background: var(--primary-color);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff5e00 0%, #ff8c00 55%, #ffb347 100%);
   color: #111;
   font-family: var(--font-accent);
   font-weight: 900;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 0.95rem 1rem;
+  padding: 1.05rem 1rem;
   cursor: pointer;
+  box-shadow: 0 12px 28px rgba(255, 94, 0, 0.28);
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.up__submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
 .up__submit:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.up-fade-enter-active,
+.up-fade-leave-active {
+  transition: opacity 220ms ease;
+}
+
+.up-fade-enter-active .up__card,
+.up-fade-leave-active .up__card {
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.up-fade-enter-from,
+.up-fade-leave-to {
+  opacity: 0;
+}
+
+.up-fade-enter-from .up__card,
+.up-fade-leave-to .up__card {
+  transform: translateY(28px);
+  opacity: 0;
+}
+
+@keyframes up-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes up-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+@keyframes up-ring {
+  0% { transform: scale(0.92); opacity: 0.9; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes up-pop {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes up-shine {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
 .viewer {
