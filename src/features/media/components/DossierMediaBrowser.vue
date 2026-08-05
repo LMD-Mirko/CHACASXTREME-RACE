@@ -340,7 +340,10 @@ function goPage(p) {
 
 function openItem(item) {
   active.value = item;
-  viewerOrient.value = item.orientation === 'portrait' ? 'portrait' : 'landscape';
+  // Web preview: wait for loadedmetadata/pixels. Original: API hint OK.
+  viewerOrient.value = item.has_web_preview
+    ? 'landscape'
+    : (item.orientation === 'portrait' ? 'portrait' : 'landscape');
   document.body.style.overflow = 'hidden';
 }
 

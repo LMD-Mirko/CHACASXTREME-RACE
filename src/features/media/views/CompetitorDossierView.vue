@@ -303,7 +303,7 @@
                 <div
                   class="reel__stage"
                   :class="
-                    videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
+                    reelOrient(video) === 'portrait'
                       ? 'reel__stage--portrait'
                       : 'reel__stage--landscape'
                   "
@@ -323,9 +323,7 @@
                     <div class="reel__tags">
                       <span class="tag">
                         {{
-                          videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
-                            ? 'Vertical'
-                            : 'Horizontal'
+                          reelOrient(video) === 'portrait' ? 'Vertical' : 'Horizontal'
                         }}
                       </span>
                       <span v-if="!video.has_web_preview" class="tag tag--warn">Sin versión web</span>
@@ -440,15 +438,23 @@ const magicTried = ref(false);
 /** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
 const videoOrient = ref({});
 
+/** Prefer measured pixels; API orientation only for originals without web preview. */
+function reelOrient(video) {
+  const measured = videoOrient.value[video?.id];
+  if (measured) return measured;
+  if (video?.has_web_preview) return 'landscape';
+  if (video?.orientation === 'portrait') return 'portrait';
+  return 'landscape';
+}
+
 function onReelMeta(e, video) {
   const el = e?.target;
   const w = Number(el?.videoWidth) || 0;
   const h = Number(el?.videoHeight) || 0;
   const videoId = video?.id;
+  // Web preview is already upright — trust pixel box. Original may need metadata.
   let orient = h > w ? 'portrait' : 'landscape';
-  if (video?.has_web_preview) {
-    // preview web ya upright
-  } else if (video?.orientation === 'portrait' || video?.orientation === 'landscape') {
+  if (!video?.has_web_preview && (video?.orientation === 'portrait' || video?.orientation === 'landscape')) {
     orient = video.orientation;
   }
   videoOrient.value = {
