@@ -9,7 +9,7 @@
             Mi <span class="accent">carrera</span>
           </h1>
           <p class="lede anim" style="--i: 2">
-            Tus tiempos oficiales, fotos y videos en calidad original.
+            Tus tiempos oficiales, fotos y videos. Preview en web; descarga el original.
           </p>
         </header>
 
@@ -173,7 +173,7 @@
         <section class="section">
           <div class="section__head anim" style="--i: 7">
             <h2>Tus fotos</h2>
-            <p class="ok">{{ dossier.photos?.length || 0 }} · original sin pérdida</p>
+            <p class="ok">{{ dossier.photos?.length || 0 }} · preview web · descarga original</p>
           </div>
 
           <div v-if="!dossier.photos?.length" class="empty anim" style="--i: 8">Aún no hay fotos asociadas a tu placa.</div>
@@ -212,7 +212,7 @@
         <section class="section">
           <div class="section__head anim" style="--i: 15">
             <h2>Tus videos</h2>
-            <p>{{ dossier.videos?.length || 0 }} clip(s)</p>
+            <p>{{ dossier.videos?.length || 0 }} clip(s) · preview web · descarga original</p>
           </div>
 
           <div
@@ -230,10 +230,30 @@
               class="reel anim"
               :style="{ '--i': 16 + Math.min(vIdx, 4) }"
             >
-              <video :src="mediaPublicUrl(video.preview_url)" controls playsinline preload="metadata" />
+              <div
+                class="reel__stage"
+                :class="videoOrient[video.id] === 'portrait' ? 'reel__stage--portrait' : 'reel__stage--landscape'"
+              >
+                <video
+                  :src="mediaPublicUrl(video.preview_url)"
+                  :poster="video.thumb_url ? mediaPublicUrl(video.thumb_url) : undefined"
+                  controls
+                  playsinline
+                  preload="metadata"
+                  @loadedmetadata="onReelMeta($event, video)"
+                />
+              </div>
               <div class="reel__bar">
                 <div>
                   <strong>{{ shortName(video.original_filename) }}</strong>
+                  <span class="orient-tag">
+                    {{
+                      videoOrient[video.id] === 'portrait' || video.orientation === 'portrait'
+                        ? 'Vertical'
+                        : 'Horizontal'
+                    }}
+                  </span>
+                  <span v-if="!video.has_web_preview" class="orient-tag orient-tag--warn">Sin versión web</span>
                   <span v-if="video.photographer">
                     {{ video.photographer.full_name }}
                     <template v-if="video.photographer.instagram">
@@ -246,6 +266,11 @@
               </div>
             </article>
           </div>
+        </section>
+
+        <!-- BUSCA TU MEDIA (todos) -->
+        <section class="section">
+          <DossierMediaBrowser :dossier-token="dossierToken" />
         </section>
         </div>
       </template>
@@ -312,6 +337,7 @@ import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import gsap from 'gsap';
 import { unlockCompetitorDossier, unlockCompetitorDossierByToken, mediaPublicUrl } from '../api/mediaApi';
+import DossierMediaBrowser from '../components/DossierMediaBrowser.vue';
 
 const SESSION_KEY = 'chacas_competitor_dossier';
 
@@ -325,6 +351,7 @@ const magicLinkToken = ref('');
 const loading = ref(false);
 const error = ref('');
 const dossier = ref(null);
+const dossierToken = ref('');
 const lightboxIndex = ref(null);
 const entered = ref(false);
 const gateIn = ref(false);
@@ -334,6 +361,25 @@ const ceremonyName = ref('');
 const restoring = ref(false);
 const magicBooting = ref(false);
 const magicTried = ref(false);
+/** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
+const videoOrient = ref({});
+
+function onReelMeta(e, video) {
+  const el = e?.target;
+  const w = Number(el?.videoWidth) || 0;
+  const h = Number(el?.videoHeight) || 0;
+  const videoId = video?.id;
+  let orient = h > w ? 'portrait' : 'landscape';
+  if (video?.has_web_preview) {
+    // preview web ya upright
+  } else if (video?.orientation === 'portrait' || video?.orientation === 'landscape') {
+    orient = video.orientation;
+  }
+  videoOrient.value = {
+    ...videoOrient.value,
+    [videoId]: orient,
+  };
+}
 
 const wipeEl = ref(null);
 const ringEl = ref(null);
@@ -363,23 +409,25 @@ function loadSession() {
   }
 }
 
-function saveSession(plateVal, dniVal, tokenVal) {
+function saveSession(plateVal, dniVal, tokenVal, dossierTok = '') {
   localStorage.setItem(
     SESSION_KEY,
     JSON.stringify({
       plate: String(plateVal),
       dni: String(dniVal),
       accessToken: String(tokenVal),
+      dossierToken: String(dossierTok || ''),
       at: Date.now(),
     })
   );
 }
 
-function saveMagicSession(tokenVal) {
+function saveMagicSession(tokenVal, dossierTok = '') {
   localStorage.setItem(
     SESSION_KEY,
     JSON.stringify({
       magicToken: String(tokenVal),
+      dossierToken: String(dossierTok || ''),
       at: Date.now(),
     })
   );
@@ -458,8 +506,9 @@ async function unlock(opts = {}) {
           access_token: accessToken.value,
         });
     dossier.value = res.data;
-    if (token) saveMagicSession(token);
-    else saveSession(plate.value, dni.value, accessToken.value);
+    dossierToken.value = res.dossier_token || '';
+    if (token) saveMagicSession(token, dossierToken.value);
+    else saveSession(plate.value, dni.value, accessToken.value, dossierToken.value);
     window.scrollTo({ top: 0, behavior: 'auto' });
 
     if (!skipSplash && !fromSession && !prefersReducedMotion()) {
@@ -489,6 +538,7 @@ async function unlock(opts = {}) {
 function reset() {
   clearSession();
   dossier.value = null;
+  dossierToken.value = '';
   lightboxIndex.value = null;
   entered.value = false;
   ceremony.value = false;
@@ -1385,11 +1435,50 @@ input:focus {
   overflow: hidden;
 }
 
-.reel video {
+.reel__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0a;
+  min-height: 200px;
+}
+
+.reel__stage--landscape video {
   width: 100%;
+  height: auto;
+  max-height: min(50vh, 440px);
   display: block;
-  max-height: 440px;
+  object-fit: contain;
   background: #000;
+}
+
+.reel__stage--portrait video {
+  width: auto;
+  max-width: min(100%, 380px);
+  height: min(70vh, 560px);
+  max-height: min(70vh, 560px);
+  display: block;
+  object-fit: contain;
+  background: #000;
+  margin: 0 auto;
+}
+
+.orient-tag {
+  display: inline-block !important;
+  margin: 0.25rem 0 0 !important;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 94, 0, 0.18);
+  color: #fdba74 !important;
+  font-size: 0.62rem !important;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.orient-tag--warn {
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a !important;
 }
 
 .reel__bar {

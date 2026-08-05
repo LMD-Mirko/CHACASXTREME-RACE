@@ -546,3 +546,44 @@ export async function unlockCompetitorDossierByToken(token) {
     })
   );
 }
+
+/**
+ * Galería pública de race-media (fotos y/o videos), paginada.
+ * Usada en “Busca tu media” dentro de Mi carrera.
+ */
+export async function fetchRaceMediaGallery({
+  page = 1,
+  perPage = 12,
+  mediaType = 'all',
+  q = '',
+} = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    per_page: String(perPage),
+    media_type: mediaType,
+  });
+  const query = String(q || '').trim();
+  if (query) params.set('q', query);
+
+  const body = await parseJson(
+    await fetch(buildUrl(`/api/race-media/gallery?${params}`), {
+      headers: { Accept: 'application/json' },
+    })
+  );
+
+  body.data = (body.data || []).map((item) => ({
+    ...item,
+    view_url: mediaPublicUrl(item.view_url),
+    thumb_url: item.thumb_url ? mediaPublicUrl(item.thumb_url) : null,
+  }));
+
+  return body;
+}
+
+/** Descarga original autenticada con token de dossier. */
+export function raceMediaDownloadUrl(mediaId, dossierToken) {
+  if (!mediaId || !dossierToken) return '';
+  return buildUrl(
+    `/api/race-media/${mediaId}/download?dossier_token=${encodeURIComponent(dossierToken)}`
+  );
+}
