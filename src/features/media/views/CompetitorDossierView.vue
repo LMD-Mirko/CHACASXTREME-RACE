@@ -267,7 +267,7 @@
                   download
                   class="shot__dl"
                   @click.stop
-                  title="Descargar original"
+                  title="Descargar original (máxima calidad)"
                 >
                   ↓ Original
                 </a>
@@ -302,11 +302,11 @@
               >
                 <div
                   class="reel__stage"
-                  :class="
+                  :class="[
                     reelOrient(video) === 'portrait'
                       ? 'reel__stage--portrait'
-                      : 'reel__stage--landscape'
-                  "
+                      : 'reel__stage--landscape',
+                  ]"
                 >
                   <video
                     :src="mediaPublicUrl(video.preview_url)"
@@ -314,6 +314,7 @@
                     controls
                     playsinline
                     preload="metadata"
+                    :class="reelRotateClass(video)"
                     @loadedmetadata="onReelMeta($event, video)"
                   />
                 </div>
@@ -338,8 +339,21 @@
                       </template>
                       {{ formatBytes(video.size_bytes) }}
                     </span>
+                    <p class="reel__hint">
+                      Vista previa para el navegador.
+                      Descarga el original para máxima calidad.
+                    </p>
                   </div>
-                  <a :href="video.download_url" download class="reel__dl">Descargar original</a>
+                  <div class="reel__actions">
+                    <button
+                      type="button"
+                      class="reel__orient"
+                      @click="toggleReelOrient(video)"
+                    >
+                      {{ reelOrient(video) === 'portrait' ? 'Ver horizontal' : 'Ver vertical' }}
+                    </button>
+                    <a :href="video.download_url" download class="reel__dl">Descargar original</a>
+                  </div>
                 </div>
               </article>
             </div>
@@ -391,7 +405,7 @@
             />
           </figure>
           <div class="lb__foot">
-            <span>{{ formatBytes(dossier.photos[lightboxIndex].size_bytes) }}</span>
+            <span class="lb__hint">Original = máxima calidad</span>
             <a :href="dossier.photos[lightboxIndex].download_url" download class="lb__dl">
               Descargar original
             </a>
@@ -437,14 +451,36 @@ const magicBooting = ref(false);
 const magicTried = ref(false);
 /** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
 const videoOrient = ref({});
+/** @type {import('vue').Ref<Record<number|string, 'portrait'|'landscape'>>} */
+const videoMeasured = ref({});
+/** @type {import('vue').Ref<Record<number|string, boolean>>} */
+const videoOrientManual = ref({});
 
 /** Prefer measured pixels; API orientation only for originals without web preview. */
 function reelOrient(video) {
-  const measured = videoOrient.value[video?.id];
-  if (measured) return measured;
+  const id = video?.id;
+  if (videoOrient.value[id]) return videoOrient.value[id];
   if (video?.has_web_preview) return 'landscape';
   if (video?.orientation === 'portrait') return 'portrait';
   return 'landscape';
+}
+
+function reelRotateClass(video) {
+  const id = video?.id;
+  if (!videoOrientManual.value[id]) return '';
+  const shown = videoOrient.value[id];
+  const measured = videoMeasured.value[id];
+  if (shown && measured && shown !== measured) return 'reel__video--rotate';
+  return '';
+}
+
+function toggleReelOrient(video) {
+  const id = video?.id;
+  if (!id) return;
+  const current = reelOrient(video);
+  const next = current === 'portrait' ? 'landscape' : 'portrait';
+  videoOrientManual.value = { ...videoOrientManual.value, [id]: true };
+  videoOrient.value = { ...videoOrient.value, [id]: next };
 }
 
 function onReelMeta(e, video) {
@@ -454,6 +490,8 @@ function onReelMeta(e, video) {
   const videoId = video?.id;
   // Web preview is already upright — trust pixel box. Original may need metadata.
   let orient = h > w ? 'portrait' : 'landscape';
+  videoMeasured.value = { ...videoMeasured.value, [videoId]: orient };
+  if (videoOrientManual.value[videoId]) return;
   if (!video?.has_web_preview && (video?.orientation === 'portrait' || video?.orientation === 'landscape')) {
     orient = video.orientation;
   }
@@ -1844,6 +1882,36 @@ input:focus {
   color: rgba(255, 255, 255, 0.45);
 }
 
+.reel__hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.reel__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.reel__orient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 .reel__dl {
   display: inline-flex;
   align-items: center;
@@ -1858,6 +1926,12 @@ input:focus {
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.reel__video--rotate {
+  transform: rotate(-90deg);
+  max-height: min(52vh, 420px);
+  width: auto;
 }
 
 .section--browse {
@@ -2033,6 +2107,13 @@ input:focus {
   flex-wrap: wrap;
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.82rem;
+}
+
+.lb__hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.35;
+  max-width: 16rem;
 }
 
 .lb__dl {

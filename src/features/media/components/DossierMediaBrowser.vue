@@ -192,7 +192,7 @@
               </button>
             </header>
 
-            <div class="sheet__stage" :class="stageClass">
+            <div class="sheet__stage" :class="[stageClass, viewerRotateClass]">
               <video
                 v-if="active.media_type === 'video'"
                 :key="'bv-' + active.id"
@@ -201,24 +201,35 @@
                 controls
                 playsinline
                 preload="metadata"
+                :class="viewerRotateClass"
                 @loadedmetadata="onViewerMeta"
               />
               <img
                 v-else
                 :src="active.view_url"
                 :alt="active.original_filename || 'foto'"
+                :class="viewerRotateClass"
                 @load="onViewerImg"
               />
             </div>
 
-            <p
-              v-if="active.media_type === 'video' && !active.has_web_preview"
-              class="sheet__warn"
-            >
-              Aún sin versión web — puede no reproducir. La descarga sí es el original.
+            <p class="sheet__hint">
+              <template v-if="active.has_web_preview">
+                Vista previa comprimida para ver aquí.
+                <strong>Descarga el original</strong> para máxima calidad (tal como lo subieron).
+              </template>
+              <template v-else-if="active.media_type === 'video'">
+                Aún sin versión web — puede no reproducir. La descarga sí es el original.
+              </template>
+              <template v-else>
+                Descarga el original para máxima calidad.
+              </template>
             </p>
 
             <div class="sheet__actions">
+              <button type="button" class="sheet__orient" @click="toggleViewerOrient">
+                {{ viewerOrient === 'portrait' ? 'Ver horizontal' : 'Ver vertical' }}
+              </button>
               <a
                 v-if="downloadHref"
                 class="sheet__dl"
@@ -262,6 +273,8 @@ const items = ref([]);
 const meta = ref({ current_page: 1, last_page: 1, total: 0, per_page: PAGE_SIZE });
 const active = ref(null);
 const viewerOrient = ref('landscape');
+const viewerMeasured = ref(null);
+const viewerOrientManual = ref(false);
 
 let searchTimer = null;
 
@@ -273,6 +286,22 @@ const downloadHref = computed(() => {
 const stageClass = computed(() => (
   viewerOrient.value === 'portrait' ? 'is-portrait' : 'is-landscape'
 ));
+
+const viewerRotateClass = computed(() => {
+  if (
+    viewerOrientManual.value
+    && viewerMeasured.value
+    && viewerOrient.value !== viewerMeasured.value
+  ) {
+    return 'needs-rotate';
+  }
+  return '';
+});
+
+function toggleViewerOrient() {
+  viewerOrientManual.value = true;
+  viewerOrient.value = viewerOrient.value === 'portrait' ? 'landscape' : 'portrait';
+}
 
 const rangeLabel = computed(() => {
   const total = Number(meta.value.total) || 0;
@@ -340,6 +369,8 @@ function goPage(p) {
 
 function openItem(item) {
   active.value = item;
+  viewerOrientManual.value = false;
+  viewerMeasured.value = null;
   // Web preview: wait for loadedmetadata/pixels. Original: API hint OK.
   viewerOrient.value = item.has_web_preview
     ? 'landscape'
@@ -349,6 +380,8 @@ function openItem(item) {
 
 function closeItem() {
   active.value = null;
+  viewerOrientManual.value = false;
+  viewerMeasured.value = null;
   document.body.style.overflow = '';
 }
 
@@ -356,8 +389,11 @@ function onViewerMeta(e) {
   const el = e?.target;
   const w = Number(el?.videoWidth) || 0;
   const h = Number(el?.videoHeight) || 0;
+  const pixel = h > w ? 'portrait' : 'landscape';
+  viewerMeasured.value = pixel;
+  if (viewerOrientManual.value) return;
   if (active.value?.has_web_preview || (w && h)) {
-    viewerOrient.value = h > w ? 'portrait' : 'landscape';
+    viewerOrient.value = pixel;
   } else if (active.value?.orientation) {
     viewerOrient.value = active.value.orientation;
   }
@@ -367,7 +403,10 @@ function onViewerImg(e) {
   const el = e?.target;
   const w = Number(el?.naturalWidth) || 0;
   const h = Number(el?.naturalHeight) || 0;
-  viewerOrient.value = h > w ? 'portrait' : 'landscape';
+  const pixel = h > w ? 'portrait' : 'landscape';
+  viewerMeasured.value = pixel;
+  if (viewerOrientManual.value) return;
+  viewerOrient.value = pixel;
 }
 
 async function load() {
@@ -932,14 +971,25 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.sheet__warn {
+.sheet__hint {
   margin: 0;
   padding: 0.65rem 0.8rem;
   border-radius: 10px;
-  background: rgba(250, 204, 21, 0.1);
-  color: #fde68a;
+  background: rgba(255, 94, 0, 0.1);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.8rem;
   line-height: 1.4;
+}
+
+.sheet__hint strong {
+  color: #fdba74;
+  font-weight: 800;
+}
+
+.sheet__stage .needs-rotate,
+.needs-rotate {
+  transform: rotate(-90deg);
+  max-height: min(48vh, 360px);
 }
 
 .sheet__actions {
@@ -949,7 +999,8 @@ onUnmounted(() => {
 }
 
 .sheet__dl,
-.sheet__sec {
+.sheet__sec,
+.sheet__orient {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -970,6 +1021,7 @@ onUnmounted(() => {
   color: #111;
 }
 
+.sheet__orient,
 .sheet__sec {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: transparent;
@@ -993,7 +1045,7 @@ onUnmounted(() => {
   }
 
   .sheet__actions {
-    grid-template-columns: 1.4fr 0.8fr;
+    grid-template-columns: 1fr 1.3fr 0.8fr;
   }
 }
 
