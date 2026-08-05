@@ -9,8 +9,8 @@
           4ª <span class="accent">Edición</span>
         </h2>
         <p class="e4g__sub">
-          Galería en vivo de la carrera. Fotos y videos web livianos —
-          el original queda con el camarógrafo / Mi carrera.
+          Galería en vivo de la carrera. Vista web liviana —
+          al abrir una, podés descargar el original HD.
         </p>
       </div>
       <div class="e4g__meta">
@@ -37,7 +37,7 @@
           </button>
         </div>
         <span class="e4g__count">{{ totalLabel }}</span>
-        <span class="e4g__lock">Sin descarga aquí</span>
+        <span class="e4g__lock">Descarga HD habilitada</span>
         <button
           v-if="mediaTab === 'photo'"
           type="button"
@@ -88,14 +88,13 @@
           <span v-else class="gen">General</span>
         </div>
         <div class="cell__foot">
-          <strong v-if="item.rider?.full_name">{{ item.rider.full_name }}</strong>
-          <strong v-else-if="item.photographer?.full_name">{{ item.photographer.full_name }}</strong>
-          <span v-if="item.photographer?.instagram">@{{ item.photographer.instagram }}</span>
+          <span v-if="creditIg(item)" class="cell__ig">@{{ creditIg(item) }}</span>
+          <strong v-else-if="creditName(item)" class="cell__name">{{ creditName(item) }}</strong>
         </div>
       </article>
     </div>
 
-    <div v-if="items.length" class="e4g__pager">
+    <div v-if="items.length && mediaTab === 'photo'" class="e4g__pager">
       <p class="e4g__shown">Mostrando {{ items.length }} de {{ total }}</p>
       <button
         v-if="hasMore"
@@ -105,10 +104,13 @@
         :disabled="loading"
         @click="loadMore"
       >
-        {{ loading ? 'Cargando…' : (mediaTab === 'video' ? 'Ver más videos' : 'Ver más fotos') }}
+        {{ loading ? 'Cargando…' : 'Ver más fotos' }}
       </button>
       <p v-else-if="total > perPage" class="e4g__end">Fin de la galería</p>
     </div>
+    <p v-else-if="items.length && mediaTab === 'video'" class="e4g__end e4g__end--solo">
+      Selección aleatoria de {{ items.length }} videos
+    </p>
 
     <!-- Modal subir -->
     <Teleport to="body">
@@ -227,7 +229,7 @@
             <p v-if="uploadOk" class="up__ok" role="status">{{ uploadOk }}</p>
 
             <div class="up__foot">
-              <p class="up__legal">Sin descarga pública · queda en General</p>
+              <p class="up__legal">Se publica en General · descarga HD disponible</p>
               <button
                 type="submit"
                 class="up__submit"
@@ -270,8 +272,7 @@
             controls
             playsinline
             preload="metadata"
-            controlslist="nodownload noplaybackrate"
-            @contextmenu.prevent
+            controlslist="noplaybackrate"
           />
           <img
             v-else
@@ -281,7 +282,7 @@
             draggable="false"
           />
           <div class="viewer__shield" aria-hidden="true" />
-          <div class="viewer__wm" aria-hidden="true">CHACAS XTREME · 4ª EDICIÓN · SOLO VISTA</div>
+          <div class="viewer__wm" aria-hidden="true">CHACAS XTREME · 4ª EDICIÓN</div>
         </div>
         <button
           v-if="viewerIndex < items.length - 1"
@@ -296,21 +297,30 @@
               #{{ activeItem.rider.plate_number }}
               · {{ activeItem.rider.full_name }}
             </strong>
-            <strong v-else-if="activeItem?.media_type === 'video'">Video general</strong>
+            <strong v-else-if="creditIg(activeItem)">@{{ creditIg(activeItem) }}</strong>
+            <strong v-else-if="creditName(activeItem)" class="viewer__name-sm">
+              {{ creditName(activeItem) }}
+            </strong>
+            <strong v-else-if="activeItem?.media_type === 'video'">Video</strong>
             <strong v-else>Toma general</strong>
-            <p v-if="activeItem?.photographer">
-              {{ activeItem.photographer.full_name }}
-              <template v-if="activeItem.photographer.instagram">
-                · @{{ activeItem.photographer.instagram }}
-              </template>
-            </p>
             <p v-if="activeItem?.media_type === 'video' && !activeItem.has_web_preview" class="viewer__warn">
-              Sin versión web — puede no reproducir en este navegador.
+              Sin versión web — puede no reproducir. Usá Descargar original HD.
             </p>
           </div>
-          <p class="viewer__note">
-            {{ viewerIndex + 1 }} / {{ items.length }} · descarga deshabilitada
-          </p>
+          <div class="viewer__actions">
+            <a
+              v-if="downloadHref(activeItem)"
+              class="viewer__dl"
+              :href="downloadHref(activeItem)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Descargar original HD
+            </a>
+            <p class="viewer__note">
+              {{ viewerIndex + 1 }} / {{ items.length }}
+            </p>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -323,9 +333,10 @@ import { useRoute } from 'vue-router';
 import { fetchEdition4Gallery, uploadPublicGalleryPhotos } from '../api/editionGalleryApi';
 
 const route = useRoute();
-/** Fotos: más por página. Videos: menos para no saturar red. */
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+/** Fotos paginadas. Videos: muestra fija aleatoria. */
 const PHOTO_PER_PAGE = 18;
-const VIDEO_PER_PAGE = 9;
+const VIDEO_SAMPLE = 40;
 
 const mediaTab = ref('photo'); // photo | video
 const items = ref([]);
@@ -349,8 +360,8 @@ const form = ref({ name: '', instagram: '', files: [] });
 const previews = ref([]);
 let lockedScrollY = 0;
 
-const perPage = computed(() => (mediaTab.value === 'video' ? VIDEO_PER_PAGE : PHOTO_PER_PAGE));
-const hasMore = computed(() => page.value < lastPage.value);
+const perPage = computed(() => PHOTO_PER_PAGE);
+const hasMore = computed(() => mediaTab.value === 'photo' && page.value < lastPage.value);
 const activeItem = computed(() => (
   viewerIndex.value != null ? items.value[viewerIndex.value] : null
 ));
@@ -376,10 +387,33 @@ function caption(item) {
   return 'Toma general · 4ª edición';
 }
 
+/** IG real; oculta placeholders __public_ / __admin_ */
+function creditIg(item) {
+  const ig = String(item?.photographer?.instagram || '').trim();
+  if (!ig || ig.startsWith('__')) return '';
+  return ig.replace(/^@+/, '');
+}
+
+/** Nombre corto si no hay IG */
+function creditName(item) {
+  if (creditIg(item)) return '';
+  const name = String(item?.rider?.full_name || item?.photographer?.full_name || '').trim();
+  if (!name) return '';
+  if (name.length <= 18) return name;
+  return `${name.slice(0, 16)}…`;
+}
+
 /** En grilla: solo JPEG liviano. Nunca el mp4. */
 function thumbSrc(item) {
   if (!item) return '';
   return item.thumb_url || (item.media_type === 'photo' ? item.view_url : '') || '';
+}
+
+/** Original HD: API download_url o fallback por id. */
+function downloadHref(item) {
+  if (!item?.id) return '';
+  if (item.download_url) return item.download_url;
+  return `${API_BASE}/api/race-media/${item.id}/download-public`;
 }
 
 function setMediaTab(tab) {
@@ -397,14 +431,17 @@ async function loadPage(p, { append = false } = {}) {
   loading.value = true;
   error.value = '';
   try {
+    const isVideo = mediaTab.value === 'video';
     const res = await fetchEdition4Gallery({
       page: p,
-      perPage: perPage.value,
+      perPage: PHOTO_PER_PAGE,
       mediaType: mediaTab.value,
+      random: isVideo,
+      limit: VIDEO_SAMPLE,
     });
     competitionName.value = res.competition?.name || '';
     const rows = res.data || [];
-    items.value = append ? [...items.value, ...rows] : rows;
+    items.value = append && !isVideo ? [...items.value, ...rows] : rows;
     page.value = res.meta?.current_page || p;
     lastPage.value = res.meta?.last_page || 1;
     total.value = res.meta?.total || rows.length;
@@ -969,10 +1006,21 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.cell__foot strong {
-  font-size: 0.78rem;
+.cell__ig {
+  font-size: 0.72rem;
   font-weight: 700;
   color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.cell__name {
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .e4g__pager {
@@ -982,6 +1030,12 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+}
+
+.e4g__end--solo {
+  max-width: 1400px;
+  margin: 1.25rem auto 0;
+  text-align: center;
 }
 
 .e4g__shown,
@@ -1520,6 +1574,40 @@ onUnmounted(() => {
   margin: 0.25rem 0 0;
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.82rem;
+}
+
+.viewer__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.viewer__dl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(255, 94, 0, 0.85);
+  background: rgba(255, 94, 0, 0.95);
+  color: #111;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viewer__dl:hover {
+  background: #fff;
+  border-color: #fff;
+}
+
+.viewer__name-sm {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
 }
 
 .viewer__note {

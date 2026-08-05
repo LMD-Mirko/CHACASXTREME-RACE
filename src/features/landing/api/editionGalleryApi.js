@@ -28,18 +28,29 @@ function mapGalleryItem(item) {
     view_url: absolutize(item.view_url),
     thumb_url: absolutize(item.thumb_url),
     preview_url: absolutize(item.preview_url || item.view_url),
+    download_url: absolutize(item.download_url),
   };
 }
 
 /**
- * @param {{ page?: number, perPage?: number, mediaType?: 'photo'|'video'|'all' }} opts
+ * @param {{ page?: number, perPage?: number, mediaType?: 'photo'|'video'|'all', random?: boolean, limit?: number }} opts
  */
-export async function fetchEdition4Gallery({ page = 1, perPage = 24, mediaType = 'photo' } = {}) {
+export async function fetchEdition4Gallery({
+  page = 1,
+  perPage = 24,
+  mediaType = 'photo',
+  random = false,
+  limit = 40,
+} = {}) {
   const params = new URLSearchParams({
     page: String(page),
     per_page: String(perPage),
     media_type: mediaType,
   });
+  if (random) {
+    params.set('random', '1');
+    params.set('limit', String(limit));
+  }
   const body = await parseJson(
     await fetch(`${API_BASE_URL}/api/race-media/gallery?${params}`, {
       headers: { Accept: 'application/json' },
