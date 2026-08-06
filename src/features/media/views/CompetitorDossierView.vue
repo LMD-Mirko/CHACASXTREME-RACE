@@ -395,7 +395,6 @@
             <p ref="statusEl" class="splash__status">Acceso confirmado</p>
 
             <div ref="plateEl" class="splash__badge">
-              <div class="splash__badge-ring" aria-hidden="true" />
               <div class="splash__badge-frame">
                 <span class="splash__corner splash__corner--tl" aria-hidden="true" />
                 <span class="splash__corner splash__corner--tr" aria-hidden="true" />
@@ -647,7 +646,6 @@ async function playUnlockSplash(rider) {
 
   return new Promise((resolve) => {
     const digits = plateNode.querySelector('.digits');
-    const ring = plateNode.querySelector('.splash__badge-ring');
     const corners = plateNode.querySelectorAll('.splash__corner');
     const badgeTop = plateNode.querySelector('.splash__badge-top');
     const badgeBot = plateNode.querySelector('.splash__badge-bot');
@@ -662,7 +660,6 @@ async function playUnlockSplash(rider) {
     gsap.set(nameNode, { y: 18, opacity: 0 });
     gsap.set(tag, { y: 10, opacity: 0 });
     if (digits) gsap.set(digits, { letterSpacing: '0.16em' });
-    if (ring) gsap.set(ring, { scale: 0.82, opacity: 0, rotate: -18 });
     if (corners.length) gsap.set(corners, { opacity: 0, scale: 0.6 });
     if (badgeTop) gsap.set(badgeTop, { opacity: 0, y: -6 });
     if (badgeBot) gsap.set(badgeBot, { opacity: 0, y: 6 });
@@ -686,9 +683,6 @@ async function playUnlockSplash(rider) {
 
       .to(plateNode, { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'power4.out' }, 0.55);
 
-    if (ring) {
-      tl.to(ring, { scale: 1, opacity: 1, rotate: 0, duration: 0.65, ease: 'power3.out' }, 0.55);
-    }
     if (corners.length) {
       tl.to(corners, { opacity: 1, scale: 1, duration: 0.35, stagger: 0.04 }, 0.62);
     }
@@ -2237,29 +2231,6 @@ input:focus {
   will-change: transform, opacity;
 }
 
-.splash__badge-ring {
-  position: absolute;
-  inset: -10%;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 94, 0, 0.35);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 0 40px rgba(255, 94, 0, 0.12);
-  background:
-    conic-gradient(
-      from 210deg,
-      transparent 0deg,
-      rgba(255, 94, 0, 0.45) 42deg,
-      transparent 88deg,
-      transparent 180deg,
-      rgba(255, 255, 255, 0.2) 198deg,
-      transparent 240deg
-    );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
-  pointer-events: none;
-}
-
 .splash__badge-frame {
   position: relative;
   z-index: 1;
@@ -2435,10 +2406,6 @@ input:focus {
 
   .splash__plate {
     font-size: clamp(3rem, 22vw, 4.6rem);
-  }
-
-  .splash__badge-ring {
-    inset: -8%;
   }
 
   .splash__name {
