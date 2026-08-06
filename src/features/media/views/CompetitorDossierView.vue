@@ -375,23 +375,30 @@
         <div class="splash__bg" aria-hidden="true">
           <div class="splash__glow" />
           <div class="splash__grid" />
-          <div class="splash__dust" />
         </div>
-        <div ref="stripesEl" class="splash__stripes" aria-hidden="true" />
+
+        <!-- Franjas solo como rieles arriba/abajo — no compiten con el texto -->
+        <div class="splash__rail-band splash__rail-band--top" aria-hidden="true" />
+        <div class="splash__rail-band splash__rail-band--bot" aria-hidden="true" />
+
+        <!-- Barrido rápido detrás del escenario oscuro -->
+        <div ref="stripesEl" class="splash__wipe" aria-hidden="true" />
         <div ref="scanEl" class="splash__scan" aria-hidden="true" />
         <div ref="flashEl" class="splash__flash" aria-hidden="true" />
 
         <div class="splash__core">
-          <p ref="brandEl" class="splash__brand">
-            CHACAS <span class="x">X</span>TREME
-          </p>
-          <div ref="railEl" class="splash__rail" />
-          <p ref="statusEl" class="splash__status">Acceso confirmado</p>
-          <div ref="plateEl" class="splash__plate">
-            <span class="sym">#</span><span class="digits">{{ ceremonyPlate }}</span>
+          <div class="splash__stage">
+            <p ref="brandEl" class="splash__brand">
+              CHACAS <span class="x">X</span>TREME
+            </p>
+            <div ref="railEl" class="splash__rail" />
+            <p ref="statusEl" class="splash__status">Acceso confirmado</p>
+            <div ref="plateEl" class="splash__plate">
+              <span class="sym">#</span><span class="digits">{{ ceremonyPlate }}</span>
+            </div>
+            <h2 ref="nameEl" class="splash__name">{{ ceremonyName }}</h2>
+            <p ref="tagEl" class="splash__tag">Tu dossier · 4ª edición</p>
           </div>
-          <h2 ref="nameEl" class="splash__name">{{ ceremonyName }}</h2>
-          <p ref="tagEl" class="splash__tag">Tu dossier · 4ª edición</p>
         </div>
       </div>
     </Teleport>
@@ -615,15 +622,18 @@ async function playUnlockSplash(rider) {
   }
 
   return new Promise((resolve) => {
-    gsap.set(stripes, { xPercent: -110, opacity: 1 });
+    const digits = plateNode.querySelector('.digits');
+
+    gsap.set(stripes, { xPercent: -120, opacity: 1 });
     gsap.set(scan, { yPercent: -120, opacity: 0 });
     gsap.set(flash, { opacity: 0 });
-    gsap.set(brand, { y: 18, opacity: 0, letterSpacing: '0.55em' });
+    gsap.set(brand, { y: 14, opacity: 0 });
     gsap.set(rail, { scaleX: 0, opacity: 1 });
-    gsap.set(status, { y: 14, opacity: 0 });
-    gsap.set(plateNode, { y: 40, opacity: 0, scale: 1.18, filter: 'blur(10px)' });
-    gsap.set(nameNode, { y: 28, opacity: 0, clipPath: 'inset(0 0 100% 0)' });
-    gsap.set(tag, { y: 12, opacity: 0 });
+    gsap.set(status, { y: 10, opacity: 0 });
+    gsap.set(plateNode, { y: 28, opacity: 0, scale: 1.08 });
+    gsap.set(nameNode, { y: 18, opacity: 0 });
+    gsap.set(tag, { y: 10, opacity: 0 });
+    if (digits) gsap.set(digits, { letterSpacing: '0.18em' });
 
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
@@ -633,67 +643,40 @@ async function playUnlockSplash(rider) {
       },
     });
 
-    // Barrido de hazard / meta
-    tl.to(stripes, { xPercent: 110, duration: 0.7, ease: 'power4.inOut' }, 0)
-      .to(scan, { opacity: 0.85, duration: 0.12 }, 0.08)
-      .to(scan, { yPercent: 120, duration: 0.55, ease: 'power2.inOut' }, 0.1)
-      .to(scan, { opacity: 0, duration: 0.2 }, 0.55)
+    // 1) Barrido hazard SALE completo antes de que el texto pelee por contraste
+    tl.to(stripes, { xPercent: 120, duration: 0.55, ease: 'power4.inOut' }, 0)
+      .to(scan, { opacity: 0.7, duration: 0.1 }, 0.05)
+      .to(scan, { yPercent: 120, duration: 0.45, ease: 'power2.inOut' }, 0.08)
+      .to(scan, { opacity: 0, duration: 0.15 }, 0.45)
 
-      // Brand + confirmación
-      .to(brand, {
-        y: 0,
-        opacity: 1,
-        letterSpacing: '0.28em',
-        duration: 0.55,
-        ease: 'power2.out',
-      }, 0.22)
-      .to(rail, { scaleX: 1, duration: 0.45, ease: 'power2.out' }, 0.38)
-      .to(status, { y: 0, opacity: 1, duration: 0.35 }, 0.42)
+      // 2) Contenido sobre escenario oscuro (legible en móvil)
+      .to(brand, { y: 0, opacity: 1, duration: 0.4 }, 0.42)
+      .to(rail, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, 0.5)
+      .to(status, { y: 0, opacity: 1, duration: 0.32 }, 0.52)
+      .to(plateNode, { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'power4.out' }, 0.55);
 
-      // Placa: impacto
-      .to(plateNode, {
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        filter: 'blur(0px)',
-        duration: 0.7,
-        ease: 'power4.out',
-      }, 0.48)
-      .fromTo(
-        plateNode.querySelector('.digits'),
-        { letterSpacing: '0.22em' },
-        { letterSpacing: '0.04em', duration: 0.55, ease: 'power2.out' },
-        0.5
-      )
+    if (digits) {
+      tl.to(digits, { letterSpacing: '0.04em', duration: 0.5, ease: 'power2.out' }, 0.58);
+    }
 
-      // Nombre + tag
-      .to(nameNode, {
-        y: 0,
-        opacity: 1,
-        clipPath: 'inset(0 0 0% 0)',
-        duration: 0.55,
-        ease: 'power3.out',
-      }, 0.72)
-      .to(tag, { y: 0, opacity: 1, duration: 0.35 }, 0.9)
+    tl.to(nameNode, { y: 0, opacity: 1, duration: 0.45 }, 0.72)
+      .to(tag, { y: 0, opacity: 1, duration: 0.32 }, 0.86)
+      .to(plateNode, { scale: 1.03, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.1)
 
-      // Pulso corto
-      .to(plateNode, { scale: 1.045, duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.15)
-
-      // Salida cinematográfica
-      .to(flash, { opacity: 0.55, duration: 0.12, ease: 'power1.out' }, 1.65)
-      .to(flash, { opacity: 0, duration: 0.35 }, 1.78)
-      .to(rail, { opacity: 0, duration: 0.3 }, 1.7)
+      // 3) Salida
+      .to(flash, { opacity: 0.4, duration: 0.1 }, 1.55)
+      .to(flash, { opacity: 0, duration: 0.3 }, 1.65)
+      .to(rail, { opacity: 0, duration: 0.25 }, 1.6)
       .to(
         [brand, status, plateNode, nameNode, tag],
         {
           opacity: 0,
-          y: -28,
-          scale: 1.06,
-          duration: 0.45,
-          stagger: 0.028,
+          y: -20,
+          duration: 0.4,
+          stagger: 0.025,
           ease: 'power2.in',
         },
-        1.7
+        1.6
       );
   });
 }
@@ -2041,68 +2024,81 @@ input:focus {
   z-index: 100000;
   display: grid;
   place-items: center;
+  isolation: isolate;
   background: #030303;
   overflow: hidden;
   pointer-events: none;
+  padding:
+    max(1.25rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(1.25rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
 }
 
 .splash__bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
 }
 
 .splash__glow {
   position: absolute;
-  inset: -20%;
+  inset: -10%;
   background:
-    radial-gradient(ellipse 55% 40% at 50% 42%, rgba(255, 94, 0, 0.28), transparent 62%),
-    radial-gradient(ellipse 80% 55% at 50% 100%, rgba(255, 94, 0, 0.12), transparent 55%),
-    linear-gradient(180deg, #0a0a0a 0%, #050505 45%, #000 100%);
+    radial-gradient(ellipse 70% 45% at 50% 48%, rgba(255, 94, 0, 0.2), transparent 58%),
+    linear-gradient(180deg, #0c0c0c 0%, #050505 50%, #000 100%);
 }
 
 .splash__grid {
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.14;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 75%);
-  transform: perspective(600px) rotateX(58deg) translateY(-8%);
-  transform-origin: center 70%;
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, #000 15%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, #000 15%, transparent 72%);
 }
 
-.splash__dust {
+/* Hazard fijo: solo bandas arriba/abajo (no cruzan el texto) */
+.splash__rail-band {
   position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 28%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1px 1px at 78% 22%, rgba(255, 94, 0, 0.55), transparent),
-    radial-gradient(1.5px 1.5px at 64% 68%, rgba(255, 255, 255, 0.25), transparent),
-    radial-gradient(1px 1px at 30% 74%, rgba(255, 94, 0, 0.4), transparent),
-    radial-gradient(1px 1px at 88% 58%, rgba(255, 255, 255, 0.2), transparent);
-  animation: splash-dust 4.5s linear infinite;
-  opacity: 0.7;
-}
-
-.splash__stripes {
-  position: absolute;
-  top: -20%;
   left: 0;
-  z-index: 2;
-  width: 42vw;
-  min-width: 160px;
-  height: 140%;
+  right: 0;
+  z-index: 1;
+  height: clamp(10px, 2.2vw, 16px);
+  background: repeating-linear-gradient(
+    -32deg,
+    #ff5e00 0 10px,
+    #111 10px 20px
+  );
+  opacity: 0.9;
+}
+
+.splash__rail-band--top {
+  top: 0;
+}
+
+.splash__rail-band--bot {
+  bottom: 0;
+}
+
+/* Barrido: detrás del stage, sin mix-blend (rompía contraste) */
+.splash__wipe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: min(38vw, 220px);
   background: repeating-linear-gradient(
     -18deg,
-    #ff5e00 0 14px,
-    #111 14px 28px
+    #ff5e00 0 12px,
+    #1a1a1a 12px 24px
   );
-  opacity: 0.92;
-  filter: saturate(1.15);
-  mix-blend-mode: screen;
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .splash__scan {
@@ -2110,14 +2106,14 @@ input:focus {
   left: 0;
   right: 0;
   top: 0;
-  z-index: 3;
-  height: 18%;
+  z-index: 2;
+  height: 14%;
   background: linear-gradient(
     180deg,
     transparent,
-    rgba(255, 94, 0, 0.15) 40%,
-    rgba(255, 255, 255, 0.35) 50%,
-    rgba(255, 94, 0, 0.15) 60%,
+    rgba(255, 94, 0, 0.12) 45%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 94, 0, 0.12) 55%,
     transparent
   );
   pointer-events: none;
@@ -2127,29 +2123,48 @@ input:focus {
   position: absolute;
   inset: 0;
   z-index: 5;
-  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.55), rgba(255, 94, 0, 0.25) 40%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 48%,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 94, 0, 0.15) 38%,
+    transparent 68%
+  );
   pointer-events: none;
 }
 
 .splash__core {
   position: relative;
   z-index: 4;
+  width: min(100%, 28rem);
+  display: flex;
+  justify-content: center;
+}
+
+/* Escenario oscuro: garantiza contraste en teléfono y desktop */
+.splash__stage {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 1.25rem 1.1rem;
-  max-width: min(94vw, 720px);
+  padding: clamp(1.4rem, 4vw, 2.1rem) clamp(1rem, 4vw, 1.75rem);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 40%, rgba(255, 94, 0, 0.1), transparent 65%),
+    rgba(0, 0, 0, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 24px 80px rgba(0, 0, 0, 0.75);
 }
 
 .splash__brand {
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(0.72rem, 2.6vw, 0.95rem);
+  font-size: clamp(0.78rem, 3.2vw, 0.95rem);
   font-weight: 900;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
+  color: #fff;
 }
 
 .splash__brand .x {
@@ -2157,35 +2172,33 @@ input:focus {
 }
 
 .splash__rail {
-  width: min(42vw, 160px);
+  width: min(46%, 140px);
   height: 2px;
-  margin: 0.85rem 0 0.7rem;
+  margin: 0.75rem 0 0.65rem;
   transform-origin: center;
   background: linear-gradient(90deg, transparent, var(--splash-orange), transparent);
 }
 
 .splash__status {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.75rem;
   font-family: var(--font-accent);
-  font-size: 0.68rem;
+  font-size: clamp(0.72rem, 2.8vw, 0.8rem);
   font-weight: 800;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--splash-orange);
+  color: #ff8a3d;
 }
 
 .splash__plate {
   position: relative;
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(5rem, 22vw, 8.5rem);
+  font-size: clamp(3.6rem, 18vw, 7rem);
   letter-spacing: 0.04em;
-  line-height: 0.88;
+  line-height: 0.9;
   color: #fff;
-  text-shadow:
-    0 0 24px rgba(255, 94, 0, 0.45),
-    0 0 64px rgba(255, 94, 0, 0.25);
-  will-change: transform, opacity, filter;
+  text-shadow: 0 0 28px rgba(255, 94, 0, 0.35);
+  will-change: transform, opacity;
 }
 
 .splash__plate .sym {
@@ -2200,39 +2213,69 @@ input:focus {
 
 .splash__name {
   position: relative;
-  margin: 1rem 0 0;
-  max-width: 18ch;
+  margin: 0.85rem 0 0;
+  width: 100%;
+  max-width: 16ch;
   font-family: var(--font-accent);
-  font-size: clamp(1.35rem, 5.2vw, 2.15rem);
+  font-size: clamp(1.15rem, 4.8vw, 1.85rem);
   font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.12;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
   color: #fff;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .splash__tag {
   margin: 0.85rem 0 0;
   font-family: var(--font-accent);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: clamp(0.68rem, 2.6vw, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.62);
 }
 
-@keyframes splash-dust {
-  from { transform: translate3d(0, 8px, 0); }
-  to { transform: translate3d(0, -18px, 0); }
-}
+/* Teléfono: composición vertical limpia */
+@media (max-width: 768px) {
+  .splash {
+    align-content: center;
+  }
 
-@media (max-width: 480px) {
-  .splash__stripes {
-    width: 58vw;
+  .splash__wipe {
+    width: 46vw;
+  }
+
+  .splash__rail-band {
+    height: 9px;
+  }
+
+  .splash__stage {
+    padding: 1.5rem 1.15rem 1.35rem;
+  }
+
+  .splash__plate {
+    font-size: clamp(3.4rem, 26vw, 5.5rem);
   }
 
   .splash__name {
-    max-width: 16ch;
+    max-width: 14ch;
+    font-size: clamp(1.2rem, 5.5vw, 1.55rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .splash__brand {
+    letter-spacing: 0.18em;
+    font-size: 0.72rem;
+  }
+
+  .splash__status {
+    letter-spacing: 0.14em;
+  }
+
+  .splash__tag {
+    letter-spacing: 0.1em;
   }
 }
 
