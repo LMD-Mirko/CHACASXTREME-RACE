@@ -369,17 +369,29 @@
       <router-link class="back" to="/inicio">← Volver al inicio</router-link>
     </div>
 
-    <!-- Splash -->
+    <!-- Splash unlock ceremony -->
     <Teleport to="body">
       <div v-if="ceremony" class="splash" aria-hidden="true">
-        <div class="splash__wipe" ref="wipeEl" />
+        <div class="splash__bg" aria-hidden="true">
+          <div class="splash__glow" />
+          <div class="splash__grid" />
+          <div class="splash__dust" />
+        </div>
+        <div ref="stripesEl" class="splash__stripes" aria-hidden="true" />
+        <div ref="scanEl" class="splash__scan" aria-hidden="true" />
+        <div ref="flashEl" class="splash__flash" aria-hidden="true" />
+
         <div class="splash__core">
-          <div ref="ringEl" class="splash__ring" />
-          <p ref="kickerEl" class="splash__kicker">Dossier desbloqueado</p>
+          <p ref="brandEl" class="splash__brand">
+            CHACAS <span class="x">X</span>TREME
+          </p>
+          <div ref="railEl" class="splash__rail" />
+          <p ref="statusEl" class="splash__status">Acceso confirmado</p>
           <div ref="plateEl" class="splash__plate">
-            <span class="sym">#</span>{{ ceremonyPlate }}
+            <span class="sym">#</span><span class="digits">{{ ceremonyPlate }}</span>
           </div>
           <h2 ref="nameEl" class="splash__name">{{ ceremonyName }}</h2>
+          <p ref="tagEl" class="splash__tag">Tu dossier · 4ª edición</p>
         </div>
       </div>
     </Teleport>
@@ -501,11 +513,29 @@ function onReelMeta(e, video) {
   };
 }
 
-const wipeEl = ref(null);
-const ringEl = ref(null);
-const kickerEl = ref(null);
+const stripesEl = ref(null);
+const scanEl = ref(null);
+const flashEl = ref(null);
+const brandEl = ref(null);
+const railEl = ref(null);
+const statusEl = ref(null);
 const plateEl = ref(null);
 const nameEl = ref(null);
+const tagEl = ref(null);
+
+function splashNodes() {
+  return [
+    stripesEl.value,
+    scanEl.value,
+    flashEl.value,
+    brandEl.value,
+    railEl.value,
+    statusEl.value,
+    plateEl.value,
+    nameEl.value,
+    tagEl.value,
+  ].filter(Boolean);
+}
 
 const phases = [
   { key: 'practica', label: 'Clasificación', sub: 'Ranking previo' },
@@ -569,23 +599,31 @@ async function playUnlockSplash(rider) {
   ceremony.value = true;
   await nextTick();
 
-  const wipe = wipeEl.value;
-  const ring = ringEl.value;
-  const kicker = kickerEl.value;
+  const stripes = stripesEl.value;
+  const scan = scanEl.value;
+  const flash = flashEl.value;
+  const brand = brandEl.value;
+  const rail = railEl.value;
+  const status = statusEl.value;
   const plateNode = plateEl.value;
   const nameNode = nameEl.value;
+  const tag = tagEl.value;
 
-  if (!wipe || !plateNode || !nameNode) {
+  if (!stripes || !plateNode || !nameNode) {
     ceremony.value = false;
     return;
   }
 
   return new Promise((resolve) => {
-    gsap.set(wipe, { x: '115%', opacity: 1, skewX: -14 });
-    gsap.set(ring, { scale: 0.75, opacity: 0 });
-    gsap.set(kicker, { y: 16, opacity: 0 });
-    gsap.set(plateNode, { scale: 0.88, opacity: 0, rotate: -3 });
-    gsap.set(nameNode, { y: 20, opacity: 0 });
+    gsap.set(stripes, { xPercent: -110, opacity: 1 });
+    gsap.set(scan, { yPercent: -120, opacity: 0 });
+    gsap.set(flash, { opacity: 0 });
+    gsap.set(brand, { y: 18, opacity: 0, letterSpacing: '0.55em' });
+    gsap.set(rail, { scaleX: 0, opacity: 1 });
+    gsap.set(status, { y: 14, opacity: 0 });
+    gsap.set(plateNode, { y: 40, opacity: 0, scale: 1.18, filter: 'blur(10px)' });
+    gsap.set(nameNode, { y: 28, opacity: 0, clipPath: 'inset(0 0 100% 0)' });
+    gsap.set(tag, { y: 12, opacity: 0 });
 
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
@@ -595,22 +633,68 @@ async function playUnlockSplash(rider) {
       },
     });
 
-    tl.to(wipe, { x: '-25%', duration: 0.55, ease: 'power4.inOut' }, 0)
-      .to(ring, { scale: 1, opacity: 1, duration: 0.4 }, 0.18)
-      .to(kicker, { y: 0, opacity: 1, duration: 0.3 }, 0.28)
-      .to(
-        plateNode,
-        { scale: 1, opacity: 1, rotate: 0, duration: 0.55, ease: 'back.out(1.5)' },
-        0.32
+    // Barrido de hazard / meta
+    tl.to(stripes, { xPercent: 110, duration: 0.7, ease: 'power4.inOut' }, 0)
+      .to(scan, { opacity: 0.85, duration: 0.12 }, 0.08)
+      .to(scan, { yPercent: 120, duration: 0.55, ease: 'power2.inOut' }, 0.1)
+      .to(scan, { opacity: 0, duration: 0.2 }, 0.55)
+
+      // Brand + confirmación
+      .to(brand, {
+        y: 0,
+        opacity: 1,
+        letterSpacing: '0.28em',
+        duration: 0.55,
+        ease: 'power2.out',
+      }, 0.22)
+      .to(rail, { scaleX: 1, duration: 0.45, ease: 'power2.out' }, 0.38)
+      .to(status, { y: 0, opacity: 1, duration: 0.35 }, 0.42)
+
+      // Placa: impacto
+      .to(plateNode, {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 0.7,
+        ease: 'power4.out',
+      }, 0.48)
+      .fromTo(
+        plateNode.querySelector('.digits'),
+        { letterSpacing: '0.22em' },
+        { letterSpacing: '0.04em', duration: 0.55, ease: 'power2.out' },
+        0.5
       )
-      .to(nameNode, { y: 0, opacity: 1, duration: 0.4 }, 0.48)
-      .to(plateNode, { scale: 1.05, duration: 0.28, yoyo: true, repeat: 1 }, 0.95)
+
+      // Nombre + tag
+      .to(nameNode, {
+        y: 0,
+        opacity: 1,
+        clipPath: 'inset(0 0 0% 0)',
+        duration: 0.55,
+        ease: 'power3.out',
+      }, 0.72)
+      .to(tag, { y: 0, opacity: 1, duration: 0.35 }, 0.9)
+
+      // Pulso corto
+      .to(plateNode, { scale: 1.045, duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.15)
+
+      // Salida cinematográfica
+      .to(flash, { opacity: 0.55, duration: 0.12, ease: 'power1.out' }, 1.65)
+      .to(flash, { opacity: 0, duration: 0.35 }, 1.78)
+      .to(rail, { opacity: 0, duration: 0.3 }, 1.7)
       .to(
-        [kicker, plateNode, nameNode, ring],
-        { opacity: 0, y: -16, duration: 0.35, stagger: 0.03 },
-        1.45
-      )
-      .to(wipe, { x: '-130%', duration: 0.4, ease: 'power3.in' }, 1.45);
+        [brand, status, plateNode, nameNode, tag],
+        {
+          opacity: 0,
+          y: -28,
+          scale: 1.06,
+          duration: 0.45,
+          stagger: 0.028,
+          ease: 'power2.in',
+        },
+        1.7
+      );
   });
 }
 
@@ -670,7 +754,7 @@ function reset() {
   ceremony.value = false;
   accessToken.value = '';
   gateIn.value = false;
-  gsap.killTweensOf([wipeEl.value, ringEl.value, kickerEl.value, plateEl.value, nameEl.value].filter(Boolean));
+  gsap.killTweensOf(splashNodes());
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       gateIn.value = true;
@@ -826,7 +910,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey);
   document.body.style.overflow = '';
-  gsap.killTweensOf([wipeEl.value, ringEl.value, kickerEl.value, plateEl.value, nameEl.value].filter(Boolean));
+  gsap.killTweensOf(splashNodes());
 });
 </script>
 
@@ -1949,96 +2033,207 @@ input:focus {
 
 .back:hover { color: var(--cx-orange); }
 
-/* —— Splash —— */
+/* —— Splash unlock ceremony —— */
 .splash {
+  --splash-orange: var(--cx-orange, #ff5e00);
   position: fixed;
   inset: 0;
   z-index: 100000;
   display: grid;
   place-items: center;
-  background: #000;
+  background: #030303;
   overflow: hidden;
   pointer-events: none;
 }
 
-.splash__wipe {
+.splash__bg {
   position: absolute;
-  top: -25%;
+  inset: 0;
+}
+
+.splash__glow {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse 55% 40% at 50% 42%, rgba(255, 94, 0, 0.28), transparent 62%),
+    radial-gradient(ellipse 80% 55% at 50% 100%, rgba(255, 94, 0, 0.12), transparent 55%),
+    linear-gradient(180deg, #0a0a0a 0%, #050505 45%, #000 100%);
+}
+
+.splash__grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 20%, transparent 75%);
+  transform: perspective(600px) rotateX(58deg) translateY(-8%);
+  transform-origin: center 70%;
+}
+
+.splash__dust {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 28%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 78% 22%, rgba(255, 94, 0, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 64% 68%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 30% 74%, rgba(255, 94, 0, 0.4), transparent),
+    radial-gradient(1px 1px at 88% 58%, rgba(255, 255, 255, 0.2), transparent);
+  animation: splash-dust 4.5s linear infinite;
+  opacity: 0.7;
+}
+
+.splash__stripes {
+  position: absolute;
+  top: -20%;
   left: 0;
-  z-index: 1;
-  width: 58vw;
-  height: 150%;
+  z-index: 2;
+  width: 42vw;
+  min-width: 160px;
+  height: 140%;
+  background: repeating-linear-gradient(
+    -18deg,
+    #ff5e00 0 14px,
+    #111 14px 28px
+  );
+  opacity: 0.92;
+  filter: saturate(1.15);
+  mix-blend-mode: screen;
+}
+
+.splash__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 3;
+  height: 18%;
   background: linear-gradient(
-    90deg,
+    180deg,
     transparent,
-    rgba(255, 94, 0, 0.55) 35%,
-    var(--cx-orange) 55%,
-    rgba(255, 94, 0, 0.35) 75%,
+    rgba(255, 94, 0, 0.15) 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 94, 0, 0.15) 60%,
     transparent
   );
-  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.splash__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.55), rgba(255, 94, 0, 0.25) 40%, transparent 70%);
+  pointer-events: none;
 }
 
 .splash__core {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 1rem;
-  max-width: min(92vw, 640px);
+  padding: 1.25rem 1.1rem;
+  max-width: min(94vw, 720px);
 }
 
-.splash__ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(72vw, 300px);
-  height: min(72vw, 300px);
-  margin: calc(min(72vw, 300px) / -2) 0 0 calc(min(72vw, 300px) / -2);
-  border: 2px solid rgba(255, 94, 0, 0.55);
-  border-radius: 50%;
-  box-shadow: 0 0 40px rgba(255, 94, 0, 0.3);
-}
-
-.splash__kicker {
-  position: relative;
-  margin: 0 0 0.65rem;
-  font-family: var(--font-accent);
-  font-size: 0.72rem;
+.splash__brand {
+  margin: 0;
+  font-family: var(--font-podium);
+  font-size: clamp(0.72rem, 2.6vw, 0.95rem);
   font-weight: 900;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--cx-orange);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.splash__brand .x {
+  color: var(--splash-orange);
+}
+
+.splash__rail {
+  width: min(42vw, 160px);
+  height: 2px;
+  margin: 0.85rem 0 0.7rem;
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, var(--splash-orange), transparent);
+}
+
+.splash__status {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--splash-orange);
 }
 
 .splash__plate {
   position: relative;
   margin: 0;
   font-family: var(--font-podium);
-  font-size: clamp(4.5rem, 18vw, 7.5rem);
+  font-size: clamp(5rem, 22vw, 8.5rem);
   letter-spacing: 0.04em;
-  line-height: 0.92;
+  line-height: 0.88;
   color: #fff;
-  text-shadow: 0 0 28px rgba(255, 94, 0, 0.65), 0 0 60px rgba(255, 94, 0, 0.35);
+  text-shadow:
+    0 0 24px rgba(255, 94, 0, 0.45),
+    0 0 64px rgba(255, 94, 0, 0.25);
+  will-change: transform, opacity, filter;
 }
 
 .splash__plate .sym {
-  font-family: var(--font-symbols);
-  color: var(--cx-orange);
-  margin-right: 0.05em;
+  font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
+  color: var(--splash-orange);
+  margin-right: 0.04em;
+}
+
+.splash__plate .digits {
+  display: inline-block;
 }
 
 .splash__name {
   position: relative;
-  margin: 0.85rem 0 0;
-  font-family: var(--font-podium);
-  font-size: clamp(1.45rem, 5.5vw, 2.4rem);
-  letter-spacing: 0.04em;
-  line-height: 1.05;
+  margin: 1rem 0 0;
+  max-width: 18ch;
+  font-family: var(--font-accent);
+  font-size: clamp(1.35rem, 5.2vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.12;
   color: #fff;
   text-wrap: balance;
+}
+
+.splash__tag {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+@keyframes splash-dust {
+  from { transform: translate3d(0, 8px, 0); }
+  to { transform: translate3d(0, -18px, 0); }
+}
+
+@media (max-width: 480px) {
+  .splash__stripes {
+    width: 58vw;
+  }
+
+  .splash__name {
+    max-width: 16ch;
+  }
 }
 
 /* —— Lightbox —— */
