@@ -49,9 +49,9 @@
       </div>
     </div>
 
-    <div v-if="loading && !items.length" class="e4g__empty">Cargando galería…</div>
-    <div v-else-if="error && !items.length" class="e4g__empty e4g__empty--err">{{ error }}</div>
-    <div v-else-if="!items.length" class="e4g__empty">
+    <div v-if="loading && !visibleItems.length" class="e4g__empty">Cargando galería…</div>
+    <div v-else-if="error && !visibleItems.length" class="e4g__empty e4g__empty--err">{{ error }}</div>
+    <div v-else-if="!visibleItems.length" class="e4g__empty">
       <template v-if="mediaTab === 'photo'">
         Aún no hay fotos públicas.
         <button type="button" class="e4g__empty-cta" @click="openUpload">Sé el primero en subir</button>
@@ -63,19 +63,21 @@
 
     <div v-else class="e4g__grid" @dragstart.prevent>
       <article
-        v-for="(item, idx) in items"
+        v-for="(item, idx) in visibleItems"
         :key="item.id"
         class="cell"
         :class="[cellClass(idx), item.media_type === 'video' ? 'cell--video' : '']"
         @click="openViewer(idx)"
       >
         <img
+          v-if="thumbSrc(item)"
           :src="thumbSrc(item)"
           :alt="caption(item)"
           class="cell__img"
           loading="lazy"
           decoding="async"
           draggable="false"
+          @error="markBroken(item.id)"
         />
         <div v-if="item.media_type === 'video'" class="cell__play" aria-hidden="true">
           <span>▶</span>
@@ -88,14 +90,16 @@
           <span v-else class="gen">General</span>
         </div>
         <div class="cell__foot">
-          <span v-if="creditIg(item)" class="cell__ig">@{{ creditIg(item) }}</span>
+          <span v-if="creditIg(item)" class="cell__ig">
+            <span class="cell__at">@</span><span class="cell__ig-handle">{{ creditIg(item) }}</span>
+          </span>
           <strong v-else-if="creditName(item)" class="cell__name">{{ creditName(item) }}</strong>
         </div>
       </article>
     </div>
 
-    <div v-if="items.length && mediaTab === 'photo'" class="e4g__pager">
-      <p class="e4g__shown">Mostrando {{ items.length }} de {{ total }}</p>
+    <div v-if="visibleItems.length && mediaTab === 'photo'" class="e4g__pager">
+      <p class="e4g__shown">Mostrando {{ visibleItems.length }} de {{ total }}</p>
       <button
         v-if="hasMore"
         ref="moreBtn"
@@ -108,8 +112,8 @@
       </button>
       <p v-else-if="total > perPage" class="e4g__end">Fin de la galería</p>
     </div>
-    <p v-else-if="items.length && mediaTab === 'video'" class="e4g__end e4g__end--solo">
-      Selección aleatoria de {{ items.length }} videos
+    <p v-else-if="visibleItems.length && mediaTab === 'video'" class="e4g__end e4g__end--solo">
+      Selección aleatoria de {{ visibleItems.length }} videos
     </p>
 
     <!-- Modal subir -->
@@ -247,7 +251,7 @@
     <!-- Viewer -->
     <Teleport to="body">
       <div
-        v-if="viewerIndex != null && items[viewerIndex]"
+        v-if="viewerIndex != null && visibleItems[viewerIndex]"
         class="viewer"
         role="dialog"
         aria-modal="true"
@@ -285,7 +289,7 @@
           <div class="viewer__wm" aria-hidden="true">CHACAS XTREME · 4ª EDICIÓN</div>
         </div>
         <button
-          v-if="viewerIndex < items.length - 1"
+          v-if="viewerIndex < visibleItems.length - 1"
           type="button"
           class="viewer__nav next"
           @click="viewerIndex += 1"
@@ -297,12 +301,21 @@
               #{{ activeItem.rider.plate_number }}
               · {{ activeItem.rider.full_name }}
             </strong>
-            <strong v-else-if="creditIg(activeItem)">@{{ creditIg(activeItem) }}</strong>
+            <strong v-else-if="creditIg(activeItem)">
+              <span class="viewer__at">@</span>{{ creditIg(activeItem) }}
+            </strong>
             <strong v-else-if="creditName(activeItem)" class="viewer__name-sm">
               {{ creditName(activeItem) }}
             </strong>
             <strong v-else-if="activeItem?.media_type === 'video'">Video</strong>
             <strong v-else>Toma general</strong>
+            <p v-if="activeItem?.photographer?.full_name && activeItem?.rider" class="viewer__tag">
+              <template v-if="creditIg(activeItem)">
+                <span class="viewer__at">@</span>{{ creditIg(activeItem) }}
+              </template>
+              <template v-else>{{ activeItem.photographer.full_name }}</template>
+            </p>
+            <p v-if="!activeItem?.rider && activeItem?.is_general" class="viewer__tag">General</p>
             <p v-if="activeItem?.media_type === 'video' && !activeItem.has_web_preview" class="viewer__warn">
               Sin versión web — puede no reproducir. Usá Descargar original HD.
             </p>
@@ -318,7 +331,7 @@
               Descargar original HD
             </a>
             <p class="viewer__note">
-              {{ viewerIndex + 1 }} / {{ items.length }}
+              {{ viewerIndex + 1 }} / {{ visibleItems.length }}
             </p>
           </div>
         </div>
@@ -340,6 +353,8 @@ const VIDEO_SAMPLE = 40;
 
 const mediaTab = ref('photo'); // photo | video
 const items = ref([]);
+/** IDs cuyo thumb falló al cargar — no se muestran en grilla. */
+const brokenIds = ref(/** @type {Record<number, true>} */ ({}));
 const page = ref(1);
 const lastPage = ref(1);
 const total = ref(0);
@@ -362,8 +377,12 @@ let lockedScrollY = 0;
 
 const perPage = computed(() => PHOTO_PER_PAGE);
 const hasMore = computed(() => mediaTab.value === 'photo' && page.value < lastPage.value);
+const visibleItems = computed(() => items.value.filter((item) => {
+  if (brokenIds.value[item.id]) return false;
+  return Boolean(thumbSrc(item));
+}));
 const activeItem = computed(() => (
-  viewerIndex.value != null ? items.value[viewerIndex.value] : null
+  viewerIndex.value != null ? visibleItems.value[viewerIndex.value] : null
 ));
 const totalLabel = computed(() => {
   if (!total.value) return mediaTab.value === 'video' ? '0 videos' : '0 tomas';
@@ -416,11 +435,20 @@ function downloadHref(item) {
   return `${API_BASE}/api/race-media/${item.id}/download-public`;
 }
 
+function markBroken(id) {
+  if (!id || brokenIds.value[id]) return;
+  brokenIds.value = { ...brokenIds.value, [id]: true };
+  if (viewerIndex.value != null && viewerIndex.value >= visibleItems.value.length) {
+    viewerIndex.value = visibleItems.value.length ? visibleItems.value.length - 1 : null;
+  }
+}
+
 function setMediaTab(tab) {
   if (mediaTab.value === tab) return;
   mediaTab.value = tab;
   viewerIndex.value = null;
   items.value = [];
+  brokenIds.value = {};
   page.value = 1;
   lastPage.value = 1;
   total.value = 0;
@@ -440,8 +468,9 @@ async function loadPage(p, { append = false } = {}) {
       limit: VIDEO_SAMPLE,
     });
     competitionName.value = res.competition?.name || '';
-    const rows = res.data || [];
+    const rows = (res.data || []).filter((item) => Boolean(thumbSrc(item)));
     items.value = append && !isVideo ? [...items.value, ...rows] : rows;
+    if (!append) brokenIds.value = {};
     page.value = res.meta?.current_page || p;
     lastPage.value = res.meta?.last_page || 1;
     total.value = res.meta?.total || rows.length;
@@ -593,7 +622,7 @@ function onKey(e) {
   }
   if (viewerIndex.value == null) return;
   if (e.key === 'Escape') closeViewer();
-  if (e.key === 'ArrowRight' && viewerIndex.value < items.value.length - 1) {
+  if (e.key === 'ArrowRight' && viewerIndex.value < visibleItems.value.length - 1) {
     viewerIndex.value += 1;
   }
   if (e.key === 'ArrowLeft' && viewerIndex.value > 0) {
@@ -965,6 +994,14 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
+/* En teléfono: sin placa / General (sí se ven en el detalle). */
+@media (max-width: 768px) {
+  .cell__mark .plate,
+  .cell__mark .gen {
+    display: none;
+  }
+}
+
 .plate,
 .gen,
 .vid {
@@ -1007,10 +1044,43 @@ onUnmounted(() => {
 }
 
 .cell__ig {
-  font-size: 0.72rem;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05em;
+  max-width: 100%;
   color: #fff;
+  line-height: 1.05;
+  overflow: hidden;
+}
+
+.cell__at {
+  flex-shrink: 0;
+  font-family: var(--font-podium);
+  font-weight: 900;
   letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.cell__ig-handle {
+  font-family: var(--font-accent);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tamaño del IG según tamaño de celda */
+.cell--sm .cell__ig {
+  font-size: clamp(0.55rem, 2.4vw, 0.72rem);
+}
+
+.cell--tall .cell__ig {
+  font-size: clamp(0.68rem, 2.8vw, 0.9rem);
+}
+
+.cell--hero .cell__ig {
+  font-size: clamp(0.85rem, 3.2vw, 1.2rem);
 }
 
 .cell__name {
@@ -1021,6 +1091,10 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cell--hero .cell__name {
+  font-size: 0.85rem !important;
 }
 
 .e4g__pager {
@@ -1568,6 +1642,19 @@ onUnmounted(() => {
   font-family: var(--font-podium);
   font-size: 1.25rem;
   letter-spacing: 0.03em;
+}
+
+.viewer__at {
+  font-family: var(--font-podium);
+  font-weight: 900;
+}
+
+.viewer__tag {
+  margin: 0.35rem 0 0 !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.72rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .viewer__cap p {
