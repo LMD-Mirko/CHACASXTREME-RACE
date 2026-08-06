@@ -31,33 +31,7 @@ const defaultImages = computed(() =>
 );
 
 const remoteGalleryImages = ref([]);
-/** URLs que fallaron al cargar (se ocultan para no dejar huecos negros) */
-const brokenUrls = ref(new Set());
 
-const sourceImages = computed(() => {
-  // Locales primero (siempre visibles); remotas después como extras
-  const locals = defaultImages.value;
-  const seen = new Set(locals);
-  const extras = (remoteGalleryImages.value || []).filter((u) => {
-    if (!u || seen.has(u) || brokenUrls.value.has(u)) return false;
-    seen.add(u);
-    return true;
-  });
-  return [...locals, ...extras].filter((u) => !brokenUrls.value.has(u));
-});
-
-/** Alternar entre filas: las dos siempre llevan fotos locales */
-const imagesRow1 = computed(() => sourceImages.value.filter((_, i) => i % 2 === 0));
-const imagesRow2 = computed(() => sourceImages.value.filter((_, i) => i % 2 === 1));
-
-function onImgError(url) {
-  if (!url) return;
-  const next = new Set(brokenUrls.value);
-  next.add(url);
-  brokenUrls.value = next;
-}
-
-const selectedImage = ref(null);
 const allImages = computed(() => sourceImages.value);
 
 const activeIndex = computed(() => {
