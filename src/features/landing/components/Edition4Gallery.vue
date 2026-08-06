@@ -262,7 +262,7 @@
         @click.self="closeViewer"
         @contextmenu.prevent
       >
-        <button type="button" class="viewer__x" @click="closeViewer" aria-label="Cerrar">×</button>
+        <button type="button" class="viewer__x viewer__x--top" @click="closeViewer" aria-label="Cerrar">×</button>
         <button
           v-if="viewerIndex > 0"
           type="button"
@@ -338,15 +338,23 @@
             </p>
           </div>
           <div class="viewer__actions">
-            <a
-              v-if="downloadHref(activeItem)"
-              class="viewer__dl"
-              :href="downloadHref(activeItem)"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Descargar original HD
-            </a>
+            <div class="viewer__cta">
+              <a
+                v-if="downloadHref(activeItem)"
+                class="viewer__dl"
+                :href="downloadHref(activeItem)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Descargar original HD
+              </a>
+              <button
+                type="button"
+                class="viewer__x viewer__x--bar"
+                @click="closeViewer"
+                aria-label="Cerrar"
+              >×</button>
+            </div>
             <p class="viewer__note">
               {{ viewerIndex + 1 }} / {{ visibleItems.length }}
             </p>
@@ -1718,6 +1726,12 @@ onUnmounted(() => {
   gap: 0.55rem;
 }
 
+.viewer__cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .viewer__dl {
   display: inline-flex;
   align-items: center;
@@ -1755,16 +1769,27 @@ onUnmounted(() => {
 }
 
 .viewer__x {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   width: 44px;
   height: 44px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: #000;
   color: #fff;
   font-size: 1.5rem;
+  line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.viewer__x--top {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 6;
+}
+
+.viewer__x--bar {
+  display: none;
+  position: static;
 }
 
 .viewer__nav {
@@ -1783,6 +1808,46 @@ onUnmounted(() => {
 
 .viewer__nav.prev { left: 0.75rem; }
 .viewer__nav.next { right: 0.75rem; }
+
+@media (max-width: 768px) {
+  /* En teléfono: X al lado de descarga (no arriba, lo tapa la imagen/video). */
+  .viewer__x--top {
+    display: none;
+  }
+
+  .viewer__x--bar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  .viewer__actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .viewer__cta {
+    width: 100%;
+  }
+
+  .viewer__dl {
+    flex: 1;
+    min-height: 46px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .viewer__note {
+    text-align: right;
+  }
+
+  .viewer__nav {
+    display: none;
+  }
+}
 
 @media (max-width: 640px) {
   .viewer__nav { display: none; }
