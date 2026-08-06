@@ -393,9 +393,33 @@
             </p>
             <div ref="railEl" class="splash__rail" />
             <p ref="statusEl" class="splash__status">Acceso confirmado</p>
-            <div ref="plateEl" class="splash__plate">
-              <span class="sym">#</span><span class="digits">{{ ceremonyPlate }}</span>
+
+            <div ref="plateEl" class="splash__badge">
+              <div class="splash__badge-ring" aria-hidden="true" />
+              <div class="splash__badge-frame">
+                <span class="splash__corner splash__corner--tl" aria-hidden="true" />
+                <span class="splash__corner splash__corner--tr" aria-hidden="true" />
+                <span class="splash__corner splash__corner--bl" aria-hidden="true" />
+                <span class="splash__corner splash__corner--br" aria-hidden="true" />
+
+                <div class="splash__badge-top">
+                  <span class="splash__badge-mark" aria-hidden="true" />
+                  <span class="splash__badge-label">Placa</span>
+                  <span class="splash__badge-mark" aria-hidden="true" />
+                </div>
+
+                <div class="splash__plate">
+                  <span class="sym">#</span><span class="digits">{{ ceremonyPlate }}</span>
+                </div>
+
+                <div class="splash__badge-bot">
+                  <span>Rider</span>
+                  <span class="splash__badge-dot" aria-hidden="true" />
+                  <span>4ª ed.</span>
+                </div>
+              </div>
             </div>
+
             <h2 ref="nameEl" class="splash__name">{{ ceremonyName }}</h2>
             <p ref="tagEl" class="splash__tag">Tu dossier · 4ª edición</p>
           </div>
@@ -623,6 +647,10 @@ async function playUnlockSplash(rider) {
 
   return new Promise((resolve) => {
     const digits = plateNode.querySelector('.digits');
+    const ring = plateNode.querySelector('.splash__badge-ring');
+    const corners = plateNode.querySelectorAll('.splash__corner');
+    const badgeTop = plateNode.querySelector('.splash__badge-top');
+    const badgeBot = plateNode.querySelector('.splash__badge-bot');
 
     gsap.set(stripes, { xPercent: -120, opacity: 1 });
     gsap.set(scan, { yPercent: -120, opacity: 0 });
@@ -630,10 +658,14 @@ async function playUnlockSplash(rider) {
     gsap.set(brand, { y: 14, opacity: 0 });
     gsap.set(rail, { scaleX: 0, opacity: 1 });
     gsap.set(status, { y: 10, opacity: 0 });
-    gsap.set(plateNode, { y: 28, opacity: 0, scale: 1.08 });
+    gsap.set(plateNode, { y: 24, opacity: 0, scale: 0.94 });
     gsap.set(nameNode, { y: 18, opacity: 0 });
     gsap.set(tag, { y: 10, opacity: 0 });
-    if (digits) gsap.set(digits, { letterSpacing: '0.18em' });
+    if (digits) gsap.set(digits, { letterSpacing: '0.16em' });
+    if (ring) gsap.set(ring, { scale: 0.82, opacity: 0, rotate: -18 });
+    if (corners.length) gsap.set(corners, { opacity: 0, scale: 0.6 });
+    if (badgeTop) gsap.set(badgeTop, { opacity: 0, y: -6 });
+    if (badgeBot) gsap.set(badgeBot, { opacity: 0, y: 6 });
 
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
@@ -643,30 +675,36 @@ async function playUnlockSplash(rider) {
       },
     });
 
-    // 1) Barrido hazard SALE completo antes de que el texto pelee por contraste
     tl.to(stripes, { xPercent: 120, duration: 0.55, ease: 'power4.inOut' }, 0)
       .to(scan, { opacity: 0.7, duration: 0.1 }, 0.05)
       .to(scan, { yPercent: 120, duration: 0.45, ease: 'power2.inOut' }, 0.08)
       .to(scan, { opacity: 0, duration: 0.15 }, 0.45)
 
-      // 2) Contenido sobre escenario oscuro (legible en móvil)
       .to(brand, { y: 0, opacity: 1, duration: 0.4 }, 0.42)
       .to(rail, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, 0.5)
       .to(status, { y: 0, opacity: 1, duration: 0.32 }, 0.52)
+
       .to(plateNode, { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'power4.out' }, 0.55);
 
+    if (ring) {
+      tl.to(ring, { scale: 1, opacity: 1, rotate: 0, duration: 0.65, ease: 'power3.out' }, 0.55);
+    }
+    if (corners.length) {
+      tl.to(corners, { opacity: 1, scale: 1, duration: 0.35, stagger: 0.04 }, 0.62);
+    }
+    if (badgeTop) tl.to(badgeTop, { opacity: 1, y: 0, duration: 0.3 }, 0.66);
+    if (badgeBot) tl.to(badgeBot, { opacity: 1, y: 0, duration: 0.3 }, 0.7);
     if (digits) {
-      tl.to(digits, { letterSpacing: '0.04em', duration: 0.5, ease: 'power2.out' }, 0.58);
+      tl.to(digits, { letterSpacing: '0.04em', duration: 0.5, ease: 'power2.out' }, 0.6);
     }
 
-    tl.to(nameNode, { y: 0, opacity: 1, duration: 0.45 }, 0.72)
-      .to(tag, { y: 0, opacity: 1, duration: 0.32 }, 0.86)
-      .to(plateNode, { scale: 1.03, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.1)
+    tl.to(nameNode, { y: 0, opacity: 1, duration: 0.45 }, 0.78)
+      .to(tag, { y: 0, opacity: 1, duration: 0.32 }, 0.92)
+      .to(plateNode, { scale: 1.025, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.15)
 
-      // 3) Salida
-      .to(flash, { opacity: 0.4, duration: 0.1 }, 1.55)
-      .to(flash, { opacity: 0, duration: 0.3 }, 1.65)
-      .to(rail, { opacity: 0, duration: 0.25 }, 1.6)
+      .to(flash, { opacity: 0.4, duration: 0.1 }, 1.6)
+      .to(flash, { opacity: 0, duration: 0.3 }, 1.7)
+      .to(rail, { opacity: 0, duration: 0.25 }, 1.65)
       .to(
         [brand, status, plateNode, nameNode, tag],
         {
@@ -676,7 +714,7 @@ async function playUnlockSplash(rider) {
           stagger: 0.025,
           ease: 'power2.in',
         },
-        1.6
+        1.65
       );
   });
 }
@@ -2180,7 +2218,7 @@ input:focus {
 }
 
 .splash__status {
-  margin: 0 0 0.75rem;
+  margin: 0 0 1rem;
   font-family: var(--font-accent);
   font-size: clamp(0.72rem, 2.8vw, 0.8rem);
   font-weight: 800;
@@ -2189,22 +2227,155 @@ input:focus {
   color: #ff8a3d;
 }
 
+/* —— Badge / placa elaborada —— */
+.splash__badge {
+  position: relative;
+  width: min(100%, 17.5rem);
+  margin: 0.15rem 0 0.35rem;
+  display: grid;
+  place-items: center;
+  will-change: transform, opacity;
+}
+
+.splash__badge-ring {
+  position: absolute;
+  inset: -10%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 94, 0, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 40px rgba(255, 94, 0, 0.12);
+  background:
+    conic-gradient(
+      from 210deg,
+      transparent 0deg,
+      rgba(255, 94, 0, 0.45) 42deg,
+      transparent 88deg,
+      transparent 180deg,
+      rgba(255, 255, 255, 0.2) 198deg,
+      transparent 240deg
+    );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  pointer-events: none;
+}
+
+.splash__badge-frame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0.85rem 1rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 94, 0, 0.14) 0%, transparent 28%),
+    linear-gradient(180deg, #141414 0%, #070707 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 94, 0, 0.2),
+    0 12px 36px rgba(0, 0, 0, 0.55);
+  clip-path: polygon(
+    0 10px,
+    10px 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+.splash__corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--splash-orange);
+  border-style: solid;
+  opacity: 0.95;
+}
+
+.splash__corner--tl {
+  top: 8px;
+  left: 8px;
+  border-width: 2px 0 0 2px;
+}
+
+.splash__corner--tr {
+  top: 8px;
+  right: 8px;
+  border-width: 2px 2px 0 0;
+}
+
+.splash__corner--bl {
+  bottom: 8px;
+  left: 8px;
+  border-width: 0 0 2px 2px;
+}
+
+.splash__corner--br {
+  bottom: 8px;
+  right: 8px;
+  border-width: 0 2px 2px 0;
+}
+
+.splash__badge-top,
+.splash__badge-bot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-family: var(--font-accent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.splash__badge-top {
+  margin-bottom: 0.35rem;
+  color: #ffb07a;
+}
+
+.splash__badge-bot {
+  margin-top: 0.45rem;
+  gap: 0.55rem;
+  letter-spacing: 0.14em;
+}
+
+.splash__badge-mark {
+  width: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--splash-orange), transparent);
+}
+
+.splash__badge-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--splash-orange);
+  box-shadow: 0 0 8px rgba(255, 94, 0, 0.7);
+}
+
 .splash__plate {
   position: relative;
-  margin: 0;
+  margin: 0.1rem 0;
+  padding: 0.35rem 0.5rem 0.2rem;
   font-family: var(--font-podium);
-  font-size: clamp(3.6rem, 18vw, 7rem);
+  font-size: clamp(3.2rem, 16vw, 5.6rem);
   letter-spacing: 0.04em;
   line-height: 0.9;
   color: #fff;
-  text-shadow: 0 0 28px rgba(255, 94, 0, 0.35);
-  will-change: transform, opacity;
+  text-shadow: 0 0 24px rgba(255, 94, 0, 0.3);
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
 }
 
 .splash__plate .sym {
   font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
   color: var(--splash-orange);
   margin-right: 0.04em;
+  text-shadow: 0 0 18px rgba(255, 94, 0, 0.55);
 }
 
 .splash__plate .digits {
@@ -2213,7 +2384,7 @@ input:focus {
 
 .splash__name {
   position: relative;
-  margin: 0.85rem 0 0;
+  margin: 1rem 0 0;
   width: 100%;
   max-width: 16ch;
   font-family: var(--font-accent);
@@ -2254,8 +2425,20 @@ input:focus {
     padding: 1.5rem 1.15rem 1.35rem;
   }
 
+  .splash__badge {
+    width: min(100%, 15.5rem);
+  }
+
+  .splash__badge-frame {
+    padding: 0.75rem 0.85rem 0.65rem;
+  }
+
   .splash__plate {
-    font-size: clamp(3.4rem, 26vw, 5.5rem);
+    font-size: clamp(3rem, 22vw, 4.6rem);
+  }
+
+  .splash__badge-ring {
+    inset: -8%;
   }
 
   .splash__name {
