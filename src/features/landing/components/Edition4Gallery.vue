@@ -90,8 +90,12 @@
           <span v-else class="gen">General</span>
         </div>
         <div class="cell__foot">
-          <span v-if="creditIg(item)" class="cell__ig">
-            <span class="cell__at">@</span><span class="cell__ig-handle">{{ creditIg(item) }}</span>
+          <span v-if="creditIg(item)" class="cell__ig" :aria-label="'@' + creditIg(item)">
+            <span
+              v-for="(part, pi) in igParts(creditIg(item))"
+              :key="pi"
+              :class="part.sym ? 'ig-sym' : 'ig-letter'"
+            >{{ part.ch }}</span>
           </span>
           <strong v-else-if="creditName(item)" class="cell__name">{{ creditName(item) }}</strong>
         </div>
@@ -297,21 +301,34 @@
         >›</button>
         <div class="viewer__cap">
           <div>
-            <strong v-if="activeItem?.rider">
-              #{{ activeItem.rider.plate_number }}
-              · {{ activeItem.rider.full_name }}
+            <strong v-if="activeItem?.rider" class="viewer__rider">
+              <span class="ig-sym">#</span>{{ activeItem.rider.plate_number }}
+              <span class="ig-sym"> · </span>{{ activeItem.rider.full_name }}
             </strong>
-            <strong v-else-if="creditIg(activeItem)">
-              <span class="viewer__at">@</span>{{ creditIg(activeItem) }}
+            <strong v-else-if="creditIg(activeItem)" class="viewer__ig" :aria-label="'@' + creditIg(activeItem)">
+              <span
+                v-for="(part, pi) in igParts(creditIg(activeItem))"
+                :key="'v' + pi"
+                :class="part.sym ? 'ig-sym' : 'ig-letter'"
+              >{{ part.ch }}</span>
             </strong>
             <strong v-else-if="creditName(activeItem)" class="viewer__name-sm">
               {{ creditName(activeItem) }}
             </strong>
             <strong v-else-if="activeItem?.media_type === 'video'">Video</strong>
             <strong v-else>Toma general</strong>
-            <p v-if="activeItem?.photographer?.full_name && activeItem?.rider" class="viewer__tag">
+            <p
+              v-if="activeItem?.photographer?.full_name && activeItem?.rider"
+              class="viewer__tag"
+            >
               <template v-if="creditIg(activeItem)">
-                <span class="viewer__at">@</span>{{ creditIg(activeItem) }}
+                <span class="viewer__ig viewer__ig--sm" :aria-label="'@' + creditIg(activeItem)">
+                  <span
+                    v-for="(part, pi) in igParts(creditIg(activeItem))"
+                    :key="'t' + pi"
+                    :class="part.sym ? 'ig-sym' : 'ig-letter'"
+                  >{{ part.ch }}</span>
+                </span>
               </template>
               <template v-else>{{ activeItem.photographer.full_name }}</template>
             </p>
@@ -411,6 +428,22 @@ function creditIg(item) {
   const ig = String(item?.photographer?.instagram || '').trim();
   if (!ig || ig.startsWith('__')) return '';
   return ig.replace(/^@+/, '');
+}
+
+/**
+ * Podium Sharp (demo) no trae bien @ _ - .
+ * Esos símbolos van en Poppins; el resto puede usar demo.
+ * @param {string} handle
+ * @returns {Array<{ ch: string, sym: boolean }>}
+ */
+function igParts(handle) {
+  const raw = String(handle || '').trim().replace(/^@+/, '');
+  if (!raw) return [];
+  return Array.from(`@${raw}`).map((ch) => ({
+    ch,
+    // Símbolos que Podium Sharp no dibuja bien
+    sym: /[@_\-.]/.test(ch),
+  }));
 }
 
 /** Nombre corto si no hay IG */
@@ -1046,28 +1079,24 @@ onUnmounted(() => {
 .cell__ig {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.05em;
+  flex-wrap: nowrap;
   max-width: 100%;
   color: #fff;
   line-height: 1.05;
   overflow: hidden;
 }
 
-.cell__at {
-  flex-shrink: 0;
+/* Letras/números: tipografía demo. @ _ - . : Poppins (Podium no los tiene). */
+.ig-letter {
   font-family: var(--font-podium);
   font-weight: 900;
-  letter-spacing: 0.02em;
-  color: #fff;
+  letter-spacing: 0.01em;
 }
 
-.cell__ig-handle {
-  font-family: var(--font-accent);
+.ig-sym {
+  font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
   font-weight: 800;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0;
 }
 
 /* Tamaño del IG según tamaño de celda */
@@ -1639,22 +1668,41 @@ onUnmounted(() => {
 
 .viewer__cap strong {
   display: block;
-  font-family: var(--font-podium);
   font-size: 1.25rem;
   letter-spacing: 0.03em;
 }
 
-.viewer__at {
-  font-family: var(--font-podium);
+.viewer__rider,
+.viewer__name-sm {
+  font-family: var(--font-accent), 'Poppins', system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.viewer__ig {
+  font-family: inherit;
   font-weight: 900;
+}
+
+.viewer__ig--sm {
+  font-size: inherit;
+}
+
+.viewer__ig .ig-letter {
+  font-size: inherit;
+}
+
+.viewer__ig .ig-sym {
+  font-size: 0.92em;
+  vertical-align: baseline;
 }
 
 .viewer__tag {
   margin: 0.35rem 0 0 !important;
   color: rgba(255, 255, 255, 0.55) !important;
   font-size: 0.72rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-family: var(--font-accent);
 }
 
 .viewer__cap p {
