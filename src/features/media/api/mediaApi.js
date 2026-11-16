@@ -16,6 +16,8 @@ export function mediaPublicUrl(value) {
       const host = u.hostname.toLowerCase();
       const isStale =
         host.includes('trycloudflare.com') ||
+        host === 'api.mankariders.xyz' ||
+        host === 'ws.mankariders.xyz' ||
         host === '24.199.82.193' ||
         host === '127.0.0.1' ||
         host === 'localhost';
